@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Http\Controllers\API\Panel;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Spatie\Permission\Models\Role;
+use App\Http\Resources\API\UserResource;
+use App\Http\Requests\API\UserRequest;
+use App\Models\User;
+
+class UserController extends Controller
+{
+	public function index(Request $request)
+	{
+		$limit = $request->per_page??20;
+		$users = User::orderBy('created_at','DESC')->paginate($limit);
+		   $data = UserResource::collection($users);
+		return $this->response_api(true,trans('messages.success'),$data);
+	}
+
+
+	public function store(UserRequest $request)
+    {
+		\DB::beginTransaction();
+      try {
+			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
+			$user->syncRoles($request->role_id);
+			\DB::commit();
+            return $this->response_api(true, trans('messages.success'),new UserResource($user));
+		} catch (\Exception $e) {
+			\DB::rollback();
+			return $this->response_api(false, trans('messages.server_error'));
+		}
+    }
+
+
+	public function show(User $user)
+    {
+	   if(!$user)
+           return $this->response_api(false, trans('messages.server_error'));
+
+	   return $this->response_api(true, trans('messages.success'),new UserResource($user));
+    }
+
+	public function update(UserRequest $request,User $user) {
+		\DB::beginTransaction();
+      try {
+			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
+			$user->syncRoles($request->role_id);
+			\DB::commit();
+            return $this->response_api(true, trans('messages.success'),new UserResource($user));
+		} catch (\Exception $e) {
+			\DB::rollback();
+			return $this->response_api(false, trans('messages.server_error'));
+		}
+	}
+	public function destroy(User $user)
+    {
+		if(!$user)
+           return $this->response_api(false, trans('messages.server_error'));
+
+        $user->delete();
+        return $this->response_api(true,  trans('messages.success'));
+    }
+
+	public function myProfile(Request $request){
+		$user = $request->user();
+		$data = new UserResource($user);
+		return $this->response_api(true,trans('messages.success'),$data);
+	}
+
+
+
+	
+
+}
