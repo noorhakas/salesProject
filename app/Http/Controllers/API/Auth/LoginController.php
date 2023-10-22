@@ -14,6 +14,7 @@ class LoginController extends Controller
     {
 		$field = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'user_name';
 		$credentials = [$field => $request->email, 'password' => $request->password];
+
 		if(!Auth::attempt($credentials))
 		    return $this->response_api(false,trans('messages.invalid_auth'));
 	

@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UserRequest extends FormRequest
+class ProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,26 +27,21 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
-
-		return match (request()->method()){
+		return match(request()->method()){
             "POST" => [
-				'name'=>'required|string|max:100',
-				'user_name'=>'required|string|max:100|unique:users,user_name,NULL,id,deleted_at,NULL',
-				'email'=>'required|email:rfc,dns|unique:users,email,NULL,id,deleted_at,NULL',
-				'status'=>'required|integer|in:0,1',
-				'role_id' => 'required|exists:roles,id',
-				'password' => 'required|min:6'
+				'name'=>'required|string|max:100|unique:products,name,NULL,id,deleted_at,NULL',
+				'specialty_id'=>'required|exists:specialty,id',
+				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+				'description'=> 'min:10',
+
 			],
             "PUT", "PATCH" =>  [
-                'name'=>'sometimes|required|string|max:100',
-				'email' => 'sometimes|required|email:rfc,dns|max:255|unique:users,email,' . $this->user?->id . ',id,deleted_at,NULL',
-                'user_name' => 'sometimes|required|string|max:255|unique:users,user_name,' . $this->user?->id . ',id,deleted_at,NULL',
-				'status'=>'sometimes|required|integer|in:0,1',
-				'role_id' => 'sometimes|required|exists:roles,id',
-				'password' => 'sometimes|required|min:6'
+                'name' => 'sometimes|required|string|max:255|unique:products,name,' . $this->product?->id . ',id,deleted_at,NULL',
+			    'specialty_id'=>'sometimes|required|exists:specialty,id',
+				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+				'description'=> 'min:10',
 			],
         };
-
     }
 
     protected function failedValidation(Validator $validator)

@@ -27,11 +27,15 @@ class RoleRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+		$base = [
             'name' => 'required',
 			'permissions' => 'required|array|between:1,100',
             'permissions.*.id' => 'exists:permissions,id'
         ];
+		return match (request()->method()){
+            "POST" => $base,
+            "PUT", "PATCH" => array_merge($base,['name' => 'required|unique:roles,name,'.$this->role?->id]),
+        };
     }
 
     protected function failedValidation(Validator $validator)

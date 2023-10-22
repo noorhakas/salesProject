@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
 		Route::post('logout', 'LoginController@Logout')->middleware('auth:sanctum');
@@ -25,10 +24,15 @@ Route::group(['namespace' => 'Auth'], function(){
 
 //Route::group(['middleware' => ['auth', 'permission']], function() {
 Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function(){
-   	Route::resource('users', UserController::class,['except' => ['edit', 'create']]);
+   	Route::resource('users', 'UserController')->except(['edit', 'create']);;
 	Route::get('myprofile', 'UserController@myProfile');   
-	Route::resource('roles', RoleController::class,['except' => ['edit', 'create']]);
-    Route::get('permissions', 'RoleController@allPermissions');
+	Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
+	Route::get('permissions', 'RoleController@allPermissions');
+
+	/** specialty && products*/
+	Route::resource('specialty', 'SpecialtyController')->except(['edit', 'create']);
+	Route::resource('products', 'ProductController')->except(['edit', 'create']);
+	
 });
 
 

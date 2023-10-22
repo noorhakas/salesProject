@@ -14,7 +14,8 @@ class RoleController extends Controller
 {
 	public function index()
 	{
-		$role = Role::get(['id','name','created_at'])->map(fn ($role) => collect($role)
+		$role = Role::when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		     ->get(['id','name','created_at'])->map(fn ($role) => collect($role)
 		     ->put('created_at', Carbon::parse($role->created_at)->toDayDateTimeString())
 	    );
 		return $this->response_api(true,trans('messages.success'),$role);

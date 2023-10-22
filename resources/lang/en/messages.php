@@ -7,6 +7,7 @@ return [
     'invalid_auth' => 'incorrect email or password',
     'register_success' => 'Registration completed successfully',
     'user_not_found' => 'User Not Found',
+	'data_not_found' => 'Data Not Found',
     'password_success' => 'Password changed successfully',
     'invalid_code' => 'Incorrect Code',
     'server_error' => 'Internal Server Error',

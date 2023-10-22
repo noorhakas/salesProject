@@ -59,5 +59,16 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+	public function scopeFilter($q,$request)
+    {
+		$q = $q->when($request->search,fn($q, $v) => 
+					$q->where('name', 'like', "%{$v}%")
+					->orWhere('user_name', 'like', "%{$v}%")
+					->orWhere('email', 'like', "%{$v}%"));
+
+        return $q;
+    }
+
+
 
 }

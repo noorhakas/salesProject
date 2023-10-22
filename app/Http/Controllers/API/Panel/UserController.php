@@ -14,7 +14,7 @@ class UserController extends Controller
 	public function index(Request $request)
 	{
 		$limit = $request->per_page??20;
-		$users = User::orderBy('created_at','DESC')->paginate($limit);
+		$users = User::filter($request)->orderBy('created_at','DESC')->paginate($limit);
 		   $data = UserResource::collection($users);
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
@@ -38,7 +38,7 @@ class UserController extends Controller
 	public function show(User $user)
     {
 	   if(!$user)
-           return $this->response_api(false, trans('messages.server_error'));
+           return $this->response_api(false, trans('messages.user_not_found'));
 
 	   return $this->response_api(true, trans('messages.success'),new UserResource($user));
     }
@@ -46,7 +46,10 @@ class UserController extends Controller
 	public function update(UserRequest $request,User $user) {
 		\DB::beginTransaction();
       try {
-			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
+		   if(!$user)
+		      return $this->response_api(false, trans('messages.user_not_found'));
+
+			$user->update($request->validated());
 			$user->syncRoles($request->role_id);
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
@@ -58,7 +61,7 @@ class UserController extends Controller
 	public function destroy(User $user)
     {
 		if(!$user)
-           return $this->response_api(false, trans('messages.server_error'));
+           return $this->response_api(false, trans('messages.user_not_found'));
 
         $user->delete();
         return $this->response_api(true,  trans('messages.success'));
