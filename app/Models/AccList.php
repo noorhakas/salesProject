@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Terrioty extends Model
+class AccList extends Model
 {
 	use SoftDeletes;
-    protected $table = 'terrioty';
+    protected $table = 'acc_list';
+	
+	protected $fillable = ['name'];
+
 
 }

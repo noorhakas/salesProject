@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
+use App\Enums\StatusEnum;
 
-class RoleResource extends JsonResource
+
+class BricksResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -23,8 +25,9 @@ class RoleResource extends JsonResource
          
        return  [
             'id' => $this->id,
-            'name' => $this->name,
-			'permissions'=>$this->permissions()->selectraw('id as value,name as label')->get(),
+            'name' => $this->title,
+			'status'=>$this->status,
+			'statusAsString'=>StatusEnum::from($this->status)->toString(),
 			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }

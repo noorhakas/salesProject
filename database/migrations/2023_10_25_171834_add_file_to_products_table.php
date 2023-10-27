@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBricksTable extends Migration
+class AddFileToProductsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,9 @@ class CreateBricksTable extends Migration
      */
     public function up()
     {
-        Schema::create('bricks', function (Blueprint $table) {
-            $table->id();
-			$table->string('title');
-			$table->tinyInteger('status')->default(0);
-            $table->timestamps();
-			$table->softDeletes();
+        Schema::table('products', function (Blueprint $table) {
+            //
+			$table->float('price')->before('description')->default(0);
         });
     }
 
@@ -29,6 +26,8 @@ class CreateBricksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bricks');
+        Schema::table('products', function (Blueprint $table) {
+            //
+        });
     }
 }

@@ -15,6 +15,7 @@ return [
     'activation_success' => 'Activation completed successfully',
     'message_sent_successfully' => 'Message sent successfully',
     'value_not_found' => 'value is required',
-	'user_logout'=>'Successfully logged out'
+	'user_logout'=>'Successfully logged out',
+	'permission_denied'=>'You do not have permission to view this page',
 
 ];

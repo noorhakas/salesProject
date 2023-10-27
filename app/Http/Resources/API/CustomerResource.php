@@ -9,7 +9,7 @@ use JsonSerializable;
 use App\Enums\StatusEnum;
 use Carbon\Carbon;
 
-class ProductResource extends JsonResource
+class CustomerResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -25,11 +25,22 @@ class ProductResource extends JsonResource
          
        return  [
             'id' => $this->id,
-            'name' => $this->name,
-			'image'=>$this->image,
+			'name' => $this->name,
+			'image' => $this->image,
+			'brick_id'=>$this->brick_id,
+			'brick_name'=>optional($this->brick)->title,
+			'acc_type_id'=>$this->acc_type_id,
+			'acc_type'=>optional($this->accType)->name,
 			'specialty_id'=>$this->specialty_id,
-			'specialty_name'=>(string)optional($this->specialty)->name,
-			'price'=>$this->price,
+			'specialty_name'=>optional($this->specialty)->name,
+			'class_id'=>$this->class_id,
+			'class_name'=>optional($this->class)->name,
+			'phone'=>$this->phone,
+			'phone1'=>$this->phon1,
+			'address'=>$this->address,
+			'brief'=>$this->brief,
+			'lat'=>$this->lat,
+			'lng'=>$this->lng,
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }

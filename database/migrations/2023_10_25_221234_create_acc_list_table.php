@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBricksTable extends Migration
+class CreateAccListTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreateBricksTable extends Migration
      */
     public function up()
     {
-        Schema::create('bricks', function (Blueprint $table) {
+        Schema::create('acc_list', function (Blueprint $table) {
             $table->id();
-			$table->string('title');
-			$table->tinyInteger('status')->default(0);
+			$table->string('name');
             $table->timestamps();
 			$table->softDeletes();
         });
@@ -29,6 +28,6 @@ class CreateBricksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bricks');
+        Schema::dropIfExists('acc_list');
     }
 }

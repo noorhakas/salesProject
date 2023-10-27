@@ -4,29 +4,26 @@ namespace App\Http\Controllers\API\Panel;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Bricks;
-use App\Http\Requests\API\BricksRequest;
-use App\Http\Resources\API\BricksResource;
+use App\Models\AccList;
+use App\Http\Requests\API\AccListRequest;
 
-class BricksController extends Controller
+class AccListController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = request()->get('per_page')??20;
-		$bricks = Bricks::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','DESC')->paginate($limit);
+		$data = AccList::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		               ->orderBy('created_at','DESC')->get();
 
-		  $data = BricksResource::collection($bricks);			   
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 
-	public function store(BricksRequest $request)
+	public function store(AccListRequest $request)
     {
 		\DB::beginTransaction();
       try {
-			 $classes = Bricks::updateOrCreate(['name'=>$request->name],$request->validated());
+			 $acclist = AccList::updateOrCreate(['name'=>$request->name],$request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$classes);
+            return $this->response_api(true, trans('messages.success'),$acclist);
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -35,23 +32,23 @@ class BricksController extends Controller
 
 	public function show($id)
     {
-		$bricks = Bricks::find($id);
-	   if(!$bricks)
+		$acclist = AccList::find($id);
+	   if(!$acclist)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-	   return $this->response_api(true, trans('messages.success'),$bricks);
+	   return $this->response_api(true, trans('messages.success'),$acclist);
     }
 
-	public function update(BricksRequest $request,$id) {
+	public function update(AccListRequest $request,$id) {
 		\DB::beginTransaction();
       try {
-		   $bricks = Bricks::find($id);
-		   if(!$classes)
+		   $acclist = AccList::find($id);
+		   if(!$acclist)
 		      return $this->response_api(false, trans('messages.data_not_found'));
 
-			$bricks->update($request->validated());
+			$acclist->update($request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$bricks);
+            return $this->response_api(true, trans('messages.success'),$acclist);
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -61,11 +58,11 @@ class BricksController extends Controller
     {
 
 	 try {	
-		$bricks = Bricks::find($id);
-		if(!$bricks)
+		$acclist = AccList::find($id);
+		if(!$acclist)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-        $bricks->delete();
+        $acclist->delete();
         return $this->response_api(true,  trans('messages.success'));
 	 }catch (\Exception $e) {
 			return $this->response_api(false, trans('messages.server_error'));

@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProductRequest extends FormRequest
+class ClassesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,19 +29,12 @@ class ProductRequest extends FormRequest
     {
 		return match(request()->method()){
             "POST" => [
-				'name'=>'required|string|max:100|unique:products,name,NULL,id,deleted_at,NULL',
-				'specialty_id'=>'required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-				'description'=> 'min:10',
-				'price'=>'sometimes|number'
-
+				'name'=>'required|string|max:100|unique:classes,name,NULL,id,deleted_at,NULL',
+				'frequency'=>'required|integer|min:1'
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:products,name,' . $this->product?->id . ',id,deleted_at,NULL',
-			    'specialty_id'=>'sometimes|required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-				'description'=> 'min:10',
-				'price'=>'sometimes|number'
+                'name' => 'sometimes|required|string|max:255|unique:classes,name,' . $this->class . ',id,deleted_at,NULL',
+				'frequency'=>'required|integer|min:1'
 			],
         };
     }

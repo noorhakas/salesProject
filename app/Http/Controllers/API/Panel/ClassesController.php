@@ -4,27 +4,23 @@ namespace App\Http\Controllers\API\Panel;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Bricks;
-use App\Http\Requests\API\BricksRequest;
-use App\Http\Resources\API\BricksResource;
+use App\Models\Classes;
+use App\Http\Requests\API\ClassesRequest;
 
-class BricksController extends Controller
+class ClassesController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = request()->get('per_page')??20;
-		$bricks = Bricks::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','DESC')->paginate($limit);
-
-		  $data = BricksResource::collection($bricks);			   
+		$data = Classes::select('id','name','frequency')->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		               ->orderBy('created_at','DESC')->get();
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 
-	public function store(BricksRequest $request)
+	public function store(ClassesRequest $request)
     {
 		\DB::beginTransaction();
       try {
-			 $classes = Bricks::updateOrCreate(['name'=>$request->name],$request->validated());
+			 $classes = Classes::updateOrCreate(['name'=>$request->name],$request->validated());
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),$classes);
 		} catch (\Exception $e) {
@@ -35,23 +31,23 @@ class BricksController extends Controller
 
 	public function show($id)
     {
-		$bricks = Bricks::find($id);
-	   if(!$bricks)
+		$classes = Classes::find($id);
+	   if(!$classes)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-	   return $this->response_api(true, trans('messages.success'),$bricks);
+	   return $this->response_api(true, trans('messages.success'),$classes);
     }
 
-	public function update(BricksRequest $request,$id) {
+	public function update(ClassesRequest $request,$id) {
 		\DB::beginTransaction();
       try {
-		   $bricks = Bricks::find($id);
+		   $classes = Classes::find($id);
 		   if(!$classes)
 		      return $this->response_api(false, trans('messages.data_not_found'));
 
-			$bricks->update($request->validated());
+			$classes->update($request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$bricks);
+            return $this->response_api(true, trans('messages.success'),$classes);
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -61,11 +57,11 @@ class BricksController extends Controller
     {
 
 	 try {	
-		$bricks = Bricks::find($id);
-		if(!$bricks)
+		$classes = Classes::find($id);
+		if(!$classes)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-        $bricks->delete();
+        $classes->delete();
         return $this->response_api(true,  trans('messages.success'));
 	 }catch (\Exception $e) {
 			return $this->response_api(false, trans('messages.server_error'));

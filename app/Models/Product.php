@@ -12,7 +12,7 @@ class Product extends Model
     protected $table = 'products';
 	protected $imgFolder = 'products';
 
-	protected $fillable = ['name','specialty_id','image','description'];
+	protected $fillable = ['name','specialty_id','image','description','price'];
 
 
 	public function specialty()

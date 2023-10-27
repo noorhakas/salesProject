@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProductRequest extends FormRequest
+class AccListRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,21 +27,14 @@ class ProductRequest extends FormRequest
      */
     public function rules()
     {
+
 		return match(request()->method()){
             "POST" => [
-				'name'=>'required|string|max:100|unique:products,name,NULL,id,deleted_at,NULL',
-				'specialty_id'=>'required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-				'description'=> 'min:10',
-				'price'=>'sometimes|number'
+				'name'=>'required|string|max:100|unique:acc_list,name,NULL,id,deleted_at,NULL',
 
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:products,name,' . $this->product?->id . ',id,deleted_at,NULL',
-			    'specialty_id'=>'sometimes|required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-				'description'=> 'min:10',
-				'price'=>'sometimes|number'
+                'name' => 'sometimes|required|string|max:255|unique:acc_list,name,' . $this->acc_list . ',id,deleted_at,NULL',
 			],
         };
     }

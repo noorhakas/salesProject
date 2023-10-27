@@ -22,7 +22,6 @@ Route::group(['namespace' => 'Auth'], function(){
 		Route::post('logout', 'LoginController@Logout')->middleware('auth:sanctum');
 });
 
-//Route::group(['middleware' => ['auth', 'permission']], function() {
 Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function(){
    	Route::resource('users', 'UserController')->except(['edit', 'create']);;
 	Route::get('myprofile', 'UserController@myProfile');   
@@ -32,7 +31,12 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	/** specialty && products*/
 	Route::resource('specialty', 'SpecialtyController')->except(['edit', 'create']);
 	Route::resource('products', 'ProductController')->except(['edit', 'create']);
-	
+	Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
+	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
+	Route::resource('acc_list', 'AccListController')->except(['edit', 'create']);
+	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
+
+
 });
 
 
