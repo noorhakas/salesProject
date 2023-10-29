@@ -23,9 +23,19 @@ class UserController extends Controller
 	public function store(UserRequest $request)
     {
 		\DB::beginTransaction();
-      try {
+        try {
 			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
 			$user->syncRoles($request->role_id);
+
+			if(isset($request->brick_ids) && !empty($request->brick_ids))
+			    $user->bricks()->sync($request->brick_ids);
+
+			if(isset($request->product_ids) && !empty($request->product_ids))
+			    $user->products()->sync($request->product_ids);
+
+			if(isset($request->customer_ids) && !empty($request->customer_ids))
+			    $user->customers()->sync($request->customer_ids);
+
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
 		} catch (\Exception $e) {
@@ -51,6 +61,15 @@ class UserController extends Controller
 
 			$user->update($request->validated());
 			$user->syncRoles($request->role_id);
+
+			if(isset($request->brick_ids) && !empty($request->brick_ids))
+			    $user->bricks()->sync($request->brick_ids);
+
+			if(isset($request->product_ids) && !empty($request->product_ids))
+			    $user->products()->sync($request->product_ids);
+
+			if(isset($request->customer_ids) && !empty($request->customer_ids))
+			    $user->customers()->sync($request->customer_ids);
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
 		} catch (\Exception $e) {

@@ -12,7 +12,7 @@ class Customer extends Model
     protected $table = 'customers';
 	protected $imgFolder = 'customers';
 	
-	protected $fillable = ['name','brick_id','class_id','specialty_id','acc_type_id','image','brief','address','lat','lng'];
+	protected $fillable = ['name','brick_id','class_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','address','lat','lng'];
 
 	public function specialty()
     {
@@ -28,6 +28,6 @@ class Customer extends Model
     }
 	public function accType()
     {
-        return $this->belongsTo(AccList::class,'acc_type_id','id');
+        return $this->belongsTo(AccType::class,'acc_type_id','id');
     }
 }

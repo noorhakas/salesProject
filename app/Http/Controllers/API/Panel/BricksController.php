@@ -13,6 +13,9 @@ class BricksController extends Controller
 	public function index(Request $request)
 	{
 		$limit = request()->get('per_page')??20;
+
+		// $bricks = auth()->user()->bricks()->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		//                ->orderBy('created_at','DESC')->paginate($limit);
 		$bricks = Bricks::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 
@@ -24,9 +27,9 @@ class BricksController extends Controller
     {
 		\DB::beginTransaction();
       try {
-			 $classes = Bricks::updateOrCreate(['name'=>$request->name],$request->validated());
+			 Bricks::updateOrCreate(['name'=>$request->name],$request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$classes);
+            return $this->response_api(true, trans('messages.success'));
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -39,19 +42,19 @@ class BricksController extends Controller
 	   if(!$bricks)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-	   return $this->response_api(true, trans('messages.success'),$bricks);
+	   return $this->response_api(true, trans('messages.success'),new BricksResource($bricks));
     }
 
 	public function update(BricksRequest $request,$id) {
 		\DB::beginTransaction();
       try {
-		   $bricks = Bricks::find($id);
-		   if(!$classes)
+		   $brick = Bricks::find($id);
+		   if(!$brick)
 		      return $this->response_api(false, trans('messages.data_not_found'));
 
-			$bricks->update($request->validated());
+			$brick->update($request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$bricks);
+            return $this->response_api(true, trans('messages.success'),$brick);
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));

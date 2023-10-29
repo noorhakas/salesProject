@@ -16,6 +16,7 @@ class AddDeletedAtToUsersTable extends Migration
         Schema::table('users', function (Blueprint $table) {
             //
 			$table->tinyInteger('position')->default(0)->after('status');
+			$table->tinyInteger('access_all_data')->after('position')->default(0);
 			$table->softDeletes();
         });
     }

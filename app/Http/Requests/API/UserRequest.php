@@ -27,24 +27,30 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
-
-		return match (request()->method()){
-            "POST" => [
-				'name'=>'required|string|max:100',
+      
+		$base = ['name'=>'required|string|max:100',
 				'user_name'=>'required|string|max:100|unique:users,user_name,NULL,id,deleted_at,NULL',
 				'email'=>'required|email:rfc,dns|unique:users,email,NULL,id,deleted_at,NULL',
 				'status'=>'required|integer|in:0,1',
+				'customer_select_all'=>'integer|in:0,1',
 				'role_id' => 'required|exists:roles,id',
-				'password' => 'required|min:6'
-			],
-            "PUT", "PATCH" =>  [
-                'name'=>'sometimes|required|string|max:100',
-				'email' => 'sometimes|required|email:rfc,dns|max:255|unique:users,email,' . $this->user?->id . ',id,deleted_at,NULL',
-                'user_name' => 'sometimes|required|string|max:255|unique:users,user_name,' . $this->user?->id . ',id,deleted_at,NULL',
-				'status'=>'sometimes|required|integer|in:0,1',
-				'role_id' => 'sometimes|required|exists:roles,id',
-				'password' => 'sometimes|required|min:6'
-			],
+				'password' => 'required|min:6',
+				];
+
+        if(!request()->customer_select_all){
+		        $base = array_merge($base,['brick_ids' =>'required|array|between:1,500',
+											'brick_ids.*' => 'exists:bricks,id',
+											'product_ids' => 'required|array|between:1,500',
+											'product_ids.*' => 'exists:products,id',
+											'customer_ids' => 'required|array|between:1,1000',
+											'customer_ids.*' => 'exists:customers,id']);
+			}
+		return match (request()->method()){
+            "POST" =>$base,
+            "PUT", "PATCH" =>  
+					array_merge($base,['email' => 'sometimes|required|email:rfc,dns|max:255|unique:users,email,' . $this->user?->id . ',id,deleted_at,NULL',
+					'user_name' => 'sometimes|required|string|max:255|unique:users,user_name,' . $this->user?->id . ',id,deleted_at,NULL',
+				    ]),
         };
 
     }

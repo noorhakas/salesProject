@@ -6,10 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
-use App\Enums\StatusEnum;
 
 
-class BricksResource extends JsonResource
+class AccTypeResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -26,8 +25,6 @@ class BricksResource extends JsonResource
        return  [
             'id' => $this->id,
             'name' => $this->name,
-			'status'=>$this->status,
-			'statusAsString'=>StatusEnum::from($this->status)->toString(),
 			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }

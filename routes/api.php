@@ -33,8 +33,13 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('products', 'ProductController')->except(['edit', 'create']);
 	Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
 	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
-	Route::resource('acc_list', 'AccListController')->except(['edit', 'create']);
+	Route::resource('acc_list', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
+
+	Route::prefix('/visits')->group(function () {
+		Route::get('/create_schedule', 'VisitController@CreateVisitSchedule');
+		Route::get('/{id}', 'API\MainController@findSpecialty');
+	});
 
 
 });

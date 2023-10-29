@@ -22,7 +22,7 @@ class CreateCustomersTable extends Migration
 			$table->integer('specialty_id');
 			$table->integer('class_id');
 			$table->bigInteger('phone');
-			$table->bigInteger('phone1');
+			$table->bigInteger('phone1')->nullable();
 			$table->text('address');
 			$table->longText('brief');
 			$table->string('lat');

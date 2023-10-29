@@ -25,7 +25,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ['name','email','password','user_name','status','position'];
+    protected $fillable = ['name','email','password','user_name','status','position','access_all_data'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -59,6 +59,26 @@ class User extends Authenticatable
 	protected function SetPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
+    }
+
+	public function bricks()
+    {
+        return $this->belongsToMany(Bricks::class, 'user_bricks','user_id','brick_id');
+    }
+
+	public function products()
+    {
+        return $this->belongsToMany(Product::class, 'user_products');
+    }
+
+	public function customers()
+    {
+        return $this->belongsToMany(Customer::class, 'user_customers');
+    }
+
+	public function visits()
+    {
+        return $this->hasMany(Visit::class)->join('customers as c', 'c.id', '=', 'visits.customer_id');
     }
 
 	public function scopeFilter($q,$request)

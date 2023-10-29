@@ -2,17 +2,13 @@
   
 namespace App\Enums;
 
-enum StatusEnum: int
+abstract class StatusEnum
 {
-    case  Active = 1;
-    case  Inactive = 2;
+    const  Active = 1;
+    const  Inactive = 0;
 
-    public function toString(): string
-    {
-        return match ($this) {
-            self::Active    => 'Active',
-            self::Manager    => 'Inactive',
-            default => '',
-        };
+ static function getConstants() {
+        $oClass = new \ReflectionClass(__CLASS__);
+        return $oClass->getConstants();
     }
 }

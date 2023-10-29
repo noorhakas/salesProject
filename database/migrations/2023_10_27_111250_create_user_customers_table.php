@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddStatusToUsersTable extends Migration
+class CreateUserCustomersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,9 @@ class AddStatusToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-			$table->string('user_name')->after('name');
-			$table->tinyInteger('status')->after('email')->default(0);
-			
+        Schema::create('user_customers', function (Blueprint $table) {
+            $table->biginteger('user_id');
+			$table->biginteger('customer_id');
         });
     }
 
@@ -28,8 +26,6 @@ class AddStatusToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('user_customers');
     }
 }

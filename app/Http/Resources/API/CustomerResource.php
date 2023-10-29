@@ -28,7 +28,7 @@ class CustomerResource extends JsonResource
 			'name' => $this->name,
 			'image' => $this->image,
 			'brick_id'=>$this->brick_id,
-			'brick_name'=>optional($this->brick)->title,
+			'brick_name'=>optional($this->brick)->name,
 			'acc_type_id'=>$this->acc_type_id,
 			'acc_type'=>optional($this->accType)->name,
 			'specialty_id'=>$this->specialty_id,

@@ -4,26 +4,27 @@ namespace App\Http\Controllers\API\Panel;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\AccList;
-use App\Http\Requests\API\AccListRequest;
+use App\Models\AccType;
+use App\Http\Requests\API\AccTypeRequest;
+use App\Http\Resources\API\AccTypeResource;
 
-class AccListController extends Controller
+class AccTypeController extends Controller
 {
 	public function index(Request $request)
 	{
-		$data = AccList::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','DESC')->get();
-
+		$acc_types = AccType::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		               ->orderBy('created_at','Asc')->get();
+        $data = AccTypeResource::collection($acc_types);
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 
-	public function store(AccListRequest $request)
+	public function store(AccTypeRequest $request)
     {
 		\DB::beginTransaction();
       try {
-			 $acclist = AccList::updateOrCreate(['name'=>$request->name],$request->validated());
+			$AccType = AccType::updateOrCreate(['name'=>$request->name],$request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$acclist);
+            return $this->response_api(true, trans('messages.success'),new AccTypeResource($AccType));
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -32,23 +33,23 @@ class AccListController extends Controller
 
 	public function show($id)
     {
-		$acclist = AccList::find($id);
-	   if(!$acclist)
+		$AccType = AccType::find($id);
+	   if(!$AccType)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-	   return $this->response_api(true, trans('messages.success'),$acclist);
+	   return $this->response_api(true, trans('messages.success'),new AccTypeResource($AccType));
     }
 
-	public function update(AccListRequest $request,$id) {
+	public function update(AccTypeRequest $request,$id) {
 		\DB::beginTransaction();
       try {
-		   $acclist = AccList::find($id);
-		   if(!$acclist)
+		   $AccType = AccType::find($id);
+		   if(!$AccType)
 		      return $this->response_api(false, trans('messages.data_not_found'));
 
-			$acclist->update($request->validated());
+			$AccType->update($request->validated());
 			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),$acclist);
+            return $this->response_api(true, trans('messages.success'),new AccTypeResource($AccType));
 		} catch (\Exception $e) {
 			\DB::rollback();
 			return $this->response_api(false, trans('messages.server_error'));
@@ -58,11 +59,11 @@ class AccListController extends Controller
     {
 
 	 try {	
-		$acclist = AccList::find($id);
-		if(!$acclist)
+		$AccType = AccType::find($id);
+		if(!$AccType)
            return $this->response_api(false, trans('messages.data_not_found'));
 
-        $acclist->delete();
+        $AccType->delete();
         return $this->response_api(true,  trans('messages.success'));
 	 }catch (\Exception $e) {
 			return $this->response_api(false, trans('messages.server_error'));

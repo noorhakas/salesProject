@@ -34,7 +34,7 @@ class BricksRequest extends FormRequest
 
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:classes,name,' . $this->brick->id . ',id,deleted_at,NULL',
+                'name' => 'sometimes|required|string|max:255|unique:classes,name,' . $this->brick . ',id,deleted_at,NULL',
 				 'status'=>'required|integer|in:0,1',
 			],
         };

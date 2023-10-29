@@ -15,7 +15,7 @@ class CreateBricksTable extends Migration
     {
         Schema::create('bricks', function (Blueprint $table) {
             $table->id();
-			$table->string('title');
+			$table->string('name');
 			$table->tinyInteger('status')->default(0);
             $table->timestamps();
 			$table->softDeletes();
