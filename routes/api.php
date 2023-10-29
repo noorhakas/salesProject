@@ -38,7 +38,7 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 
 	Route::prefix('/visits')->group(function () {
 		Route::get('/create_schedule', 'VisitController@CreateVisitSchedule');
-		Route::get('/{id}', 'API\MainController@findSpecialty');
+		Route::post('submit_schedule','VisitController@submitSchedule');
 	});
 
 

@@ -4,32 +4,42 @@ namespace App\Repository;
 
 use App\Models\Visit;
 use App\Models\User;
+use App\Models\AccType;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-
+use App\Enums\ScheduleStatusEnum;
 
 class VisitScheduleRepository{
         
 	public function createSchedule(array $data){
 		 
-		$allCustomer = $this->getCustomerListByUser();
+		$acc_types = $this->getAccountTypeData();
 		$list_days = $this->displayListOFDates($data);
-		$month = $data['month'];
-		
-		 $all_visits =collect();
-		 foreach($allCustomer as $i=>$item){
-             $Obj['name'] = $item->name;
-			 $Obj['brick_name'] = optional($item->brick)->name;
-			 $Obj['acc_type'] = optional($item->accType)->name;
-		
-			  $listOfVisits = auth()->user()->visits()->whereRaw('MONTH(visit_date)='.$month.' and customer_id ='.$item->id.' ')->get(['visit_date as date','status'])->keyBy('date');
-		      $result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
-              $Obj['dates']= $result;
-			  
-			  $all_visits->add($Obj); 
-		}
 
-		return $all_visits;
+		$all_Data =collect();
+		foreach($acc_types as $j=>$type){
+			$ACC_Data['acc_type'] = $type->name;
+			$allCustomer = $this->getCustomerListByUser();
+			$month = $data['month'];
+		
+			$all_cutomer_list =collect();
+			foreach($allCustomer as $i=>$item){
+				$Obj['id']= $item->id;
+				$Obj['name'] = $item->name;
+				$Obj['brick_name'] = optional($item->brick)->name;
+				$Obj['acc_type'] = $type->name;
+			
+				$listOfVisits = auth()->user()->visits()->selectRaw('visit_date as date ,status , 1 as disabled ')->whereRaw('MONTH(visit_date)='.$month.' and customer_id ='.$item->id.' ')->get()->keyBy('date');
+				$result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
+				$Obj['dates']= $result;
+				
+				$all_cutomer_list->add($Obj); 
+			}
+			$ACC_Data['customer_list'] = $all_cutomer_list;
+
+			$all_Data->add($ACC_Data);
+	  }
+		return ["listOfSataus"=> ScheduleStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data];
 	}
 
 
@@ -37,6 +47,9 @@ class VisitScheduleRepository{
 		return  auth()->user()->customers()->get();
 	}
 
+	protected function getAccountTypeData(){
+        return AccType::get();
+	}
 
 	protected function displayListOFDates(array $arr){
 
@@ -45,7 +58,10 @@ class VisitScheduleRepository{
 			$dateObj = Carbon::parse($arr['firstDay'])->addDays($i);
 			$date = $dateObj->toDateString();
 			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>$dateObj->dayName];
-			$dates[$date] = ["status"=>0];
+
+			$disabled = ($dateObj < Carbon::now()) ? 1 : 0;
+			$status = ($dateObj->dayName == "Friday") ? (ScheduleStatusEnum::Holiday)["id"] : (ScheduleStatusEnum::NOACTION)["id"];
+			$dates[$date] = ["status"=>$status,"disabled"=>$disabled];
 		}
 		return ["listOfDates"=>$date_arr ,'dateWithSataus'=>$dates ];
 	}
