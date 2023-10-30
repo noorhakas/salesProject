@@ -26,9 +26,7 @@ class BricksResource extends JsonResource
        return  [
             'id' => $this->id,
             'name' => $this->name,
-			'status'=>$this->status,
-			'statusAsString'=>StatusEnum::from($this->status)->toString(),
-			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+			'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
         ];
     }
 }

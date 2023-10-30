@@ -30,12 +30,9 @@ class BricksRequest extends FormRequest
 		return match(request()->method()){
             "POST" => [
 				'name'=>'required|string|max:100|unique:classes,name,NULL,id,deleted_at,NULL',
-				 'status'=>'required|integer|in:0,1',
-
 			],
             "PUT", "PATCH" =>  [
                 'name' => 'sometimes|required|string|max:255|unique:classes,name,' . $this->brick . ',id,deleted_at,NULL',
-				 'status'=>'required|integer|in:0,1',
 			],
         };
     }

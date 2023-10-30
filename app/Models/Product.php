@@ -11,6 +11,8 @@ class Product extends Model
 	use SoftDeletes, FileAttributes;
     protected $table = 'products';
 	protected $imgFolder = 'products';
+	protected $avatar = 'medicine_logo.png';
+
 
 	protected $fillable = ['name','specialty_id','image','description','price'];
 

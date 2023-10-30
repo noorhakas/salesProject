@@ -11,6 +11,7 @@ class Customer extends Model
 	use SoftDeletes, FileAttributes;
     protected $table = 'customers';
 	protected $imgFolder = 'customers';
+	protected $vatar = 'avatar_logo.jpg';
 	
 	protected $fillable = ['name','brick_id','class_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','address','lat','lng'];
 

@@ -18,7 +18,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 	use SoftDeletes;
 
-	protected function getDefaultGuardName(): string { return 'web'; }
+//	protected function getDefaultGuardName(): string { return 'web'; }
 
     /**
      * The attributes that are mass assignable.

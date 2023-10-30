@@ -6,7 +6,7 @@ abstract class ScheduleStatusEnum
 {
     const  NOACTION = ["id"=>0 ,"color"=>"#00FFFF"];
     const  Pending = ["id"=>1 ,"color"=>"#ff1493"];
-	const  planned = ["id"=>2 ,"color"=>"#adff2f"]; 
+	const  Confirmed = ["id"=>2 ,"color"=>"#adff2f"]; 
 	const  Visited = ["id"=>3 ,"color"=>"#228b22"];
 	const  Holiday = ["id"=>4 ,"color"=>"#a52a2a"];
 
@@ -23,5 +23,11 @@ abstract class ScheduleStatusEnum
              array_push($values,["id"=>$value["id"],"name"=>$name ,"color"=>$value["color"]]);
         }
         return $values;
+    }
+
+
+	public static function toString($searchedValue)
+    {
+		return  array_column(self::toArray(), null, 'id')[$searchedValue] ?? false;
     }
 }

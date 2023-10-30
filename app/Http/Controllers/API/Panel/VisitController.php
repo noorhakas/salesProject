@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Models\Visit;
 use App\Models\User;
 use App\Http\Requests\API\ScheduleRequest;
+use App\Enums\ScheduleStatusEnum;
+use App\Http\Resources\API\VisitsResource;
 
 
 class VisitController extends Controller
@@ -44,5 +46,15 @@ class VisitController extends Controller
 					return $this->response_api(false, trans('messages.server_error'));
 		}			
  	}
+
+
+	public function getDailyConfirmedplannedvisits(){
+		   $today = Carbon::now()->today()->toDateString();
+           $status = (ScheduleStatusEnum::Confirmed)["id"];
+		  
+		   $uservisits = auth()->user()->visits()->whereDate('visits.visit_date',$today)->where('status',$status)->get();
+		   $data = VisitsResource::collection($uservisits);
+		   return $this->response_api(true, trans('messages.success'),$data);
+	}
 	
 }

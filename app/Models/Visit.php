@@ -12,4 +12,9 @@ class Visit extends Model
 	protected $fillable = ['user_id','customer_id','type','status','visit_date','start_time','end_time','confirmed_by'];
 
 	
+	public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+	
 }
