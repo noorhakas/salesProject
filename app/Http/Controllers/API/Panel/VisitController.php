@@ -18,11 +18,13 @@ class VisitController extends Controller
 {
 	
 	public function CreateVisitSchedule(Request $request ,VisitScheduleRepository $scheduleRepository ){
-		$request_date = isset($request->date) && !empty($request->date) ?Carbon::parse($request->date)->format("m") : Carbon::now()->format("m") ;
-		$days = Carbon::now()->month($request_date)->daysInMonth; 
-        $firstDay  = Carbon::now()->month($request_date)->firstOfMonth()->toDateString(); 
+		$theMonth = isset($request->date) && !empty($request->date) ?Carbon::parse($request->date)->format("m") : Carbon::now()->format("m") ;
+        $theYear =  isset($request->date) && !empty($request->date) ?Carbon::parse($request->date)->format("Y") : Carbon::now()->format("Y");
+		
+		$days = Carbon::parse($request->date)->daysInMonth; 
+        $firstDay  = Carbon::parse($request->date)->firstOfMonth()->toDateString(); 
         $user= isset($request->user_id) ? User::find($request->user_id) :  auth()->user();
-		$scheduleResult = $scheduleRepository->createSchedule(["month"=>$request_date ,'days'=>$days ,'firstDay'=>$firstDay]);
+		$scheduleResult = $scheduleRepository->createSchedule(["date"=> $request->date ,"month"=>$theMonth,"year"=>$theYear ,'days'=>$days ,'firstDay'=>$firstDay ,'user'=>$user]);
 
           		return  $this->response_api(true,trans('messages.success'),$scheduleResult);
 

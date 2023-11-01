@@ -30,11 +30,11 @@ class AccTypeRequest extends FormRequest
 
 		return match(request()->method()){
             "POST" => [
-				'name'=>'required|string|max:100|unique:acc_list,name,NULL,id,deleted_at,NULL',
+				'name'=>'required|string|max:100|unique:acc_type,name,NULL,id,deleted_at,NULL',
 
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:acc_list,name,' . $this->acc_list . ',id,deleted_at,NULL',
+                'name' => 'sometimes|required|string|max:255|unique:acc_type,name,' . $this->acc_type . ',id,deleted_at,NULL',
 			],
         };
     }

@@ -4,7 +4,7 @@ namespace App\Enums;
 
 abstract class UserPositionEnum
 {
-    const  Owner = 1;
+    const  Admin = 1;
     const  Manager = 2;
 	const  MedicalRep = 3; 
 
@@ -20,5 +20,11 @@ abstract class UserPositionEnum
              array_push($values,["id"=>$value,"name"=>$name ]);
         }
         return $values;
+    }
+
+	public static function toString($searchedValue)
+    {
+		$search_value = array_column(self::toArray(), null, 'id')[$searchedValue];
+		return  $search_value ? $search_value['name'] : false;
     }
 }

@@ -27,13 +27,15 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::get('myprofile', 'UserController@myProfile');   
 	Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
 	Route::get('permissions', 'RoleController@allPermissions');
+	Route::get('position_list', 'UserController@getPositionList');
+	
 
 	/** specialty && products*/
 	Route::resource('specialty', 'SpecialtyController')->except(['edit', 'create']);
 	Route::resource('products', 'ProductController')->except(['edit', 'create']);
 	Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
 	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
-	Route::resource('acc_list', 'AccTypeController')->except(['edit', 'create']);
+	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 
 	Route::prefix('/visits')->group(function () {

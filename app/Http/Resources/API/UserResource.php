@@ -7,6 +7,7 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use App\Enums\StatusEnum;
+use App\Enums\UserPositionEnum;
 use Carbon\Carbon;
 
 class UserResource extends JsonResource
@@ -28,10 +29,12 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
 			'status'=>$this->status,
-            'statusAsString'=>array_search($this->status,StatusEnum::getConstants()),
+            'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
 			'role_id'=>$this->getRoleId(),
 			'role_name'=>$this->getRoleName(),
+			'position_id'=>$this->position,
+			'position_name'=>UserPositionEnum::toString($this->position),
 			'access_all_data'=>$this->access_all_data,
         ];
 

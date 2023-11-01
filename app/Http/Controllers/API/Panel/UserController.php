@@ -92,8 +92,9 @@ class UserController extends Controller
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 
-
-
-	
+	public function getPositionList(){
+		$data = \App\Enums\UserPositionEnum::toArray();
+		return $this->response_api(true,trans('messages.success'),$data);
+	}
 
 }

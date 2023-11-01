@@ -13,23 +13,22 @@ class VisitScheduleRepository{
         
 	public function createSchedule(array $data){
 		 
+		$user = $data['user']; $searchDate = $data['date']; $month = $data['month']; $year = $data['year'];	
 		$acc_types = $this->getAccountTypeData();
 		$list_days = $this->displayListOFDates($data);
-
+        
 		$all_Data =collect();
 		foreach($acc_types as $j=>$type){
 			$ACC_Data['acc_type'] = $type->name;
-			$allCustomer = $this->getCustomerListByUser();
-			$month = $data['month'];
-		
+			$allCustomer = $this->getCustomerListByUser($user,$type->id);
+
 			$all_cutomer_list =collect();
 			foreach($allCustomer as $i=>$item){
 				$Obj['id']= $item->id;
 				$Obj['name'] = $item->name;
-				$Obj['brick_name'] = optional($item->brick)->name;
-				$Obj['acc_type'] = $type->name;
-			
-				$listOfVisits = auth()->user()->visits()->selectRaw('visit_date as date ,status , 1 as disabled ')->whereRaw('MONTH(visit_date)='.$month.' and customer_id ='.$item->id.' ')->get()->keyBy('date');
+				$Obj['class_name']=optional($item->class)->name;
+			  
+				$listOfVisits = $user->visits()->selectRaw('visit_date as date ,status , 1 as disabled ')->whereRaw('MONTH(visit_date)='.$month.' and YEAR(visit_date)='.$year.' and customer_id ='.$item->id.' ')->get()->keyBy('date');
 				$result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
 				$Obj['dates']= $result;
 				
@@ -39,12 +38,12 @@ class VisitScheduleRepository{
 
 			$all_Data->add($ACC_Data);
 	  }
-		return ["listOfSataus"=> ScheduleStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data];
+		return ['User'=>(Object)["id"=>$user->id ,"name"=>$user->name],'CurrentDate'=>$searchDate,"listOfSataus"=> ScheduleStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data ];
 	}
 
 
-	protected function getCustomerListByUser(){
-		return  auth()->user()->customers()->get();
+	protected function getCustomerListByUser(User $user,$type_id){
+		return  $user->customers()->where('customers.acc_type_id',$type_id)->get();
 	}
 
 	protected function getAccountTypeData(){
@@ -57,9 +56,9 @@ class VisitScheduleRepository{
 		for($i = 0;$i<$arr['days'] ;$i++){
 			$dateObj = Carbon::parse($arr['firstDay'])->addDays($i);
 			$date = $dateObj->toDateString();
-			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>$dateObj->dayName];
+			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>substr($dateObj->dayName,0,3)];
 
-			$disabled = ($dateObj < Carbon::now()) ? 1 : 0;
+			$disabled = ($dateObj < Carbon::now() || $dateObj->dayName == "Friday" ) ? 1 : 0;
 			$status = ($dateObj->dayName == "Friday") ? (ScheduleStatusEnum::Holiday)["id"] : (ScheduleStatusEnum::NOACTION)["id"];
 			$dates[$date] = ["status"=>$status,"disabled"=>$disabled];
 		}

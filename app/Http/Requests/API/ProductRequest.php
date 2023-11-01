@@ -31,17 +31,17 @@ class ProductRequest extends FormRequest
             "POST" => [
 				'name'=>'required|string|max:100|unique:products,name,NULL,id,deleted_at,NULL',
 				'specialty_id'=>'required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+				'image'=>['image', 'mimes:jpeg,png,jpg', 'max:2048'],
 				'description'=> 'min:10',
-				'price'=>'sometimes|number'
+				'price'=>'sometimes|numeric'
 
 			],
             "PUT", "PATCH" =>  [
                 'name' => 'sometimes|required|string|max:255|unique:products,name,' . $this->product?->id . ',id,deleted_at,NULL',
 			    'specialty_id'=>'sometimes|required|exists:specialty,id',
-				'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+				'image'=>['image', 'mimes:jpeg,png,jpg', 'max:2048'],
 				'description'=> 'min:10',
-				'price'=>'sometimes|number'
+				'price'=>'sometimes|numeric'
 			],
         };
     }

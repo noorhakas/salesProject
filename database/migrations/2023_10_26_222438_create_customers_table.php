@@ -25,8 +25,8 @@ class CreateCustomersTable extends Migration
 			$table->bigInteger('phone1')->nullable();
 			$table->text('address');
 			$table->longText('brief');
-			$table->string('lat');
-			$table->string('lng');
+			$table->double('lat',15, 8)->nullable();
+			$table->double('lng',15, 8)->nullable();
             $table->timestamps();
 			$table->softDeletes();
         });
