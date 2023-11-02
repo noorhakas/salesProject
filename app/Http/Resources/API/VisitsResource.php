@@ -22,14 +22,17 @@ class VisitsResource extends JsonResource
     public function toArray($request)
     {
         $customer = (new CustomerResource($this->customer));
+		
        return  [
             'id' => $this->id,
             'customer_name' =>  $customer?->name,
+			'image' =>  $customer?->image,
 			'specialty' =>  $customer?->specialty_name,
 			'address' =>  $customer?->address,
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
 			'status'=>ScheduleStatusEnum::toString($this->status),
 			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
+			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
 			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
 			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
 

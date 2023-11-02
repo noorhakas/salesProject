@@ -28,8 +28,11 @@ class ScheduleRequest extends FormRequest
     public function rules()
     {
 		return [
-			'all_data' => 'required|array',
-            'all_data.*.customer_id' => 'exists:customers,id'
+			'visit_date' => 'required',
+			'start_time' => 'required',
+			'start_time' => 'required',
+			'account_id'=>'required|exists:acc_type,id',
+            'customer_id' => 'exists:customers,id'
         ];
     }
 

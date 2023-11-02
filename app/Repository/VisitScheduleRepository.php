@@ -5,9 +5,12 @@ namespace App\Repository;
 use App\Models\Visit;
 use App\Models\User;
 use App\Models\AccType;
+use App\Models\VisitDetails;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Enums\ScheduleStatusEnum;
+use App\Http\Resources\API\VisitsResource;
+
 
 class VisitScheduleRepository{
         
@@ -80,6 +83,32 @@ class VisitScheduleRepository{
         }
         return collect($data)->sortBy('date', SORT_REGULAR, false)->values();
     }
+
+
+	public function getUserVisitsByDataAndStatus(array $data){
+        $uservisitQuery = auth()->user()->visits()->whereDate('visits.visit_date',$data['date'])
+		     ->when($data['status'],fn($q, $v) =>$q->where('visits.status',$v));
+		$uservisits = (clone $uservisitQuery)->get();
+		$uservisitCount = (clone $uservisitQuery)->count();          
+		  return ["count"=> $uservisitCount , 'visits'=>VisitsResource::collection($uservisits)];
+	}
+
+
+	public function submitPannedOrUnplannedVisit(array $data){
+
+		$createdVisit = Visit::updateOrCreate(['customer_id'=>$data['customer_id'],'user_id'=>1,'visit_date'=>$data['visit_date']],$data);
+		  $items = [];
+		  foreach($data['items'] as $i=>$single)
+          {
+               $items[] = ['visit_id'=>$createdVisit->id,'item_id'=>$single['item_id'] ,'count_of_sample'=>$single['sample'],'item_type'=>$single['item_type'],'created_at'=>Carbon::now()];
+		  }
+
+		  if($createdVisit->visitdetails()->count())
+		        $createdVisit->visitdetails()->delete();
+		 		 
+				VisitDetails::insert($items);
+
+	}
 
 
 }

@@ -27,7 +27,6 @@ class AccTypeRequest extends FormRequest
      */
     public function rules()
     {
-
 		return match(request()->method()){
             "POST" => [
 				'name'=>'required|string|max:100|unique:acc_type,name,NULL,id,deleted_at,NULL',

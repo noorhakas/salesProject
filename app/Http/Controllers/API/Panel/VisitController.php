@@ -11,8 +11,6 @@ use App\Models\Visit;
 use App\Models\User;
 use App\Http\Requests\API\ScheduleRequest;
 use App\Enums\ScheduleStatusEnum;
-use App\Http\Resources\API\VisitsResource;
-
 
 class VisitController extends Controller
 {
@@ -33,6 +31,24 @@ class VisitController extends Controller
 	public function submitSchedule(ScheduleRequest $request){
 		\DB::beginTransaction();
         try {
+				$status = (ScheduleStatusEnum::Pending)["id"];
+				$user_id = $request->user_id ?? auth()->user()->id;
+				$validate_data = array_merge(['status'=>$status],$request->validated());
+
+				Visit::updateOrCreate(['customer_id'=>$request->customer_id,'user_id'=>$user_id,'visit_date'=>$request->visit_date],$validate_data);
+
+			\DB::commit();
+			return $this->response_api(true, trans('messages.success'));
+		} catch (\Exception $e) {
+					\DB::rollback();
+					return $this->response_api(false, trans('messages.server_error'));
+		}			
+ 	}
+
+
+	 public function submitMultipleSchedule(ScheduleRequest $request){
+		\DB::beginTransaction();
+        try {
 				$schedules = $request->all_data;
 				$user_id = $request->user_id ?? auth()->user()->id;
 				$result=[];
@@ -49,14 +65,36 @@ class VisitController extends Controller
 		}			
  	}
 
-
-	public function getDailyConfirmedplannedvisits(){
-		   $today = Carbon::now()->today()->toDateString();
+	public function getDailyplannedvisits($date = null){
+		   $today = isset($date) && !empty($date) ? Carbon::now()->today()->toDateString() : Carbon::parse($date)->toDateString();
            $status = (ScheduleStatusEnum::Confirmed)["id"];
-		  
-		   $uservisits = auth()->user()->visits()->whereDate('visits.visit_date',$today)->where('status',$status)->get();
-		   $data = VisitsResource::collection($uservisits);
-		   return $this->response_api(true, trans('messages.success'),$data);
+
+				$visitScheduleRepository = new VisitScheduleRepository();
+				$visits = $visitScheduleRepository->getUserVisitsByDataAndStatus(["date"=>$today , 'status'=>$status]);
+		   return $this->response_api(true, trans('messages.success'),$visits);
 	}
+
+
+
+	public function submitUnplannedVisits(Request $request){
+
+		
+		$visitScheduleRepository = new VisitScheduleRepository();
+		$visits = $visitScheduleRepository->submitPannedOrUnplannedVisit($request->all());
+		// \DB::beginTransaction();
+        // try {
+		// 		$status = (ScheduleStatusEnum::Pending)["id"];
+		// 		$user_id = $request->user_id ?? auth()->user()->id;
+		// 		$validate_data = array_merge(['status'=>$status],$request->validated());
+
+		// 		Visit::updateOrCreate(['customer_id'=>$request->customer_id,'user_id'=>$user_id,'visit_date'=>$request->visit_date],$validate_data);
+
+		// 	\DB::commit();
+		// 	return $this->response_api(true, trans('messages.success'));
+		// } catch (\Exception $e) {
+		// 			\DB::rollback();
+		// 			return $this->response_api(false, trans('messages.server_error'));
+		// }			
+ 	}
 	
 }
