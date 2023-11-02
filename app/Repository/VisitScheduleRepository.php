@@ -85,28 +85,50 @@ class VisitScheduleRepository{
     }
 
 
-	public function getUserVisitsByDataAndStatus(array $data){
-        $uservisitQuery = auth()->user()->visits()->whereDate('visits.visit_date',$data['date'])
-		     ->when($data['status'],fn($q, $v) =>$q->where('visits.status',$v));
-		$uservisits = (clone $uservisitQuery)->get();
-		$uservisitCount = (clone $uservisitQuery)->count();          
-		  return ["count"=> $uservisitCount , 'visits'=>VisitsResource::collection($uservisits)];
+	public function getUserVisitsByDate(array $data){
+
+        $uservisitQuery = $data['user']->visits()->whereDate('visits.visit_date',$data['date'])
+		    // ->when($data['status'] ,fn($q, $v) =>$q->where('visits.status',$v))
+			 ->when($data['search'] ,fn($q, $v) =>$q->where('customers.name', 'like', "%{$v}%"));
+		
+		 $uservisits = (clone $uservisitQuery)->paginate($data['limit']);
+		  return VisitsResource::collection($uservisits);
+	}
+
+	public function getAllVisits($request){
+
+		$limit = $request->per_page ?? 20;
+		$date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
+
+           $all_Visits = Visit::join('users', 'visits.user_id', '=', 'users.id')
+							->join('customers', 'visits.customer_id', '=', 'customers.id')
+						//	->when($request->get('user_id') ,fn($q, $v) =>$q->where('users.id', $v))
+						//	->when($request->get('customer_id') ,fn($q, $v) =>$q->where('customers.id', $v))
+						//	->when(isset($date) && !empty($date),fn($q, $v) =>$q->where('visits.visit_date', $date))
+							->select('visits.*')->paginate($limit);
+		   return VisitsResource::collection($all_Visits);
+		 // return $all_Visits;
 	}
 
 
 	public function submitPannedOrUnplannedVisit(array $data){
+     \DB::beginTransaction();
+        try {
+			$createdVisit = Visit::updateOrCreate(['customer_id'=>$data['customer_id'],'user_id'=>$data['user_id'],'visit_date'=>$data['visit_date']],$data);
+			$items = [];
+			foreach($data['items'] as $i=>$single)
+			{
+				$items[] = ['visit_id'=>$createdVisit->id,'item_id'=>$single['item_id'] ,'count_of_sample'=>$single['sample'],'item_type'=>$single['item_type'],'created_at'=>Carbon::now()];
+			}
 
-		$createdVisit = Visit::updateOrCreate(['customer_id'=>$data['customer_id'],'user_id'=>1,'visit_date'=>$data['visit_date']],$data);
-		  $items = [];
-		  foreach($data['items'] as $i=>$single)
-          {
-               $items[] = ['visit_id'=>$createdVisit->id,'item_id'=>$single['item_id'] ,'count_of_sample'=>$single['sample'],'item_type'=>$single['item_type'],'created_at'=>Carbon::now()];
-		  }
-
-		  if($createdVisit->visitdetails()->count())
-		        $createdVisit->visitdetails()->delete();
-		 		 
-				VisitDetails::insert($items);
+			if($createdVisit->visitdetails()->count())
+					$createdVisit->visitdetails()->delete();
+					
+			VisitDetails::insert($items);
+			 	\DB::commit();
+		 } catch (\Exception $e) {
+					\DB::rollback();
+	   }	
 
 	}
 

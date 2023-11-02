@@ -28,7 +28,7 @@ abstract class ScheduleStatusEnum
 
 	public static function toString($searchedValue)
     {
-		$search_value = array_column(self::toArray(), null, 'id')[$searchedValue];
+		$search_value = array_column(self::toArray(), null, 'id')[$searchedValue]??false;
 		return  $search_value ? $search_value['name'] : false;
     }
 }

@@ -39,10 +39,11 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 
 	Route::prefix('/visits')->group(function () {
-		Route::get('/create_schedule', 'VisitController@CreateVisitSchedule');
+		Route::get('/monthly_schedule', 'VisitController@getVisitSchedule');
 		Route::post('submit_schedule','VisitController@submitSchedule');
-		Route::get('daily_visits/{date?}','VisitController@getDailyplannedvisits');
-		Route::post('submit_unplannedvisit','VisitController@submitUnplannedVisits');
+		Route::post('daily_visits','VisitController@getDailyplannedvisits');
+		Route::post('submit_visit','VisitController@submitVisits');
+		Route::post('all_visits','VisitController@getAllVisits');
 	});
 
 

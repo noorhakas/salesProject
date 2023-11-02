@@ -17,6 +17,11 @@ class Visit extends Model
         return $this->belongsTo(Customer::class);
     }
 
+	public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 	public function visitdetails()
     {
         return $this->hasMany(VisitDetails::class);
