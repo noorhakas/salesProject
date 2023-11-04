@@ -17,5 +17,8 @@ return [
     'value_not_found' => 'value is required',
 	'user_logout'=>'Successfully logged out',
 	'permission_denied'=>'You do not have permission to view this page',
+	'visit_success'=>'visit saved successfuly',
+	'visit_false'=>'Fault visit'
+
 
 ];

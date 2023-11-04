@@ -44,6 +44,7 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 		Route::post('daily_visits','VisitController@getDailyplannedvisits');
 		Route::post('submit_visit','VisitController@submitVisits');
 		Route::post('all_visits','VisitController@getAllVisits');
+		Route::get('detail/{id}','VisitController@visitDetail')->name('visit.detail');
 	});
 
 

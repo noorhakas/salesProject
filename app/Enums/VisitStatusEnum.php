@@ -2,13 +2,15 @@
   
 namespace App\Enums;
 
-abstract class ScheduleStatusEnum
+abstract class VisitStatusEnum 
 {
     const  NOACTION = ["id"=>0 ,"color"=>"#00FFFF"];
     const  Pending = ["id"=>1 ,"color"=>"#ff1493"];
 	const  Confirmed = ["id"=>2 ,"color"=>"#adff2f"]; 
 	const  Visited = ["id"=>3 ,"color"=>"#228b22"];
 	const  Holiday = ["id"=>4 ,"color"=>"rgb(163 130 130)"];
+	const  Fault_Visit = ["id"=>5 ,"color"=>"rgb(163 130 130)"];
+
 
  static function getConstants() {
         $oClass = new \ReflectionClass(__CLASS__);
@@ -19,7 +21,7 @@ abstract class ScheduleStatusEnum
     {
         $values = [];
         foreach (self::getConstants() as  $name => $value) {
-			if($value["id"] !== 0)
+			if(!in_array($value["id"] ,[0,5]))
              array_push($values,["id"=>$value["id"],"name"=>$name ,"color"=>$value["color"]]);
         }
         return $values;

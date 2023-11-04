@@ -7,7 +7,7 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
-use App\Enums\ScheduleStatusEnum;
+use App\Enums\VisitStatusEnum;
 
 class VisitsResource extends JsonResource
 {
@@ -16,29 +16,31 @@ class VisitsResource extends JsonResource
         parent::__construct($resource);
     }
 
+	
     /**
      * @param Request $request
      * @return array
      */
     public function toArray($request)
     {
-        $customer = (new CustomerResource($this->customer));
-
+		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited,VisitStatusEnum::Fault_Visit])) ? VisitStatusEnum::toString($this->status) : 'Missed';
        return  [
             'id' => $this->id,
-            'customer_name' =>  $customer?->name,
-			'image' =>  $customer?->image,
-			'class_name' =>  $customer?->class_name,
-			'specialty' =>  $customer?->specialty_name,
-			'address' =>  $customer?->address,
-			'lat' =>  $customer?->lat,
-			'long' =>  $customer?->lng,
+            'customer' => (new CustomerResource($this->customer)),
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
-			'status'=>ScheduleStatusEnum::toString($this->status),
+			'status'=>$status,
 			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
 			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
 			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
 			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
+			"notes"=>$this->notes,
+
+			$this->mergeWhen(request()->route()->getName() == "visit.detail", [
+				'Items'=>["products"=>VisitDetailResource::collection($this->visitdetailProducts) 
+			                ,"gifts"=>VisitDetailResource::collection($this->visitdetailGifts)]
+			]),
+
+
 
         ];
     }

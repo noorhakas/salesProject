@@ -4,11 +4,13 @@ namespace App\Repository;
 
 use App\Models\Visit;
 use App\Models\User;
+use App\Models\Customer;
 use App\Models\AccType;
 use App\Models\VisitDetails;
+
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use App\Enums\ScheduleStatusEnum;
+use App\Enums\VisitStatusEnum;
 use App\Http\Resources\API\VisitsResource;
 
 
@@ -41,7 +43,7 @@ class VisitScheduleRepository{
 
 			$all_Data->add($ACC_Data);
 	  }
-		return ['User'=>(Object)["id"=>$user->id ,"name"=>$user->name],'CurrentDate'=>$searchDate,"listOfSataus"=> ScheduleStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data ];
+		return ['User'=>(Object)["id"=>$user->id ,"name"=>$user->name],'CurrentDate'=>$searchDate,"listOfSataus"=> VisitStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data ];
 	}
 
 
@@ -62,7 +64,7 @@ class VisitScheduleRepository{
 			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>substr($dateObj->dayName,0,3)];
 
 			$disabled = ($dateObj < Carbon::now() || $dateObj->dayName == "Friday" ) ? 1 : 0;
-			$status = ($dateObj->dayName == "Friday") ? (ScheduleStatusEnum::Holiday)["id"] : (ScheduleStatusEnum::NOACTION)["id"];
+			$status = ($dateObj->dayName == "Friday") ? (VisitStatusEnum::Holiday)["id"] : (VisitStatusEnum::NOACTION)["id"];
 			$dates[$date] = ["status"=>$status,"disabled"=>$disabled];
 		}
 		return ["listOfDates"=>$date_arr ,'dateWithSataus'=>$dates ];
@@ -85,35 +87,48 @@ class VisitScheduleRepository{
     }
 
 
-	public function getUserVisitsByDate(array $data){
+	public function getUserVisitsByDate($request){
 
-        $uservisitQuery = $data['user']->visits()->whereDate('visits.visit_date',$data['date'])
-		    // ->when($data['status'] ,fn($q, $v) =>$q->where('visits.status',$v))
-			 ->when($data['search'] ,fn($q, $v) =>$q->where('customers.name', 'like', "%{$v}%"));
-		
-		 $uservisits = (clone $uservisitQuery)->paginate($data['limit']);
+		$limit = $request->per_page ?? 20;
+		$user= isset($request->user_id) && !empty($request->user_id) ? User::find($request->user_id) : auth()->user();
+		$request->visit_date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
+      
+		$uservisits = $user->visits()->filter($request)->paginate($limit);
 		  return VisitsResource::collection($uservisits);
 	}
 
 	public function getAllVisits($request){
 
 		$limit = $request->per_page ?? 20;
-		$date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
+		$request->visit_date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
 
            $all_Visits = Visit::join('users', 'visits.user_id', '=', 'users.id')
 							->join('customers', 'visits.customer_id', '=', 'customers.id')
-						//	->when($request->get('user_id') ,fn($q, $v) =>$q->where('users.id', $v))
-						//	->when($request->get('customer_id') ,fn($q, $v) =>$q->where('customers.id', $v))
-						//	->when(isset($date) && !empty($date),fn($q, $v) =>$q->where('visits.visit_date', $date))
+							->filter($request)
 							->select('visits.*')->paginate($limit);
 		   return VisitsResource::collection($all_Visits);
-		 // return $all_Visits;
 	}
 
 
 	public function submitPannedOrUnplannedVisit(array $data){
-     \DB::beginTransaction();
+		
+		   
         try {
+			
+			\DB::beginTransaction();
+			$customer = Customer::find($data['customer_id']);
+		    $user_location = $data['current_location']; $message = '';
+
+			$distance  = $this->getDistance($customer->lat,$customer->lng ,$user_location?$user_location[0] :'' ,$user_location?$user_location[1]:'' );
+			if ($distance < 100) {
+				$status =  (VisitStatusEnum::Visited)["id"];
+				$message = ["message"=>trans('messages.visit_success'),"status"=>true]; //'visit saved successfuly';
+			} else {
+				$status =  (VisitStatusEnum::Fault_Visit)["id"];
+				$message = ["message"=>trans('messages.visit_false'),"status"=>false];
+			}
+
+			$data = array_merge(['status'=>$status , 'user_location'=>$user_location ,'acc_type_id'=>$data['account_id']],$data);
 			$createdVisit = Visit::updateOrCreate(['customer_id'=>$data['customer_id'],'user_id'=>$data['user_id'],'visit_date'=>$data['visit_date']],$data);
 			$items = [];
 			foreach($data['items'] as $i=>$single)
@@ -125,13 +140,29 @@ class VisitScheduleRepository{
 					$createdVisit->visitdetails()->delete();
 					
 			VisitDetails::insert($items);
-			 	\DB::commit();
+			
+ 	\DB::commit();
+	 return $message;
 		 } catch (\Exception $e) {
-					\DB::rollback();
+				\DB::rollback();
 	   }	
 
 	}
 
+
+
+	function getDistance($latitude1, $longitude1, $latitude2, $longitude2) {  
+		$earth_radius = 6371;
+	  
+		$dLat = deg2rad($latitude2 - $latitude1);  
+		$dLon = deg2rad($longitude2 - $longitude1);  
+	  
+		$a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($latitude1)) * cos(deg2rad($latitude2)) * sin($dLon/2) * sin($dLon/2);  
+		$c = 2 * asin(sqrt($a));  
+		$d = $earth_radius * $c;  
+	  
+		return $d;  
+	  }
 
 }
 

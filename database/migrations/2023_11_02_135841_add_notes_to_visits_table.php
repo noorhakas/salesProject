@@ -17,6 +17,7 @@ class AddNotesToVisitsTable extends Migration
             //
 			$table->integer('acc_type_id')->after('user_id');
 			$table->text('notes')->nullable()->after('confirmed_by');
+			$table->string('user_location')->nullable()->after('notes');
         });
     }
 
