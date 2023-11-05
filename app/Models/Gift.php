@@ -10,7 +10,7 @@ class Gift extends Model
 	use SoftDeletes;
     protected $table = 'gifts';
 	
-	protected $fillable = ['name'];
+	protected $fillable = ['name' ,'type'];
 
 
 }

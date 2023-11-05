@@ -12,11 +12,9 @@ class BricksController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = request()->get('per_page')??20;
-
-		// $bricks = auth()->user()->bricks()->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		//                ->orderBy('created_at','DESC')->paginate($limit);
-		$bricks = Bricks::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
+		$bricks = (auth()->user()->access_all_data) ? Bricks::select('bricks.*') :  auth()->user()->bricks();
+		$bricks = (clone $bricks)->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 
 		  $data = BricksResource::collection($bricks);			   

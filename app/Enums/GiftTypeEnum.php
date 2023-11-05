@@ -2,11 +2,11 @@
   
 namespace App\Enums;
 
-abstract class VisitStatusEnum 
+abstract class GiftTypeEnum
 {
-    const  Pending = ["id"=>1 ,"color"=>"#ff1493"];
-	const  Visited = ["id"=>2 ,"color"=>"#228b22"];
-
+	const  Gift = 1;
+    const  LeaveBehind = 2;
+	const  AdditionalFiles = 3;
 
  static function getConstants() {
         $oClass = new \ReflectionClass(__CLASS__);
@@ -17,16 +17,14 @@ abstract class VisitStatusEnum
     {
         $values = [];
         foreach (self::getConstants() as  $name => $value) {
-			if(!in_array($value["id"] ,[0,5]))
-             array_push($values,["id"=>$value["id"],"name"=>$name ,"color"=>$value["color"]]);
+             array_push($values,["id"=>$value,"name"=>$name ]);
         }
         return $values;
     }
 
-
 	public static function toString($searchedValue)
     {
-		$search_value = array_column(self::toArray(), null, 'id')[$searchedValue]??false;
+		$search_value = array_column(self::toArray(), null, 'id')[$searchedValue];
 		return  $search_value ? $search_value['name'] : false;
     }
 }

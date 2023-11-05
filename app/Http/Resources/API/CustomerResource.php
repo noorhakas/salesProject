@@ -36,7 +36,7 @@ class CustomerResource extends JsonResource
 			'class_id'=>$this->class_id,
 			'class_name'=>optional($this->class)->name,
 			'phone'=>$this->phone,
-			'phone1'=>$this->phon1,
+			'phone1'=>$this->phon1??'',
 			'address'=>$this->address,
 			'brief'=>$this->brief,
 			'lat'=>$this->lat,

@@ -5,7 +5,7 @@ namespace App\Enums;
 abstract class UserPositionEnum
 {
     const  Admin = 1;
-    const  Manager = 2;
+    //const  Manager = 2;
 	const  MedicalRep = 3; 
 
  static function getConstants() {

@@ -76,9 +76,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Customer::class, 'user_customers');
     }
 
+	public function plans()
+    {
+        return $this->hasMany(Plan::class);
+    }
+
 	public function visits()
     {
-        return $this->hasMany(Visit::class)->join('customers as c', 'c.id', '=', 'visits.customer_id');
+        return $this->hasMany(Visit::class)->join('customers', 'customers.id', '=', 'visits.customer_id');
     }
 
 	public function userVisits()

@@ -9,6 +9,7 @@ use App\Repository\VisitScheduleRepository;
 use Carbon\Carbon;
 use App\Models\Visit;
 use App\Models\User;
+use App\Models\Gift;
 use App\Http\Requests\API\ScheduleRequest;
 use App\Enums\VisitStatusEnum;
 use App\Http\Resources\API\VisitsResource;
@@ -101,6 +102,11 @@ class VisitController extends Controller
 		if(!$visit)
            return $this->response_api(false, trans('messages.data_not_found'));
 	   return $this->response_api(true, trans('messages.success'),new VisitsResource($visit));
+	}
+
+	public function getGifts(){
+		$gifts = Gift::get(['id','name']);
+		return $this->response_api(true, trans('messages.success'),$gifts);
 	}
 
 	

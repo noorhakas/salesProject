@@ -23,25 +23,16 @@ class VisitsResource extends JsonResource
      */
     public function toArray($request)
     {
-		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited,VisitStatusEnum::Fault_Visit])) ? VisitStatusEnum::toString($this->status) : 'Missed';
+		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited])) ? VisitStatusEnum::toString($this->status) : 'Missed';
        return  [
             'id' => $this->id,
-            'customer' => (new CustomerResource($this->customer)),
+            'customer' => new CustomerResource($this->customer),
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
 			'status'=>$status,
 			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
 			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
 			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
 			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
-			"notes"=>$this->notes,
-
-			$this->mergeWhen(request()->route()->getName() == "visit.detail", [
-				'Items'=>["products"=>VisitDetailResource::collection($this->visitdetailProducts) 
-			                ,"gifts"=>VisitDetailResource::collection($this->visitdetailGifts)]
-			]),
-
-
-
         ];
     }
 

@@ -13,7 +13,7 @@ class UserController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = $request->per_page??20;
+		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
 		$users = User::filter($request)->orderBy('created_at','DESC')->paginate($limit);
 		   $data = UserResource::collection($users);
 		return $this->response_api(true,trans('messages.success'),$data);

@@ -12,9 +12,9 @@ class CustomerController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = $request->per_page??20;
-		//$customers = auth()->user()->customers()->orderBy('created_at','DESC')->paginate($limit);
-		 $customers = Customer::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))->orderBy('created_at','DESC')->paginate($limit);
+		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
+		$customers = (auth()->user()->access_all_data) ? Customer::select('customers.*') :  auth()->user()->customers();
+		 $customers = (clone $customers)->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))->orderBy('created_at','DESC')->paginate($limit);
 		   $data = CustomerResource::collection($customers);
 		return $this->response_api(true,trans('messages.success'),$data);
 	}

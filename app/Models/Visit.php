@@ -40,7 +40,9 @@ class Visit extends Model
 
 	public function scopeFilter($q,$request)
     {
-		$q = $q->when($request->search,fn($q, $v) =>
+		$q = $q->when($request->plan_id,fn($q, $v) =>
+		       $q->where('visits.plan_id', $v))
+		       ->when($request->search,fn($q, $v) =>
 		        $q->where('customers.name', 'like', "%{$v}%"))
 				->when($request->visit_date,fn($q, $v) =>
 					$q->where('visits.visit_date', $v))

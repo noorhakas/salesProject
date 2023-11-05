@@ -38,13 +38,27 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 
+	// Route::prefix('/visits')->group(function () {
+	// 	Route::get('/monthly_schedule', 'VisitController@getVisitSchedule');
+	// 	Route::post('submit_schedule','VisitController@submitSchedule');
+	// 	Route::post('daily_visits','VisitController@getDailyplannedvisits');
+	// 	Route::post('submit_visit','VisitController@submitVisits');
+	// 	Route::post('all_visits','VisitController@getAllVisits');
+	// 	Route::get('detail/{id}','VisitController@visitDetail')->name('visit.detail');
+	// 	Route::get('gifts','VisitController@getGifts');
+		
+	// });
+
+	Route::prefix('/plans')->group(function () {
+		Route::get('/', 'PlansController@index');
+		Route::post('/','PlansController@store');
+		Route::get('detail', 'PlansController@planDetail');
+	});
+
+
 	Route::prefix('/visits')->group(function () {
-		Route::get('/monthly_schedule', 'VisitController@getVisitSchedule');
-		Route::post('submit_schedule','VisitController@submitSchedule');
-		Route::post('daily_visits','VisitController@getDailyplannedvisits');
-		Route::post('submit_visit','VisitController@submitVisits');
-		Route::post('all_visits','VisitController@getAllVisits');
-		Route::get('detail/{id}','VisitController@visitDetail')->name('visit.detail');
+		Route::post('/', 'VisitsController@index');
+		Route::get('/{id}', 'VisitsController@show');
 	});
 
 

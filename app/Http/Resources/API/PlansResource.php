@@ -7,29 +7,32 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
-use App\Enums\StatusEnum;
 
-
-class BricksResource extends JsonResource
+class PlansResource extends JsonResource
 {
     public function __construct($resource)
     {
         parent::__construct($resource);
     }
 
+	
     /**
      * @param Request $request
      * @return array
      */
     public function toArray($request)
     {
-         
        return  [
             'id' => $this->id,
-            'name' => $this->name,
-			'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
+			'plan_code'=>'#'.$this->Uuid,
+			'type'=>($this->type == 1)? 'monthly' : 'weekly',
+			'start_date'=>Carbon::parse($this->start_date)->toDateString(),
+			'end_date'=>Carbon::parse($this->end_date)->format("M-d"),
+			'Is_recent'=>(Carbon::parse($this->end_date) >= Carbon::today()) ? true : false,
+            'total_visit'=>0
         ];
     }
+
 
 	public static function collection($resource)
     {
@@ -39,4 +42,5 @@ class BricksResource extends JsonResource
             }
         });
    }
+   
 }

@@ -13,8 +13,10 @@ class ProductController extends Controller
 {
 	public function index()
 	{
-		$limit = request()->get('per_page')??20;
-		$products = Product::has('specialty')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
+		
+		$products = (auth()->user()->access_all_data) ? Product::select('products.*') :  auth()->user()->products();
+		$products = (Clone $products)->has('specialty')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 		   $data = ProductResource::collection($products);
 		return $this->response_api(true,trans('messages.success'),$data);

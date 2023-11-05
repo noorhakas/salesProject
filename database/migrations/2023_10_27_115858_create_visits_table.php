@@ -15,6 +15,7 @@ class CreateVisitsTable extends Migration
     {
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
+			$table->integer('plan_id');
 			$table->integer('user_id');
 			$table->integer('customer_id');
 			$table->tinyInteger('type')->default(0)->comment('0->planned,1->unplanned');

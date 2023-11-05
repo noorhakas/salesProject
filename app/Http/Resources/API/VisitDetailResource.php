@@ -22,9 +22,8 @@ class VisitDetailResource extends JsonResource
     {
        return [
             'id' => $this->id,
-            'item_name' =>$this->item?->name,
+            'item_name' =>$this->name,
 			'count_of_sample'=>$this->count_of_sample ,
-			'item_type'=>$this->item_type,
 
         ];
     }

@@ -12,7 +12,7 @@ class SpecialtyController extends Controller
 {
 	public function index(Request $request)
 	{
-		$limit = $request->per_page??20;
+		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
 		$specialty = Specialty::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 		   $data = SpecialtyResource::collection($specialty);
