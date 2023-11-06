@@ -24,7 +24,8 @@ class VisitDetailResource extends JsonResource
             'id' => $this->id,
             'item_name' =>$this->name,
 			'count_of_sample'=>$this->count_of_sample ,
-
+			'checked'=>$this->checked,
+			'type'=>$this->type,
         ];
     }
 

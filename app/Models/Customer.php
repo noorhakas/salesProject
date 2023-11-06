@@ -31,4 +31,15 @@ class Customer extends Model
     {
         return $this->belongsTo(AccType::class,'acc_type_id','id');
     }
+
+	public function scopeFilter($q,$request)
+    {
+		$q = $q->when($request->search,fn($q, $v) => 
+					$q->where('name', 'like', "%{$v}%"))
+					->when($request->acc_type_id,fn($q, $v) => 
+					$q->where('acc_type_id', $v)) ;		
+
+        return $q;
+    }
+
 }

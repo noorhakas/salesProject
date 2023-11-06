@@ -10,6 +10,7 @@ use App\Http\Resources\API\VisitsResource;
 use App\Models\Plan;
 use App\Models\Visit;
 use App\Repository\VisitRepository;
+use App\Repository\VisitScheduleRepository;
 
 
 class VisitsController extends Controller
@@ -17,11 +18,11 @@ class VisitsController extends Controller
 	 public function index(Request $request){
 
 		$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
-		$currentPlan = Plan::getCurrentPlan();
-		$request->plan_id = ($request->plan_id)??$currentPlan->id;
+		$request->plan_id = ($request->plan_id)??Plan::getCurrentPlan()?->id;
 			$visits = auth()->user()->visits()->filter($request)->paginate($limit);
-			$data  = VisitsResource::collection($visits);
-		return $this->response_api(true,trans('messages.success'),$data);
+
+			$result = VisitsResource::collection($visits);		
+		return $this->response_api(true,trans('messages.success'),$result);
 	 }
 
 	 public function show($id){
@@ -32,6 +33,13 @@ class VisitsController extends Controller
 		$data = (new VisitRepository())->getVisitDetail($visit);
 
 	    return $this->response_api(true, trans('messages.success'),$data);
+	 }
+
+	 public function VisitAsSchedule(Request $request){
+		$plan = Plan::find($request->plan_id);
+		$scheduleResult =(new VisitScheduleRepository())->createSchedule($plan);
+
+		return  $this->response_api(true,trans('messages.success'),$scheduleResult);
 	 }
 
 

@@ -41,11 +41,11 @@ class VisitRepository{
 
 
 	 protected function getUserProducts(){
-		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked')->get(['products.id','products.name']);
+		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type')->get(['products.id','products.name']);
 	 }
 
 	 protected function getGifts($type = GiftTypeEnum::Gift){
-		return Gift::selectRaw('id , name ,0 as count_of_sample , 0 as checked')->where('type',$type)->get();
+		return Gift::selectRaw('id , name ,0 as count_of_sample , 0 as checked ,type')->where('type',$type)->get();
 	 }
 
 	 protected function getVisitItemList(Visit $visit ,$type = 0){

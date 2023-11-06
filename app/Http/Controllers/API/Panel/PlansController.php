@@ -18,7 +18,16 @@ class PlansController extends Controller
 
 		$recent_plans = Plan::getCurrentPlan();
 		$previous_plans =  auth()->user()->plans()->filter($request)->when($recent_plans , fn($q,$v) => $q->where('id','!=',$v->id))->orderBy('plans.created_at','DESC')->paginate($limit);
-		    $data = ["recen_plans"=>new PlansResource($recent_plans) ,"previous_plans"=> PlansResource::collection($previous_plans)];
+		    $data = ["recent_plans"=>new PlansResource($recent_plans) ,"previous_plans"=> PlansResource::collection($previous_plans)];
+		return $this->response_api(true,trans('messages.success'),$data);
+	 }
+
+
+	 public function getAllPlans(Request $request){
+		$limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
+		$user = ($request->user_id) ? User::find($request->user_id) : auth()->user(); 
+		$plans =  $user->plans()->filter($request)->orderBy('plans.created_at','DESC')->paginate($limit);
+		    $data =  PlansResource::collection($plans);
 		return $this->response_api(true,trans('messages.success'),$data);
 	 }
 
@@ -42,9 +51,10 @@ class PlansController extends Controller
 		$plan = Plan::find($plan_id);
 		if(!$plan)
 		    return $this->response_api(false, trans('messages.user_not_found'));
-     
-        $planDates = (new PlanRepository())->getPlanDetails($plan);
-		return $this->response_api(true, trans('messages.success'),["listOfDates"=>$planDates]);
+
+        $listOfDates = (new PlanRepository())->getPlanDetails($plan);
+		$planData = new PlansResource($plan);	
+		return $this->response_api(true, trans('messages.success'),["plan"=>$planData,"listOfDates"=>$listOfDates]);
 	 }
 
 

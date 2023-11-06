@@ -38,6 +38,11 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 
+	Route::get('all_doctors', 'CustomerController@getAllDoctors');
+	Route::get('all_accounts', 'CustomerController@getAllAccounts');
+
+
+
 	// Route::prefix('/visits')->group(function () {
 	// 	Route::get('/monthly_schedule', 'VisitController@getVisitSchedule');
 	// 	Route::post('submit_schedule','VisitController@submitSchedule');
@@ -53,12 +58,15 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 		Route::get('/', 'PlansController@index');
 		Route::post('/','PlansController@store');
 		Route::get('detail', 'PlansController@planDetail');
+        Route::get('all_plans', 'PlansController@getAllPlans');
+		
 	});
 
 
 	Route::prefix('/visits')->group(function () {
 		Route::post('/', 'VisitsController@index');
-		Route::get('/{id}', 'VisitsController@show');
+		Route::get('/schedule', 'VisitsController@VisitAsSchedule');
+		Route::get("/{id}", 'VisitsController@show');
 	});
 
 

@@ -34,6 +34,11 @@ class Plan extends Model
         return $number;
     }
 
+	public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 	public static function getCurrentPlan(){
         return auth()->user()->plans()->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','DESC')->first();
 	}

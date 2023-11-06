@@ -18,13 +18,13 @@ class VisitScheduleRepository{
         
 	public function createSchedule($plan){
 		 
-		$start_date = $plan->start_date;
-		$end_date = $plan->start_date;
+		$first_date = $plan->start_date;
 		$days = Carbon::parse($plan->start_date)->diffInDays(Carbon::parse($plan->end_date));
+        $listOfDates =$this->displayListOFDates(["firstDate"=>$first_date , "days"=>$days]);
 
-		$user = $plan->user; $searchDate = Carbon::parse($plan->start_date)->toDateString() .'|'.Carbon::parse($plan->end_date)->toDateString(); 	
+		$user = $data['user']; $searchDate = $data['date']; $month = $data['month']; $year = $data['year'];	
 		$acc_types = $this->getAccountTypeData();
-		$list_days = $this->displayListOFDates(["firstDate"=> $start_date , "days"=>$days]);
+		$list_days = $this->displayListOFDates($data);
         
 		$all_Data =collect();
 		foreach($acc_types as $j=>$type){
@@ -37,7 +37,7 @@ class VisitScheduleRepository{
 				$Obj['name'] = $item->name;
 				$Obj['class_name']=optional($item->class)->name;
 			  
-				$listOfVisits = $user->visits()->selectRaw('visit_date as date ,status , 1 as disabled ')->whereDate('visit_date','>=',$start_date)->whereDate('visit_date','<=',$end_date)->where('customer_id',$item->id)->get()->keyBy('date');
+				$listOfVisits = $user->visits()->selectRaw('visit_date as date ,status , 1 as disabled ')->whereRaw('MONTH(visit_date)='.$month.' and YEAR(visit_date)='.$year.' and customer_id ='.$item->id.' ')->get()->keyBy('date');
 				$result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
 				$Obj['dates']= $result;
 				
@@ -62,8 +62,8 @@ class VisitScheduleRepository{
 	protected function displayListOFDates(array $arr){
 
 		$dates = collect(); $date_arr=[];
-		for($i = 0;$i<=$arr['days'] ;$i++){
-			$dateObj = Carbon::parse($arr['firstDate'])->addDays($i);
+		for($i = 0;$i<$arr['days'] ;$i++){
+			$dateObj = Carbon::parse($arr['firstDay'])->addDays($i);
 			$date = $dateObj->toDateString();
 			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>substr($dateObj->dayName,0,3)];
 
@@ -91,7 +91,27 @@ class VisitScheduleRepository{
     }
 
 
-	
+	public function getUserVisitsByDate($request){
+
+		$limit = $request->per_page ?? 20;
+		$user= isset($request->user_id) && !empty($request->user_id) ? User::find($request->user_id) : auth()->user();
+		$request->visit_date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
+      
+		$uservisits = $user->visits()->filter($request)->paginate($limit);
+		  return VisitsResource::collection($uservisits);
+	}
+
+	public function getAllVisits($request){
+
+		$limit = $request->per_page ?? 20;
+		$request->visit_date = isset($request->date) && !empty($request->date) ? Carbon::now()->today()->toDateString() : Carbon::parse($request->date)->toDateString();
+
+           $all_Visits = Visit::join('users', 'visits.user_id', '=', 'users.id')
+							->join('customers', 'visits.customer_id', '=', 'customers.id')
+							->filter($request)
+							->select('visits.*')->paginate($limit);
+		   return VisitsResource::collection($all_Visits);
+	}
 
 
 	public function submitPannedOrUnplannedVisit(array $data){
