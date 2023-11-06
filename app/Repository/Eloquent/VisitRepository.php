@@ -1,22 +1,36 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Eloquent;
 
+
+use App\Repository\Interfaces\VisitInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Models\Plan;
+use App\Models\User;
 use App\Models\Visit;
 use App\Models\Gift;
 use App\Http\Resources\API\VisitDetailResource;
 use App\Http\Resources\API\VisitsResource;
-
 use App\Enums\GiftTypeEnum;
 
+class VisitRepository implements VisitInterface
+{
+    public function getvisitsByPlan($request){
+		$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
+		$request->plan_id = ($request->plan_id)??User::getCurrentPlan()?->id;
+		$plan =Plan::find($request->plan_id); 
+			$visits = $plan->visits()->filter($request)->paginate($limit);
 
+			$data = VisitsResource::collection($visits);
+	    return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];		
+	}
 
-class VisitRepository{
-     public function getVisitDetail(Visit $visit){
-          
+	 public function getvisitDtail($id){
+		$visit = Visit::find($id);
+		if(!$visit)
+		      return ["status"=>false, "message"=>trans('messages.data_not_found')];
+
 		$visitProductItem = $this->getVisitItemList($visit,0); //type -- products
 		$listOfProduct= $this->mergeDataById($this->getUserProducts(),$visitProductItem);
 
@@ -29,16 +43,15 @@ class VisitRepository{
 	   $visitAdditionalFiles = $this->getVisitItemList($visit,GiftTypeEnum::AdditionalFiles);
 	   $listOfAdditionalFiles= $this->mergeDataById($this->getGifts(GiftTypeEnum::AdditionalFiles),$visitAdditionalFiles);
 
-		return 
-		[
+		$data=[
 			"visit"=>new VisitsResource($visit),
 			"products"=>VisitDetailResource::collection($listOfProduct),
 			"leaveBehind"=>VisitDetailResource::collection($listOfLeaveBehind),
 			"Gifts"=>VisitDetailResource::collection($listOfGist),
 			"AdditionalFiles"=>VisitDetailResource::collection($listOfAdditionalFiles),
 		];
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	 }
-
 
 	 protected function getUserProducts(){
 		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type')->get(['products.id','products.name']);
@@ -73,6 +86,7 @@ class VisitRepository{
         }
         return collect($data)->sortBy('id', SORT_REGULAR, false)->values();
     }
+
 }
 
 class ReportData extends Collection
@@ -82,5 +96,3 @@ class ReportData extends Collection
         return $this->get($name, null);
     }
 }
-
-

@@ -12,5 +12,4 @@ class Classes extends Model
 
 	protected $fillable = ['name','frequency'];
 
-
 }

@@ -48,7 +48,7 @@ class Notification extends Model
 				)->paginate($limit);
 
 
-		return ['status'=>true,'message'=>'success','data'=>NotificationResource::collection($getNotificationList)];
+		return ['status'=>true,'message'=>trans('messages.success'),'data'=>NotificationResource::collection($getNotificationList)];
 	}
 
 	public function notificationBadgeReset()
@@ -56,7 +56,7 @@ class Notification extends Model
         try {
             $user = auth()->user()->id;
             Notification::where(['user_id' => $user])->update(['tiIsRead' => 1]);
-            return ['status'=>true,'message'=>'success'];
+            return ['status'=>true,'message'=>trans('messages.success')];
         } catch (Exception $e) {
             return ExceptionResponse($e);
         }

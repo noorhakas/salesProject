@@ -4,63 +4,46 @@ namespace App\Http\Controllers\API\Panel;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Specialty;
-use App\Http\Resources\API\SpecialtyResource;
 use App\Http\Requests\API\SpecialtyRequest;
+use App\Models\Specialty;
+use App\Repository\Interfaces\SpecialtyInterface;
 
 class SpecialtyController extends Controller
 {
+	public $Ispecialty;
+    public function __construct(SpecialtyInterface $Ispecialty)
+    {
+        $this->Ispecialty = $Ispecialty;
+    }
+
 	public function index(Request $request)
 	{
-		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
-		$specialty = Specialty::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','DESC')->paginate($limit);
-		   $data = SpecialtyResource::collection($specialty);
-		return $this->response_api(true,trans('messages.success'),$data);
+		$response = $this->Ispecialty->getAll($request);
+		return $this->SendResponse($response);
 	}
 
 	public function store(SpecialtyRequest $request)
     {
-		\DB::beginTransaction();
-      try {
-			 $specialty = Specialty::updateOrCreate(['name'=>$request->name],$request->validated());
-			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),new SpecialtyResource($specialty));
-		} catch (\Exception $e) {
-			\DB::rollback();
-			return $this->response_api(false, trans('messages.server_error'));
-		}
+		$response = $this->Ispecialty->createSpecialty($request);
+		return $this->SendResponse($response); 
+      
     }
 
 	public function show(Specialty $specialty)
     {
-	   if(!$specialty)
-           return $this->response_api(false, trans('messages.data_not_found'));
-
-	   return $this->response_api(true, trans('messages.success'),new SpecialtyResource($specialty));
+		$response = $this->Ispecialty->show($specialty);
+		return $this->SendResponse($response);
     }
 
 	public function update(SpecialtyRequest $request,Specialty $specialty) {
-		\DB::beginTransaction();
-      try {
-		   if(!$specialty)
-		      return $this->response_api(false, trans('messages.data_not_found'));
-
-			$specialty->update($request->validated());
-			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),new SpecialtyResource($specialty));
-		} catch (\Exception $e) {
-			\DB::rollback();
-			return $this->response_api(false, trans('messages.server_error'));
-		}
+		
+		$response = $this->Ispecialty->updateSpecialty($request,$specialty);
+		return $this->SendResponse($response);
 	}
 	public function destroy(Specialty $specialty)
     {
-		if(!$specialty)
-           return $this->response_api(false, trans('messages.data_not_found'));
-
-        $specialty->delete();
-        return $this->response_api(true,  trans('messages.success'));
+		$response = $this->Ispecialty->deleteSpecialty($specialty);
+		return $this->SendResponse($response);
     }
 
 

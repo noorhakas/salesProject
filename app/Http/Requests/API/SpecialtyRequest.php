@@ -32,7 +32,7 @@ class SpecialtyRequest extends FormRequest
 				'name'=>'required|string|max:100|unique:specialty,name,NULL,id,deleted_at,NULL',
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:specialty,name,' . $this->specialty?->id . ',id,deleted_at,NULL',
+                'name' => 'sometimes|required|string|max:255|unique:specialty,name,' . $this->specialty->id . ',id,deleted_at,NULL',
 			],
         };
     }
