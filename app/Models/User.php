@@ -10,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Carbon\Carbon;
 
 
 class User extends Authenticatable
@@ -90,6 +90,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Customer::class, 'visits','user_id','customer_id');
     }
+
+	public static function getCurrentPlan(){
+        return auth()->user()->plans()->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','DESC')->first();
+	}
 
 	public function scopeFilter($q,$request)
     {

@@ -9,7 +9,7 @@ class Visit extends Model
 {
 	use SoftDeletes;
     protected $table = 'visits';
-	protected $fillable = ['user_id','customer_id','type','status','visit_date','start_time','end_time','confirmed_by' ,'notes','user_location','acc_type_id'];
+	protected $fillable = ['plan_id','user_id','customer_id','type','status','visit_date','start_time','end_time','confirmed_by' ,'notes','user_location','acc_type_id'];
 
 	
 	public function customer()

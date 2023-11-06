@@ -7,16 +7,14 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
-use App\Enums\VisitStatusEnum;
 
-class PlansResource extends JsonResource
+class NotificationResource extends JsonResource
 {
     public function __construct($resource)
     {
         parent::__construct($resource);
     }
 
-	
     /**
      * @param Request $request
      * @return array
@@ -25,16 +23,11 @@ class PlansResource extends JsonResource
     {
        return  [
             'id' => $this->id,
-			'plan_code'=>'#'.$this->Uuid,
-			'user_name'=>$this->user?->name,
-			'type'=>($this->type == 1)? 'monthly' : 'weekly',
-			'start_date'=>Carbon::parse($this->start_date)->toDateString(),
-			'end_date'=>Carbon::parse($this->end_date)->toDateString(),
-			'Is_recent'=>(Carbon::parse($this->end_date) >= Carbon::today()) ? true : false,
-            'total_visit'=>$this->visits()->selectRaw('count(*) as visit_count')->where('status',(VisitStatusEnum::Visited)["id"])->first()?->visit_count,
+			'title'=>__('messages.new_plan'),
+			'body'=>__('messages.created_new_plan', ['vName' => $this->NotifyUser->name]),
+            'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }
-
 
 	public static function collection($resource)
     {
@@ -44,5 +37,4 @@ class PlansResource extends JsonResource
             }
         });
    }
-   
 }

@@ -39,9 +39,11 @@ class Plan extends Model
         return $this->belongsTo(User::class);
     }
 
-	public static function getCurrentPlan(){
-        return auth()->user()->plans()->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','DESC')->first();
-	}
+	public function visits()
+    {
+        return $this->hasMany(Visit::class);
+    }
+
 
 	public function scopeFilter($q,$request)
     {

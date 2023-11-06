@@ -69,6 +69,11 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 		Route::get("/{id}", 'VisitsController@show');
 	});
 
+	Route::prefix('/notifications')->group(function () {
+		Route::get('/','NotificationController@notificationListing');
+		Route::get('badge-reset','NotificationController@notificationBadgeReset');
+	});
+
 
 });
 

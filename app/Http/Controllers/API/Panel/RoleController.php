@@ -55,9 +55,7 @@ class RoleController extends Controller
 
 	public function update(RoleRequest $request,Role $role)
     {
-		// if (!auth()->user()->hasPermissionTo('update Role'))
-		// 	return $this->response_api(false,__('messages.permission_denied'));
-
+		
 		if(!$role)
            return $this->response_api(false, trans('messages.server_error'));
 
