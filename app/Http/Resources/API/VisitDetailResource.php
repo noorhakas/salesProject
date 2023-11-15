@@ -22,7 +22,7 @@ class VisitDetailResource extends JsonResource
     {
        return [
             'id' => $this->id,
-            'item_name' =>$this->name,
+            'item_name' =>($this->type == 3) ? $this->file : $this->name,
 			'count_of_sample'=>$this->count_of_sample ,
 			'checked'=>$this->checked,
 			'type'=>$this->type,

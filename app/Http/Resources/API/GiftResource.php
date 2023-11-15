@@ -8,7 +8,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
 
-class NotificationResource extends JsonResource
+
+class GiftResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -21,13 +22,13 @@ class NotificationResource extends JsonResource
      */
     public function toArray($request)
     {
+         
        return  [
             'id' => $this->id,
-			'title'=>__('messages.new_plan'),
-			'body'=>__('messages.created_new_plan', ['vName' => $this->NotifyUser->name]),
-			'model'=>$this->model_type,
-			'model_id'=>$this->model_id,
-            'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+            'name' =>$this->name,
+			'file'=>$this->file,
+			'type' => $this->type,
+			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }
 

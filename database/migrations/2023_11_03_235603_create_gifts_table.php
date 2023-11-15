@@ -16,6 +16,8 @@ class CreateGiftsTable extends Migration
         Schema::create('gifts', function (Blueprint $table) {
             $table->id();
 			$table->string('name');
+			$table->integer('type')->default(0);
+			$table->string('file')->nullable();
             $table->timestamps();
 			$table->softDeletes();
         });

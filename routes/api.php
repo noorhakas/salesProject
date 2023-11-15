@@ -24,7 +24,7 @@ Route::group(['namespace' => 'Auth'], function(){
 
 Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function(){
    	Route::resource('users', 'UserController')->except(['edit', 'create']);;
-	Route::get('myprofile', 'UserController@myProfile'); 
+	Route::get('myprofile', 'UserController@myProfile')->name('users.profile'); 
     Route::post('update_profile', 'UserController@updateProfile'); 
 	Route::get('current_plan', 'UserController@MycurrentPlan');   
 	Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
@@ -40,6 +40,8 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 	Route::resource('accounts', 'AccountController')->except(['edit', 'create']);
+	Route::resource('gifts', 'GiftController')->except(['edit', 'create']);
+
 
 
 	Route::prefix('/plans')->group(function () {
@@ -69,6 +71,7 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 
 	Route::get('dashboard-stats', 'HomeController@index');
 	Route::get('logs', 'HomeController@getLogs');
+	Route::post('maps', 'MapController@getMaps');
 	
 
 

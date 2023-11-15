@@ -37,17 +37,23 @@ class UserResource extends JsonResource
 			'position_name'=>UserPositionEnum::toString($this->position),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : Object([]),
 			'access_all_data'=>$this->access_all_data,
+
         ];
 
-		if(request()->route()->getName() == "users.show")
+		if(in_array(request()->route()->getName(), ["users.show" ,"users.profile"]))
 		{
 			switch($this->access_all_data){
                case "1":
-				$base = array_merge($base,['brick_ids'=>[] ,'product_ids'=> [],'customer_ids'=> []] );
+				$base = array_merge($base,[
+					'brick_ids'=>[] ,'product_ids'=> [],'customer_ids'=> [] ,'permissions'=>$this->getAllPermissions()->pluck('name')] );
 			   break;
 			   default:
-			    $base = array_merge($base,['brick_ids'=>$this->bricks()->pluck('id') ,'product_ids'=> $this->products()->pluck('id')
-			                ,'customer_ids'=> $this->customers()->pluck('id')] );
+			     $base = array_merge($base,[
+					        'brick_ids'=>$this->bricks()->pluck('id') ,
+							'product_ids'=> $this->products()->pluck('id')
+			                ,'customer_ids'=> $this->customers()->pluck('id')
+							,'permissions'=>$this->getAllPermissions()->pluck('name')
+					]);
 			   break;	
 			}
 

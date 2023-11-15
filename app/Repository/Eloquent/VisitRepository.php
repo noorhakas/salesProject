@@ -92,6 +92,21 @@ class VisitRepository implements VisitInterface
         return collect($data)->sortBy('id', SORT_REGULAR, false)->values();
     }
 
+	public function mergeDataByAccountId(Collection ...$collections)
+    {
+        $data = [];
+
+        foreach ($collections as $collection) {
+            foreach ($collection as $Id => $item) {
+                if (!$item instanceof Collection) {
+                    $item = collect($item);
+                };
+				$data[$Id] = ReportData::make(array_merge(isset($data[$Id]) ? $data[$Id]->toArray() : ['account_id' => $Id], $item->toArray()));
+            }
+        }
+        return collect($data)->sortBy('account_id', SORT_REGULAR, false)->values();
+    }
+
 
 
 	
@@ -126,7 +141,7 @@ class VisitRepository implements VisitInterface
 			$status =  (VisitStatusEnum::Visited)["id"];
 			$message = ["status"=>true ,"message"=>trans('messages.visit_success')]; //'visit saved successfuly';
 		} else {
-			$status =  (VisitStatusEnum::Fault_Visit)["id"];
+			$status =  (VisitStatusEnum::False_Visit)["id"];
 			$message = ["status"=>false,"message"=>trans('messages.visit_false')];
 		}
 
@@ -184,7 +199,7 @@ class VisitRepository implements VisitInterface
 			return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }
 	  
-	  protected function DrawVisitStatistics(){
+	  public function DrawVisitStatistics(){
 
 		return  Visit::selectRaw('
 			        sum(if(visits.status != 0, 1,0)) as visit_count,
@@ -193,6 +208,11 @@ class VisitRepository implements VisitInterface
 					sum(if(visits.status = 4 , 1,0)) as false_visit_count,  
                     sum(if(visits.status = 0 and DATE(visits.visit_date) < CURDATE() , 1,0)) as missed_visit_count,
 			        sum(if(visits.status = 0  and DATE(visits.visit_date) > CURDATE(), 1,0)) as pending_count,users.name , users.id')->join('users','users.id','=','visits.user_id');
+	  }
+
+	  public function DrawVisitCountStatistics(){
+
+		return  Visit::selectRaw('visits.account_id , count(visits.id) as visit_count')->join('users','users.id','=','visits.user_id');
 	  }
 
 	  public function getVisitsByUserId($request){
