@@ -4,14 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Http\Traits\ObservantTrait;
 
 class Visit extends Model
 {
-	use SoftDeletes;
+	use SoftDeletes, ObservantTrait;
     protected $table = 'visits';
-	protected $fillable = ['plan_id','user_id','customer_id','type','status','visit_date','start_time','end_time','confirmed_by' ,'notes','user_location','acc_type_id'];
+	protected $fillable = ['plan_id','user_id','account_id','customer_id','type','status','visit_date','start_time','end_time','confirmed_by' ,'notes','user_location_lat','user_location_lng'];
 
-	
+	public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
+
+	public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
 	public function customer()
     {
         return $this->belongsTo(Customer::class);

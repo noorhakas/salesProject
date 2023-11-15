@@ -91,62 +91,6 @@ class VisitScheduleRepository{
     }
 
 
-	
-
-
-	public function submitPannedOrUnplannedVisit(array $data){
-  
-        try {
-			
-			\DB::beginTransaction();
-			$customer = Customer::find($data['customer_id']);
-		    $user_location = $data['current_location']; $message = '';
-
-			$distance  = $this->getDistance($customer->lat,$customer->lng ,$user_location?$user_location[0] :'' ,$user_location?$user_location[1]:'' );
-			if ($distance < 100) {
-				$status =  (VisitStatusEnum::Visited)["id"];
-				$message = ["message"=>trans('messages.visit_success'),"status"=>true]; //'visit saved successfuly';
-			} else {
-				$status =  (VisitStatusEnum::Fault_Visit)["id"];
-				$message = ["message"=>trans('messages.visit_false'),"status"=>false];
-			}
-
-			$data = array_merge(['status'=>$status , 'user_location'=>$user_location ,'acc_type_id'=>$data['account_id']],$data);
-			$createdVisit = Visit::updateOrCreate(['customer_id'=>$data['customer_id'],'user_id'=>$data['user_id'],'visit_date'=>$data['visit_date']],$data);
-			$items = [];
-			foreach($data['items'] as $i=>$single)
-			{
-				$items[] = ['visit_id'=>$createdVisit->id,'item_id'=>$single['item_id'] ,'count_of_sample'=>$single['sample'],'item_type'=>$single['item_type'],'created_at'=>Carbon::now()];
-			}
-
-			if($createdVisit->visitdetails()->count())
-					$createdVisit->visitdetails()->delete();
-					
-			VisitDetails::insert($items);
-			
- 	\DB::commit();
-	 return $message;
-		 } catch (\Exception $e) {
-				\DB::rollback();
-	   }	
-
-	}
-
-
-
-	function getDistance($latitude1, $longitude1, $latitude2, $longitude2) {  
-		$earth_radius = 6371;
-	  
-		$dLat = deg2rad($latitude2 - $latitude1);  
-		$dLon = deg2rad($longitude2 - $longitude1);  
-	  
-		$a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($latitude1)) * cos(deg2rad($latitude2)) * sin($dLon/2) * sin($dLon/2);  
-		$c = 2 * asin(sqrt($a));  
-		$d = $earth_radius * $c;  
-	  
-		return $d;  
-	  }
-
 }
 
 class ReportData extends Collection

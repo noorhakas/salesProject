@@ -6,13 +6,18 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Role;
 use App\Http\Resources\API\UserResource;
+use App\Http\Resources\API\PlansResource;
 use App\Http\Requests\API\UserRequest;
+use App\Http\Requests\API\ProfileRequest;
 use App\Models\User;
 
 class UserController extends Controller
 {
 	public function index(Request $request)
 	{
+		if (!auth()->user()->hasPermissionTo('display Users'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
 		$users = User::filter($request)->orderBy('created_at','DESC')->paginate($limit);
 		   $data = UserResource::collection($users);
@@ -22,8 +27,11 @@ class UserController extends Controller
 
 	public function store(UserRequest $request)
     {
-		\DB::beginTransaction();
+		if (!auth()->user()->hasPermissionTo('create User'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
         try {
+			\DB::beginTransaction();
 			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
 			$user->syncRoles($request->role_id);
 
@@ -54,8 +62,11 @@ class UserController extends Controller
     }
 
 	public function update(UserRequest $request,User $user) {
-		\DB::beginTransaction();
+		
+		if (!auth()->user()->hasPermissionTo('update User'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
       try {
+		 \DB::beginTransaction();
 		   if(!$user)
 		      return $this->response_api(false, trans('messages.user_not_found'));
 
@@ -79,6 +90,9 @@ class UserController extends Controller
 	}
 	public function destroy(User $user)
     {
+       if (!auth()->user()->hasPermissionTo('delete User'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		if(!$user)
            return $this->response_api(false, trans('messages.user_not_found'));
 
@@ -89,6 +103,23 @@ class UserController extends Controller
 	public function myProfile(Request $request){
 		$user = $request->user();
 		$data = new UserResource($user);
+		return $this->response_api(true,trans('messages.success'),$data);
+	}
+
+	public function updateProfile(ProfileRequest $request){
+		try {	
+			$user = auth()->user();
+			$user->update($request->validated());
+			  return $this->response_api(true, trans('messages.success'),new UserResource($user));
+		} catch (\Exception $e) {
+			\DB::rollback();
+			return $this->response_api(false, trans('messages.server_error'));
+		}
+	}
+
+	public function MycurrentPlan(){
+		$current_plan = User::getCurrentPlan();
+		$data = new PlansResource($current_plan);
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 

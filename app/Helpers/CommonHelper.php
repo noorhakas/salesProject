@@ -80,4 +80,5 @@ function pushCurlCall($registrationId, $fields)
     return ($result) ? 1 : 0;
 }
 
+
 ?>

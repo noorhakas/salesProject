@@ -12,8 +12,9 @@ class CustomerRepository implements CustomerInterface
       
 	  public function getAll($request)
 	  {
-		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
-		$customer =(auth()->user()->access_all_data) ? Customer::select('customers.*') :  auth()->user()->customers();
+
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+		$customer =(auth()->user()->access_all_data) ? Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id') :  auth()->user()->customers()->join('accounts','accounts.id','=','customers.account_id');
 		$customers = (clone $customer)->filter($request)->orderBy('created_at','DESC')->paginate($limit);
 		   $data = CustomerResource::collection($customers);
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
@@ -22,8 +23,9 @@ class CustomerRepository implements CustomerInterface
 	  public function createCustomer($request){
 		
 		try {
-			\DB::beginTransaction();
-				 $customer = Customer::updateOrCreate(['name'=>$request->name],$request->validated());
+		      \DB::beginTransaction();
+                 $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days[0]) ? array_unique(array_map('intval',explode(',',$request->work_days[0])))  : []]);
+				 $customer = Customer::updateOrCreate(['name'=>$request->name],$arr);
 				\DB::commit();
 				return ['status'=>true,'message'=>trans('messages.success'),'data'=>new CustomerResource($customer)];
 			} catch (\Exception $e) {
@@ -38,7 +40,8 @@ class CustomerRepository implements CustomerInterface
 			   if(!$customer)
 			   return ["status"=>false, "message"=>trans('messages.data_not_found')];
 	
-				$customer->update($request->validated());
+			     $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days[0]) ? array_unique(array_map('intval',explode(',',$request->work_days[0])))  : []]);
+				    $customer->update($arr);
 				\DB::commit();
 				return ["status"=>true, "message"=>trans('messages.success'),'data'=>new CustomerResource($customer)];
 			} catch (\Exception $e) {

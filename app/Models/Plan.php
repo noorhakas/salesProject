@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Http\Traits\ObservantTrait;
 
 class Plan extends Model
 {
-	use SoftDeletes;
+	use SoftDeletes,ObservantTrait;
     protected $table = 'plans';
 	protected $fillable = ['Uuid','user_id','type','start_date','end_date'];
 
@@ -48,7 +49,9 @@ class Plan extends Model
 	public function scopeFilter($q,$request)
     {
 		$q = $q->when($request->search,fn($q, $v) => 
-					$q->where('Uuid', 'like', "%{$v}%"));
+				$q->where('Uuid', 'like', "%{$v}%"))
+			->when($request->date,fn($q, $v) => 
+				$q->whereDate('plans.end_date', '<', $v));
 
         return $q;
     }

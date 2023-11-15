@@ -24,7 +24,9 @@ Route::group(['namespace' => 'Auth'], function(){
 
 Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function(){
    	Route::resource('users', 'UserController')->except(['edit', 'create']);;
-	Route::get('myprofile', 'UserController@myProfile');   
+	Route::get('myprofile', 'UserController@myProfile'); 
+    Route::post('update_profile', 'UserController@updateProfile'); 
+	Route::get('current_plan', 'UserController@MycurrentPlan');   
 	Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
 	Route::get('permissions', 'RoleController@allPermissions');
 	Route::get('position_list', 'UserController@getPositionList');
@@ -37,22 +39,8 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
+	Route::resource('accounts', 'AccountController')->except(['edit', 'create']);
 
-	Route::get('all_doctors', 'CustomerController@getAllDoctors');
-	Route::get('all_accounts', 'CustomerController@getAllAccounts');
-
-
-
-	// Route::prefix('/visits')->group(function () {
-	// 	Route::get('/monthly_schedule', 'VisitController@getVisitSchedule');
-	// 	Route::post('submit_schedule','VisitController@submitSchedule');
-	// 	Route::post('daily_visits','VisitController@getDailyplannedvisits');
-	// 	Route::post('submit_visit','VisitController@submitVisits');
-	// 	Route::post('all_visits','VisitController@getAllVisits');
-	// 	Route::get('detail/{id}','VisitController@visitDetail')->name('visit.detail');
-	// 	Route::get('gifts','VisitController@getGifts');
-		
-	// });
 
 	Route::prefix('/plans')->group(function () {
 		Route::get('/', 'PlansController@index');
@@ -66,13 +54,22 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::prefix('/visits')->group(function () {
 		Route::post('/', 'VisitsController@index');
 		Route::get('/schedule', 'VisitsController@VisitAsSchedule');
+		Route::get('/all_visits', 'VisitsController@AllVisits');
+        Route::post('all_user_visit','VisitsController@UserVisits');	
 		Route::get("/{id}", 'VisitsController@show');
+		Route::post('savevisit','VisitsController@store');
+		Route::post('visit-charts', 'VisitsController@visitCharts');
 	});
 
 	Route::prefix('/notifications')->group(function () {
 		Route::get('/','NotificationController@notificationListing');
 		Route::get('badge-reset','NotificationController@notificationBadgeReset');
 	});
+
+
+	Route::get('dashboard-stats', 'HomeController@index');
+	Route::get('logs', 'HomeController@getLogs');
+	
 
 
 });

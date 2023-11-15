@@ -19,24 +19,18 @@ class CustomerController extends Controller
 
 	public function index(Request $request)
 	{
-		$response = $this->Icustomer->getAll($request);
-		return $this->SendResponse($response);
-	}
+		if (!auth()->user()->hasPermissionTo('display Doctors'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
-	public function getAllDoctors(Request $request)
-	{
-		$response = $this->Icustomer->getAll($request);
-		return $this->SendResponse($response);
-	}
-
-	public function getAllAccounts(Request $request)
-	{
 		$response = $this->Icustomer->getAll($request);
 		return $this->SendResponse($response);
 	}
 
 	public function store(CustomerRequest $request)
     {
+		if (!auth()->user()->hasPermissionTo('create Doctor'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->Icustomer->createCustomer($request);
 		return $this->SendResponse($response);
       
@@ -44,18 +38,26 @@ class CustomerController extends Controller
 
 	public function show(Customer $customer)
     {
+		if (!auth()->user()->hasPermissionTo('display Doctors'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->Icustomer->show($customer);
 		return $this->SendResponse($response);
     }
 
 	public function update(CustomerRequest $request,Customer $customer) {
-		
+		if (!auth()->user()->hasPermissionTo('update Doctor'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
         $response = $this->Icustomer->updateCustomer($request,$customer);
 		return $this->SendResponse($response);
 	}
 
 	public function destroy(Customer $customer)
     {
+		if (!auth()->user()->hasPermissionTo('delete Doctor'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->Icustomer->deleteCustomer($customer);
 		return $this->SendResponse($response);
     }

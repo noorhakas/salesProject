@@ -7,9 +7,8 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
-use App\Enums\VisitStatusEnum;
 
-class VisitsResource extends JsonResource
+class LogsResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -23,19 +22,13 @@ class VisitsResource extends JsonResource
      */
     public function toArray($request)
     {
-		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited])) ? VisitStatusEnum::toString($this->status) : 'Missed';
+		$replace_word = "App\Models\ ";
        return  [
             'id' => $this->id,
-            'customer' => new CustomerResource($this->customer),
-			'user_name'=>optional($this->user)->name,
-			'type'=>($this->type == 1)? 'unplanned' : 'planned',
-			'plan_code'=>optional($this->plan)->Uuid,
-			'status'=>$status,
-			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
-			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
-			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
-			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
-			'note'=>$this->note,
+            'action' =>str_ireplace("App\Models",' ',$this->action),
+			'user'=>optional($this->user)->name,
+			'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
+
         ];
     }
 

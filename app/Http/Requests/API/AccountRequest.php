@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class CustomerRequest extends FormRequest
+class AccountRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -30,23 +30,21 @@ class CustomerRequest extends FormRequest
 
         $base = [
 			'name'=>'required|string|max:100|unique:customers,name,NULL,id,deleted_at,NULL',
-			'account_id'=>'required|exists:accounts,id',
+			'brick_id'=>'required|exists:bricks,id',
 			'acc_type_id'=>'required|exists:acc_type,id',
-			'specialty_id'=>'required|exists:specialty,id',
-			'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+			'class_id'=>'required|exists:classes,id',
 			'phone'=>'required|numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'phone1'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
-			'brief'=>'sometimes|string',
-		//	'work_days'=>'sometimes',
-			'work_start_time'=>'sometimes',
-			'work_end_time'=>'sometimes',
+			'address'=>'required|string',
+			'lat'=>'required',
+			'lng'=>'required'
 		];
 		
 		return match(request()->method()){
 			"POST" => $base,
-            "PUT", "PATCH" => array_merge($base,['name' => 'sometimes|required|string|max:255|unique:customers,name,' . $this->customer->id . ',id,deleted_at,NULL'
-		                         ,'phone' => 'numeric|digits_between:6,14|unique:customers,phone,' . $this->customer->id . ',id,deleted_at,NULL'
-								 ,'phone1' => 'numeric|digits_between:6,14|unique:customers,phone1,' . $this->customer->id . ',id,deleted_at,NULL'
+            "PUT", "PATCH" => array_merge($base,['name' => 'sometimes|required|string|max:255|unique:accounts,name,' . $this->account->id . ',id,deleted_at,NULL'
+		                         ,'phone' => 'numeric|digits_between:6,14|unique:accounts,phone,' . $this->account->id . ',id,deleted_at,NULL'
+								 ,'phone1' => 'numeric|digits_between:6,14|unique:accounts,phone1,' . $this->account->id . ',id,deleted_at,NULL'
 								]),
         };
     }

@@ -24,7 +24,8 @@ class InterfaceProvider extends ServiceProvider
 		$this->app->bind(\App\Repository\Interfaces\CustomerInterface::class,\App\Repository\Eloquent\CustomerRepository::class);
 		$this->app->bind(\App\Repository\Interfaces\PlanInterface::class,\App\Repository\Eloquent\PlanRepository::class);
 		$this->app->bind(\App\Repository\Interfaces\VisitInterface::class,\App\Repository\Eloquent\VisitRepository::class);
-
+		$this->app->bind(\App\Repository\Interfaces\AccountInterface::class,\App\Repository\Eloquent\AccountRepository::class);
+		$this->app->bind(\App\Repository\Interfaces\HomeInterface::class,\App\Repository\Eloquent\HomeRepository::class);
 
     }
 

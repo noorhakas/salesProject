@@ -18,30 +18,44 @@ class ClassesController extends Controller
 
 	public function index(Request $request)
 	{
+		if (!auth()->user()->hasPermissionTo('display Classes'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->class->getAll($request);
 		return $this->SendResponse($response);
 	}
 
 	public function store(ClassesRequest $request)
     { 
+		if (!auth()->user()->hasPermissionTo('create Class'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		 $response = $this->class->createClass($request);
 		 return $this->SendResponse($response);
     }
 
 	public function show($id)
     {
+		if (!auth()->user()->hasPermissionTo('display Classes'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->class->show($id);
 		return $this->SendResponse($response);
     }
 
 	public function update(ClassesRequest $request,$id) {
-		
+		if (!auth()->user()->hasPermissionTo('update Class'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->class->updateClass($request,$id);
 		return $this->SendResponse($response);
 		
 	}
 	public function destroy($id)
     {
+		if (!auth()->user()->hasPermissionTo('delete Class'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
 		$response = $this->class->deleteClass($id);
 		return $this->SendResponse($response);
     }

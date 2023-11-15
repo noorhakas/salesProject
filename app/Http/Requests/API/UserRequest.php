@@ -32,6 +32,7 @@ class UserRequest extends FormRequest
 				'user_name'=>'required|string|max:100|unique:users,user_name,NULL,id,deleted_at,NULL',
 				'email'=>'required|email:rfc,dns|unique:users,email,NULL,id,deleted_at,NULL',
 				'status'=>'required|integer|in:0,1',
+				'position'=>'required|integer|in:1,2,3',
 				'customer_select_all'=>'integer|in:0,1',
 				'role_id' => 'required|exists:roles,id',
 				'password' => 'required|min:6',
@@ -50,7 +51,8 @@ class UserRequest extends FormRequest
             "PUT", "PATCH" =>  
 					array_merge($base,['email' => 'sometimes|required|email:rfc,dns|max:255|unique:users,email,' . $this->user?->id . ',id,deleted_at,NULL',
 					'user_name' => 'sometimes|required|string|max:255|unique:users,user_name,' . $this->user?->id . ',id,deleted_at,NULL',
-				    ]),
+				     'password' => 'sometimes|required|min:6',   
+				]),
         };
 
     }

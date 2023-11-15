@@ -10,12 +10,14 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Http\Traits\ObservantTrait;
 use Carbon\Carbon;
 
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, Notifiable, HasRoles, ObservantTrait;
 	use SoftDeletes;
 
 //	protected function getDefaultGuardName(): string { return 'web'; }
@@ -25,7 +27,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ['name','email','password','user_name','status','position','access_all_data'];
+    protected $fillable = ['name','email','password','user_name','status','position','access_all_data','DeviceToken','DeviceType'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -89,6 +91,11 @@ class User extends Authenticatable
 	public function userVisits()
     {
         return $this->belongsToMany(Customer::class, 'visits','user_id','customer_id');
+    }
+
+	public function logs(): MorphMany
+    {
+        return $this->morphMany(SiteLog::class, 'loggable');
     }
 
 	public static function getCurrentPlan(){

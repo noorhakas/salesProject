@@ -9,7 +9,7 @@ use JsonSerializable;
 use Carbon\Carbon;
 use App\Enums\VisitStatusEnum;
 
-class VisitsResource extends JsonResource
+class VisitStatisticsResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -23,19 +23,16 @@ class VisitsResource extends JsonResource
      */
     public function toArray($request)
     {
-		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited])) ? VisitStatusEnum::toString($this->status) : 'Missed';
+
        return  [
-            'id' => $this->id,
-            'customer' => new CustomerResource($this->customer),
-			'user_name'=>optional($this->user)->name,
-			'type'=>($this->type == 1)? 'unplanned' : 'planned',
-			'plan_code'=>optional($this->plan)->Uuid,
-			'status'=>$status,
-			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
-			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
-			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
-			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
-			'note'=>$this->note,
+            'id' => $this->id??'',
+            'name' => $this->name??'',
+			'visit_count'=>$this->visit_count??0,
+			'pln_visit_count'=>$this->pln_visit_count??0,
+			'unpln_visit_count'=>$this->unpln_visit_count??0,
+			'missed_visit_count'=>$this->missed_visit_count??0,
+			'false_visit_count'=>$this->false_visit_count??0,
+			'pending_count'=>$this->pending_count??0,
         ];
     }
 

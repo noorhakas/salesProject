@@ -8,6 +8,7 @@ use App\Http\Resources\API\PlansResource;
 use App\Models\Plan;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Enums\VisitStatusEnum;
 
 class PlanRepository implements PlanInterface
 {
@@ -41,8 +42,8 @@ class PlanRepository implements PlanInterface
 			$planCreated = $this->createPlan(["min_date"=>$min_date , "max_date"=>$max_date ,"type"=>$request->type]);
 				foreach($visit_list as $single){
 					$status = (VisitStatusEnum::Pending)["id"];
-					$displayData = ['plan_id'=>$planCreated->id,'customer_id'=>$single['account_id'],'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$single['start_time'],'end_time'=>$single['end_time']];			
-					Visit::updateOrCreate(['customer_id'=>$single['account_id'],'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
+					$displayData = ['plan_id'=>$planCreated->id,'customer_id'=>$single['doctor_id'],'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$single['start_time'],'end_time'=>$single['end_time']];			
+					Visit::updateOrCreate(['customer_id'=>$single['doctor_id'],'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
 				}
 
 			$this->sendNotification(['model_id'=>$planCreated->id]);	
@@ -66,7 +67,7 @@ class PlanRepository implements PlanInterface
 			$days = Carbon::parse($plan->start_date)->diffInDays(Carbon::parse($plan->end_date));
 			$listOfDates =$this->displayListOFDates(["firstDate"=>$first_date , "days"=>$days]);	
 				$data = ["plan"=>new PlansResource($plan),"listOfDates"=>$listOfDates];
-			return ['status'=>true,'message'=> trans('messages.success'),$data]; 
+			return ['status'=>true,'message'=> trans('messages.success'),"data"=>$data]; 
 			} catch (\Exception $e) {
 			return ['status'=>false,'message'=> trans('messages.server_error')];
 		  }

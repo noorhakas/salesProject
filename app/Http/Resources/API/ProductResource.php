@@ -29,7 +29,8 @@ class ProductResource extends JsonResource
 			'image'=>$this->image,
 			'specialty_id'=>$this->specialty_id,
 			'specialty_name'=>(string)optional($this->specialty)->name,
-			'price'=>$this->price,
+			'price'=>(float)$this->price,
+			'description'=>$this->description,
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }
