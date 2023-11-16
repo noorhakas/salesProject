@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Http\Traits\FileAttributes;
+use App\Http\Traits\ImageAttributes;
 use App\Http\Traits\ObservantTrait;
 
 class Customer extends Model
 {
-	use SoftDeletes, FileAttributes, ObservantTrait;
+	use SoftDeletes, ImageAttributes, ObservantTrait;
     protected $table = 'customers';
 	protected $imgFolder = 'customers';
 	protected $vatar = 'avatar_logo.jpg';

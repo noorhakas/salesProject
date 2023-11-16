@@ -30,13 +30,11 @@ class GiftRequest extends FormRequest
 		return match(request()->method()){
             "POST" => [
 				'name'=>'required|string|max:100|unique:gifts,name,NULL,id,deleted_at,NULL',
-				'file'=>['file', 'mimes:xlsx,xlsx,doc,pdf', 'max:2048'],
 				'type'=>'required|numeric'
 
 			],
             "PUT", "PATCH" =>  [
                 'name' => 'sometimes|required|string|max:255|unique:gifts,name,' . $this->gift . ',id,deleted_at,NULL',
-				'file'=>['file', 'mimes:xlsx,xlsx,doc,pdf', 'max:2048'],
 				'type'=>'sometimes|numeric'
 			],
         };

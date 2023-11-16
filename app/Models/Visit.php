@@ -38,16 +38,6 @@ class Visit extends Model
     }
 	
 
-	public function visitdetailProducts()
-    {
-        return $this->hasMany(VisitDetails::class)->where('item_type',0);
-    }
-
-	public function visitdetailGifts()
-    {
-        return $this->hasMany(VisitDetails::class)->where('item_type',1);
-    }
-
 	public function scopeFilter($q,$request)
     {
 		$q = $q->when($request->plan_id,fn($q, $v) =>

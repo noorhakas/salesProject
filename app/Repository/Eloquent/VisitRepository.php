@@ -46,7 +46,9 @@ class VisitRepository implements VisitInterface
 	   $listOfGist= $this->mergeDataById($this->getGifts(GiftTypeEnum::Gift),$visitGifts);
 
 	   $visitAdditionalFiles = $this->getVisitItemList($visit,GiftTypeEnum::AdditionalFiles);
-	   $listOfAdditionalFiles= $this->mergeDataById($this->getGifts(GiftTypeEnum::AdditionalFiles),$visitAdditionalFiles);
+
+	  // dd($this->getUserProductFiles());
+	   $listOfAdditionalFiles= $this->mergeDataById($this->getUserProductFiles(),$visitAdditionalFiles);
 
 		$data=[
 			"visit"=>new VisitsResource($visit),
@@ -59,23 +61,22 @@ class VisitRepository implements VisitInterface
 	 }
 
 	 protected function getUserProducts(){
-		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type')->get(['products.id','products.name']);
+		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type')->get();
 	 }
+
+
+	 protected function getUserProductFiles(){
+		return auth()->user()->products()->join('product_files','product_files.product_id','=','products.id')
+		->selectRaw('product_files.id , product_files.file as name ,0 as count_of_sample , 0 as checked , 3 as type')->get();
+	}
 
 	 protected function getGifts($type = GiftTypeEnum::Gift){
 		return Gift::selectRaw('id , name ,0 as count_of_sample , 0 as checked ,type')->where('type',$type)->get();
 	 }
 
 	 protected function getVisitItemList(Visit $visit ,$type = 0){
-		switch($type){
-			case 0:
-				return $visit->visitdetailProducts()->selectRaw('item_id as id ,count_of_sample, 1 as checked ')->get()->keyBy('id');
-			break;
-			default:
-			   return $visit->visitdetailGifts()->selectRaw('item_id as id ,count_of_sample, 1 as checked ')->where('item_type',$type)->get()->keyBy('id');
-			break;
-		}
-         
+		return $visit->visitdetails()->selectRaw('item_id as id ,count_of_sample, 1 as checked ')->where('item_type',$type)->get()->keyBy('id');
+	 
 	 }
 	 public function mergeDataById(Collection ...$collections)
     {

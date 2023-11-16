@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use App\Enums\StatusEnum;
 use Carbon\Carbon;
+use App\Models\Product;
 use App\Models\Customer;
 
 class CustomerResource extends JsonResource
@@ -24,7 +25,7 @@ class CustomerResource extends JsonResource
     public function toArray($request)
     {
 
-       return  [
+       $base = [
             'id' => $this->id,
 			'name' => $this->name,
 			'image' => $this->image,
@@ -49,6 +50,13 @@ class CustomerResource extends JsonResource
 			'work_time'=>[Carbon::parse($this->work_start_time)->format('H:i:s'),Carbon::parse($this->work_end_time)->format('H:i:s')],
             'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
         ];
+
+		if(in_array(request()->route()->getName(), ["customers.show"]))
+		{
+              $base = array_merge($base,['recommended_medicines' => Product::where('specialty_id',$this->specialty_id)->get(['id','name'])]);
+		}
+
+		return $base;
     }
 
 	public static function collection($resource)

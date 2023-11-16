@@ -23,7 +23,7 @@ class ProductResource extends JsonResource
     public function toArray($request)
     {
          
-       return  [
+      $base =  [
             'id' => $this->id,
             'name' => $this->name,
 			'image'=>$this->image,
@@ -33,6 +33,13 @@ class ProductResource extends JsonResource
 			'description'=>$this->description,
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
+
+		if(in_array(request()->route()->getName(), ["products.show"]))
+		{
+              $base = array_merge($base,['similar_items' => self::where('specialty_id',$this->specialty_id)->get(['id','name'])]);
+		}
+		return $base;
+
     }
 
 	public static function collection($resource)

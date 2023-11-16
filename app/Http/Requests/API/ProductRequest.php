@@ -33,7 +33,9 @@ class ProductRequest extends FormRequest
 				'specialty_id'=>'required|exists:specialty,id',
 				'image'=>['image', 'mimes:jpeg,png,jpg', 'max:2048'],
 				'description'=> 'min:10',
-				'price'=>'sometimes|numeric'
+				'price'=>'sometimes|numeric',
+				'files' =>'array',
+				'files.*'=>['file', 'mimes:pdf,xlsx,xls,doc'],
 
 			],
             "PUT", "PATCH" =>  [
@@ -41,7 +43,9 @@ class ProductRequest extends FormRequest
 			    'specialty_id'=>'sometimes|required|exists:specialty,id',
 				'image'=>['image', 'mimes:jpeg,png,jpg', 'max:2048'],
 				'description'=> 'min:10',
-				'price'=>'sometimes|numeric'
+				'price'=>'sometimes|numeric',
+				'files' =>'array',
+				'files.*'=>['file', 'mimes:pdf,xlsx,xls,doc'],
 			],
         };
     }

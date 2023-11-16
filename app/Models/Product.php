@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Http\Traits\FileAttributes;
+use App\Http\Traits\ImageAttributes;
 use App\Http\Traits\ObservantTrait;
 
 class Product extends Model
 {
-	use SoftDeletes, FileAttributes, ObservantTrait;
+	use SoftDeletes, ImageAttributes, ObservantTrait;
     protected $table = 'products';
 	protected $imgFolder = 'products';
 	protected $avatar = 'medicine_logo.png';
@@ -21,5 +21,10 @@ class Product extends Model
 	public function specialty()
     {
         return $this->belongsTo(Specialty::class);
+    }
+
+	public function productfiles()
+    {
+        return $this->hasMany(ProductFiles::class);
     }
 }

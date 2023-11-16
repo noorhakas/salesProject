@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 // });
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
+		Route::post('sendOtpCode','ForgetPasswordController@SendEmail');
+		Route::post('reset_password','ForgetPasswordController@ResetPassword');
 		Route::post('logout', 'LoginController@Logout')->middleware('auth:sanctum');
 });
 

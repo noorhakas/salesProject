@@ -26,7 +26,6 @@ class GiftResource extends JsonResource
        return  [
             'id' => $this->id,
             'name' =>$this->name,
-			'file'=>$this->file,
 			'type' => $this->type,
 			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
