@@ -24,7 +24,7 @@ class CustomerRepository implements CustomerInterface
 		
 		try {
 		      \DB::beginTransaction();
-                 $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days[0]) ? array_unique(array_map('intval',explode(',',$request->work_days[0])))  : []]);
+                 $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days) ? array_unique(array_map('intval',$request->work_days))  : []]);
 				 $customer = Customer::updateOrCreate(['name'=>$request->name],$arr);
 				\DB::commit();
 				return ['status'=>true,'message'=>trans('messages.success'),'data'=>new CustomerResource($customer)];
@@ -40,7 +40,7 @@ class CustomerRepository implements CustomerInterface
 			   if(!$customer)
 			   return ["status"=>false, "message"=>trans('messages.data_not_found')];
 	
-			     $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days[0]) ? array_unique(array_map('intval',explode(',',$request->work_days[0])))  : []]);
+			     $arr = array_merge($request->validated(),['work_days'=>isset($request->work_days) && !empty($request->work_days) ? array_unique(array_map('intval',$request->work_days))  : []]);
 				    $customer->update($arr);
 				\DB::commit();
 				return ["status"=>true, "message"=>trans('messages.success'),'data'=>new CustomerResource($customer)];

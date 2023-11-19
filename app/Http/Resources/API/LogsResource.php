@@ -26,6 +26,7 @@ class LogsResource extends JsonResource
        return  [
             'id' => $this->id,
             'action' =>str_ireplace("App\Models",' ',$this->action),
+			'header_request'=>json_decode($this->request)? json_encode(json_decode($this->request)->request) : '',
 			'user'=>optional($this->user)->name,
 			'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
 
