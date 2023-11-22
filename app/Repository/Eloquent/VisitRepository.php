@@ -25,7 +25,7 @@ class VisitRepository implements VisitInterface
 		$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
 		$request->plan_id = ($request->plan_id)??User::getCurrentPlan()?->id;
 		$plan =Plan::find($request->plan_id); 
-			$visits = $plan->visits()->filter($request)->paginate($limit);
+			$visits = $plan->visits()->join('customers','customers.id','=','visits.customer_id')->filter($request)->paginate($limit);
 
 			$data = VisitsResource::collection($visits);
 	    return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];		
@@ -61,7 +61,7 @@ class VisitRepository implements VisitInterface
 	 }
 
 	 protected function getUserProducts(){
-		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type')->get();
+		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type,products.price')->get();
 	 }
 
 

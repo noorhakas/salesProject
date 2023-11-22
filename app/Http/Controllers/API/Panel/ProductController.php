@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Http\Requests\API\ProductRequest;
+use App\Http\Requests\API\ProductNoteRequest;
 use App\Repository\Interfaces\ProductInterface;
 
 
@@ -65,5 +66,14 @@ class ProductController extends Controller
     }
 
 
+	public function addNotes(ProductNoteRequest $request){
+	   $response = $this->Iproduct->addProductNote($request);
+		return $this->SendResponse($response);
+	}
+
+	public function getProductNotes($id){
+	    $response = $this->Iproduct->getAllProductNotes($id);
+		return $this->SendResponse($response);
+	}
 
 }

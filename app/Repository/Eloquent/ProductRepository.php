@@ -5,8 +5,12 @@ namespace App\Repository\Eloquent;
 
 use App\Repository\Interfaces\ProductInterface;
 use App\Models\Product;
+use App\Models\Visit;
 use App\Models\ProductFiles;
+use App\Models\ProductNotes;
 use App\Http\Resources\API\ProductResource;
+use App\Http\Resources\API\ProductNoteResource;
+use Carbon\Carbon;
 
 class ProductRepository implements ProductInterface
 {
@@ -84,4 +88,44 @@ class ProductRepository implements ProductInterface
     }
 
 
+	
+     public function addProductNote($request){
+		try {
+			\DB::beginTransaction();
+			 $user =auth()->user();
+				$product = Product::find($request->product_id);
+				$product->productNotes()->syncWithoutDetaching([$user->id => ['note' => $request->note ,'created_at'=>Carbon::now()]]);
+			 \DB::commit();
+			 return ["status"=>true, "message"=>trans('messages.success')];
+		 } catch (\Exception $e) {
+			 \DB::rollback();
+			 return ["status"=>false, "message"=>trans('messages.server_error')];
+		 }
+	  }
+
+
+	  public function getAllProductNotes($id)
+      {
+        $limit = (is_numeric(request()->per_page) && (request()->per_page) > 0) ? request()->per_page : 20;
+		
+		$firstQuery = Visit::select('visits.notes as note','customers.name as customer_name','visits.created_at')
+							->join('visit_details','visits.id','=','visit_details.visit_id')
+							->join('customers','customers.id','=','visits.customer_id')
+		                      ->whereNotNull('visits.notes')->where(['visit_details.item_id'=>$id,'visit_details.item_type'=>0]);
+
+	   $secondQuery = ProductNotes::select('product_notes.note as note','users.name as customer_name','product_notes.created_at')->join('users','users.id','=','product_notes.user_id')
+			             ->where('product_id',$id)->whereNotNull('note');
+						
+
+	    $finalQuery = $firstQuery->union($secondQuery);
+
+					$productModel = \DB::table(\DB::raw("({$finalQuery->toSql()}) as activities"))->select('*')
+					->mergeBindings($finalQuery->getQuery())
+					->when(request()->search,fn($q, $v) =>
+						 $q->where('note', 'like', "%{$v}%")->orWhere('customer_name', 'like', "%{$v}%"))
+				   ->Paginate($limit);
+
+
+	    return ["status"=>true, "message"=>trans('messages.success') ,'data'=>ProductNoteResource::collection($productModel)];					
+	  }
 }

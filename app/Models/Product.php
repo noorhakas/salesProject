@@ -27,4 +27,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductFiles::class);
     }
+
+	public function productNotes()
+    {
+        return $this->belongsToMany(User::class, 'product_notes','product_id','user_id');
+    }
+
 }

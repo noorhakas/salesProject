@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Notifications\ResetMail;
 use App\Http\Resources\API\UserResource;
 use App\Models\User;
+use App\Models\ResetCodePassword;
 use Illuminate\Auth\Events\PasswordReset;
 use Validator;
 
@@ -15,8 +16,18 @@ class ForgetPasswordController extends Controller
 {
      public function SendEmail(Request $request)
     {
-        $check_mail = filter_var($request->email, FILTER_VALIDATE_EMAIL);
-        $result = $this->sendCodeToEmail(["email"=>$check_mail]);
+         $data = $request->validate([
+            'email' => 'required|exists:users,email,deleted_at,NULL',
+        ]);
+
+	    ResetCodePassword::where('email', $request->email)->delete();		
+        $user = User::where('email', $data['email'])->first();
+
+        $data['token'] = $this->generateNumber();
+        $codeData = ResetCodePassword::create($data);
+        
+        $user->notify(new ResetMail($user,$codeData->token));
+        return $this->SendResponse(['message' => trans('Backend.message-sent'), 'status' => true ,'data'=>['code'=>$data['token']]], 200);
     }
 
     /**
@@ -24,44 +35,47 @@ class ForgetPasswordController extends Controller
      * @param $data
      * @return JsonResponse
      */
-    public function sendCodeToEmail($data)
+    public function checkOtpCode(Request $request)
     {
-        $data['email'] = $data['email'];
-        $validator = Validator::make($data, ['email' => 'required|exists:users,email,deleted_at,NULL']);
+         $request->validate([
+            'code' => 'required|string|exists:password_resets,token',
+        ]);
 
-        if ($validator->fails())
-            return $this->SendResponse(['status' => false,'message' => $validator->errors()->all()[0]], 402);
-		
-        $userCheckPasswordReset = \DB::table('password_resets')->where('email', $data['email'])->get();
-        $user = User::where('email', $data['email'])->first();
+        // find the code
+        $passwordReset = ResetCodePassword::firstWhere('token', $request->code);
 
-        $token = $this->generateNumber();
-        if (count($userCheckPasswordReset) > 0)
-                \DB::table('password_resets')->where('email', $data['email'])->delete();
+        // check if it does not expired: the time is one hour
+        if ($passwordReset->created_at > now()->addHour()) {
+            $passwordReset->delete();
+            return response(['message' => trans('passwords.code_is_expire')], 422);
+        }
 
-        $passwordReset = \DB::table('password_resets')->insert(['email' => $data['email'],
-		                    'token' => \Hash::make($token),'created_at' => date('Y-m-d H:i:s')]);
-
-        $user->update(["active_code"=>$token]);
-        if (!$passwordReset)
-            return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')], 500);
-    
-        $user->notify(new ResetMail($user));
-        return $this->SendResponse(['message' => trans('Backend.message-sent'), 'status' => true ,'data'=>new UserResource($user)], 200);
+		return $this->SendResponse(['message' => trans('Backend.message-sent'), 'status' => true,'data'=>["code"=>$passwordReset->token] ], 200);
     }
 
     public function ResetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), ['user_id' => 'required|exists:users,id', 'password' => 'required|min:6']);
+        $request->validate([
+            'code' => 'required|string|exists:password_resets,token',
+            'password' => 'required|string|min:6',
+        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()->all()[0], 'status' => false,], 402);
+        // find the code
+        $passwordReset = ResetCodePassword::firstWhere('token', $request->code);
+        // check if it does not expired: the time is one hour
+        if ($passwordReset->created_at > now()->addHour()) {
+            $passwordReset->delete();
+            return response(['message' => trans('passwords.code_is_expire')], 422);
         }
-		$user = User::find($request->user_id);
-         User::where('id',$request->user_id)->update(['password'=> \Hash::make($request->password) ,'active_code' => NULL]);
-        event(new PasswordReset($user));
 
-        return response()->json(['message' => trans("passwords.reset"), 'status' => true], 200);
+        // find user's email 
+        $user = User::firstWhere('email', $passwordReset->email);
+        // update user password
+        $user->update($request->only('password'));
+
+        // delete current code 
+        $passwordReset->delete();
+		return $this->SendResponse(['message' => 'password has been successfully reset', 'status' => true], 200);
     }
 
 

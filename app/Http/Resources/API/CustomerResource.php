@@ -53,7 +53,7 @@ class CustomerResource extends JsonResource
 
 		if(in_array(request()->route()->getName(), ["customers.show"]))
 		{
-              $base = array_merge($base,['recommended_medicines' => Product::where('specialty_id',$this->specialty_id)->get(['id','name'])]);
+              $base = array_merge($base,['recommended_medicines' => Product::where('specialty_id',$this->specialty_id)->get(['id','name','image','price'])]);
 		}
 
 		return $base;

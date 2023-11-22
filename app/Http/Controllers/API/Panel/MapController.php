@@ -19,7 +19,7 @@ class MapController extends Controller
 		$startDate = Carbon::now()->startOfMonth()->toDateString();
 		$endDate =Carbon::now()->endOfMonth()->toDateString();
         $limit = 100;
-		$accounts = Account::select(['id','name','lat','lng'])->where('lat','<=',$lat)->where('lng','>=',$lng);
+		$accounts = Account::select(['id','name','lat','lng'])->where('lat','>=',$lat)->where('lng','<=',$lng);
 		$accountIds = (clone $accounts)->orderBy('accounts.lat','desc')->paginate($limit)->pluck('id');
 		$visits = (clone $IVisit->DrawVisitCountStatistics())->whereDate('visits.visit_date','>=',$startDate)->whereDate('visits.visit_date','<=',$endDate)
 				           ->where(['visits.status'=>VisitStatusEnum::Visited])->whereIn('visits.account_id',$accountIds)

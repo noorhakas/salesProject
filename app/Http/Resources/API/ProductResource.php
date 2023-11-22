@@ -31,12 +31,14 @@ class ProductResource extends JsonResource
 			'specialty_name'=>(string)optional($this->specialty)->name,
 			'price'=>(float)$this->price,
 			'description'=>$this->description,
+			'files'=>$this->productfiles()->get(['id','file']),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+
         ];
 
 		if(in_array(request()->route()->getName(), ["products.show"]))
 		{
-              $base = array_merge($base,['similar_items' => self::where('specialty_id',$this->specialty_id)->get(['id','name'])]);
+              $base = array_merge($base,['similar_items' => self::where('specialty_id',$this->specialty_id)->get(['id','name','price','image'])]);
 		}
 		return $base;
 

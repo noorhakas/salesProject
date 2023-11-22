@@ -23,14 +23,22 @@ class VisitDetailResource extends JsonResource
      */
     public function toArray($request)
     {
-       return [
+
+		 $base =  [
             'id' => $this->id,
             'item_name' => $this->name,
 			'file'=> $this->type == 3 && ProductFiles::find($this->id)? ProductFiles::find($this->id)->file : '',
 			'count_of_sample'=>$this->count_of_sample ,
 			'checked'=>$this->checked,
 			'type'=>$this->type,
+
         ];
+
+		if($this->type == 0)
+		{
+              $base = array_merge($base,['price' => $this->price]);
+		}
+		return $base;
     }
 
 

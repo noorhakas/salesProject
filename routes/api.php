@@ -17,9 +17,11 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
 		Route::post('sendOtpCode','ForgetPasswordController@SendEmail');
+		Route::post('check_otp_code','ForgetPasswordController@checkOtpCode');
 		Route::post('reset_password','ForgetPasswordController@ResetPassword');
 		Route::post('logout', 'LoginController@Logout')->middleware('auth:sanctum');
 });
@@ -37,6 +39,8 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	/** specialty && products*/
 	Route::resource('specialty', 'SpecialtyController')->except(['edit', 'create']);
 	Route::resource('products', 'ProductController')->except(['edit', 'create']);
+	Route::post('add_product_note', 'ProductController@addNotes'); 
+	Route::get('product_notes/{id}','ProductController@getProductNotes');
 	Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
 	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);

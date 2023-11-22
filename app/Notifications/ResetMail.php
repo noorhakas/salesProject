@@ -13,9 +13,10 @@ class ResetMail extends Notification
 {
     use Queueable;
 
-    public function __construct($user)
+    public function __construct($user,$code)
     {
         $this->user = $user;
+		 $this->code = $code;
     }
 
     /**
@@ -37,7 +38,7 @@ class ResetMail extends Notification
      */
     public function toMail($notifiable)
     {
-	    $link = $this->user->active_code; 
+	    $link = $this->code; 
 		$user = $notifiable;
 		$from_address = env('MAIL_FROM_ADDRESS');
 		$app_name = env('MAIL_FROM_NAME');
