@@ -104,7 +104,9 @@ class User extends Authenticatable
 
 	public function scopeFilter($q,$request)
     {
-		$q = $q->when($request->search,fn($q, $v) => 
+		$q =$q->when($request->position_id,fn($q, $v) =>
+		        $q->where('position', $v))
+		      ->when($request->search,fn($q, $v) => 
 					$q->where('name', 'like', "%{$v}%")
 					->orWhere('user_name', 'like', "%{$v}%")
 					->orWhere('email', 'like', "%{$v}%"));

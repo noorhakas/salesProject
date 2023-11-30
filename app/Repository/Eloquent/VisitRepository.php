@@ -18,6 +18,7 @@ use App\Http\Resources\API\VisitStatisticsResource;
 use App\Enums\GiftTypeEnum;
 use App\Enums\VisitStatusEnum;
 use App\Models\VisitDetails;
+use App\Models\Notification;
 
 class VisitRepository implements VisitInterface
 {
@@ -109,45 +110,45 @@ class VisitRepository implements VisitInterface
     }
 
 
+    public function createUnplannedVisit($request){
 
+		 $currentPlanId = User::getCurrentPlan()?->id;
+		 $visit_date = Carbon::now()->toDateString();
+		 $existData =['plan_id'=>$currentPlanId ,'user_id'=>auth()->user()->id,'account_id'=>$request->account_id,
+		                                     'customer_id'=>$request->doctor_id,'visit_date'=>$visit_date];			
+	
+           $data = array_merge($existData , ['type'=>1]);											 
+		$createdVisit = Visit::updateOrCreate($existData,$data);
+		return $this->getvisitDtail($createdVisit->id);
+	}
 	
 	public function submitVisit($request){
   
-
-        if(isset($request->visit_id) && !empty($request->visit_id)) //planned;
-        {   $visit = Visit::find($request->visit_id);
+         $visit = Visit::find($request->visit_id);
 			if(!$visit)
 			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
       
-		   $visitAccount = $visit->account;	  
-           $data=[];
-		   $existData =['id'=>$request->visit_id];
-		   $type = 0; 
-		}else{      //unplanned;
-           $visitAccount = Account::find($request->account_id);
-		   if(!$visitAccount)
-			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
-		   $currentPlanId = User::getCurrentPlan()?->id;
-		   $type = 1; //Unplanned;
-		   $existData =['plan_id'=>$currentPlanId ,'user_id'=>auth()->user()->id,'account_id'=>$visitAccount->id,
-		                'customer_id'=>$request->doctor_id,'visit_date'=>$request->visit_date];
+		    $visitAccount = $visit->account;	 
+		    $data=['actual_start_date'=>$request->start_time,'actual_end_date'=>$request->end_time]; 
+           if($visit->type == 1){ //unplanned visit
+                $visit_date = Carbon::parse($request->start_time)->toDateString();
+				$start_time = ($request->start_time) ? Carbon::parse($request->start_time)->format("H:i:s") : Carbon::now()->format("H:i:s") ;
+				$end_time =   ($request->end_time) ? Carbon::parse($request->end_time)->format("H:i:s") : Carbon::now()->format("H:i:s") ;
+		      $data = array_merge($data,['visit_date'=>$visit_date,'start_time'=>$start_time,'end_time'=>$end_time]);
+			}
 
-		   $data=['plan_id'=>$currentPlanId ,'user_id'=>auth()->user()->id,'account_id'=>$visitAccount->id,'type'=>1,
-		        'customer_id'=>$request->doctor_id,'visit_date'=>$request->visit_date,'start_time'=>$request->start_time,'end_time'=>$request->end_time];				
-	
-		}
-      
 		$distance  = $this->getDistance($visitAccount->lat??0,$visitAccount->lng??0 ,$request->current_location_lat ,$request->current_location_lng );
 		if ($distance < 100) {
 			$status =  (VisitStatusEnum::Visited)["id"];
 			$message = ["status"=>true ,"message"=>trans('messages.visit_success')]; //'visit saved successfuly';
 		} else {
 			$status =  (VisitStatusEnum::False_Visit)["id"];
-			$message = ["status"=>false,"message"=>trans('messages.visit_false')];
+			// $message = ["status"=>false,"message"=>trans('messages.visit_false')];
+			$message = ["status"=>true ,"message"=>trans('messages.visit_success')];
 		}
 
 		    $data = array_merge(['status'=>$status , 'user_location_lat'=>$request->current_location_lat ,'user_location_lng'=>$request->current_location_lng ,'notes'=>$request->notes],$data);
-			$createdVisit = Visit::updateOrCreate($existData,$data);
+			$createdVisit = Visit::updateOrCreate(['id'=>$visit->id],$data);
 			$items = [];
 			foreach($request->items as $i=>$single)
 			{
@@ -159,9 +160,35 @@ class VisitRepository implements VisitInterface
 					
 			VisitDetails::insert($items);
 
+			$this->sendNotification(['model_id'=>$createdVisit->id ,'status'=>$status]);	
+         return $message;
 	}
 
 
+
+	protected function sendNotification(array $data){
+		$allTokens = getUserFcmTokens();
+
+		$notify_body = ($data['status'] == 2 ) ? 'created_success_visit' : 'created_false_visit';
+		Notification::CreateNotify(['created_by'=>auth()->user()->id??0 , 
+		       'model_id'=>$data['model_id'] , 'model_type'=>'visit',
+		       'notify_userId'=>0,
+			   'notify_type'=>1,
+			   'notify_title'=>'new_visit',
+			   'notify_body'=>$notify_body
+			]);
+		
+			$pushData = [
+				'id' => $data['model_id'],
+				'title' => __('messages.new_visit'),
+				'msg' => __('messages.'.$notify_body, ['vName' => auth()->user()->name]),
+				'sound' => 'default',
+				'model_id' =>  $data['model_id'],
+				'model'=>'visit',
+				'topic'=>'user',
+			];
+			__send_push(1,$allTokens,$pushData);
+	}
 
 	function getDistance($latitude1, $longitude1, $latitude2, $longitude2) {  
 		$earth_radius = 6371;
@@ -216,7 +243,7 @@ class VisitRepository implements VisitInterface
 		return  Visit::selectRaw('visits.account_id , count(visits.id) as visit_count')->join('users','users.id','=','visits.user_id');
 	  }
 
-	  public function getVisitsByUserId($request){
+	  public function getVisitsByUserId($request){ //monthly
         $userId = $request->userId ?? auth()->user()->id ;
 		$startDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-01') : Carbon::now()->startOfMonth()->toDateString();
 		$endDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-t') : Carbon::now()->endOfMonth()->toDateString();
@@ -230,6 +257,21 @@ class VisitRepository implements VisitInterface
 		    $visitStatistics = (clone $this->DrawVisitStatistics())->whereDate('visits.visit_date','>=',$startDate)->whereDate('visits.visit_date','<=',$endDate)->where('users.id',$userId)->groupBy('users.id')->first();
 			
 		  $data = ["visit_statistics"=>new VisitStatisticsResource($visitStatistics),"data"=> VisitsResource::collection($visits),"user"=>new UserResource($user),"currentDate"=>$startDate ];
+          return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+
+	  }
+
+
+	  public function getAllVisitsByUserId($request){ //monthly
+        $userId = $request->userId ?? auth()->user()->id ;
+		$user = User::find($userId);
+		if(!$user)
+			   return ["status"=>false, "message"=>trans('messages.data_not_found')];
+
+		   	$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
+			$visits = $user->visits()->filter($request)->paginate($limit);
+
+		  $data = ["data"=> VisitsResource::collection($visits) ];
           return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 
 	  }

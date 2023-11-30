@@ -23,18 +23,23 @@ class VisitsResource extends JsonResource
      */
     public function toArray($request)
     {
-		$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::today() && !in_array($this->status,[VisitStatusEnum::Visited])) ? VisitStatusEnum::toString($this->status) : 'Missed';
-       return  [
+		$statusAsString = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 'Missed' : VisitStatusEnum::toString($this->status);
+       	$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 5 : $this->status;
+
+		return  [
             'id' => $this->id,
             'customer' => new CustomerResource($this->customer),
 			'user_name'=>optional($this->user)->name,
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
 			'plan_code'=>optional($this->plan)->Uuid,
 			'status'=>$status,
+			'statusAsString'=>$statusAsString,
 			'visit_date'=>Carbon::parse($this->visit_date)->toDateString(),
 			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
 			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
 			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
+			'actual_start_time'=> $this->actual_start_time ? Carbon::parse($this->actual_start_time)->format("Y-m-d H:i a") : '',
+			'actual_end_time'=>$this->actual_end_time ? Carbon::parse($this->actual_end_time)->format("Y-m-d H:i a") : '',
 			'note'=>$this->note,
         ];
     }

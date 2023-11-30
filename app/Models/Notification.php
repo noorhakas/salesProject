@@ -45,7 +45,10 @@ class Notification extends Model
 				->where('notifications.user_id' ,auth()->user()->id)
 				->when(auth()->user()->position != 3 ,fn($q,$v) =>
 					$q->orWhere('notifications.tiNotificationType' , 1)
-				)->paginate($limit);
+				)->orderBy('notifications.created_at','desc')
+				
+				
+				->paginate($limit);
 
 
 		return ['status'=>true,'message'=>trans('messages.success'),'data'=>NotificationResource::collection($getNotificationList)];

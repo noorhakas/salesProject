@@ -18,10 +18,16 @@ return [
 	'user_logout'=>'Successfully logged out',
 	'permission_denied'=>'You do not have permission to view this page',
 	'visit_success'=>'visit saved successfuly',
-	'visit_false'=>'Fault visit',
+	'visit_false'=>'False visit',
 
 	'new_plan' => 'New Plan',
     'created_new_plan' => ':vName, created new plan',
+
+	'new_visit' => 'New Visit',
+    'created_success_visit' => ':vName, created success visit ',
+    'created_false_visit' => ':vName, created false visit ',
+
+	
 
 
 

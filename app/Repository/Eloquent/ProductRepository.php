@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Visit;
 use App\Models\ProductFiles;
 use App\Models\ProductNotes;
+use App\Models\User;
 use App\Http\Resources\API\ProductResource;
 use App\Http\Resources\API\ProductNoteResource;
 use Carbon\Carbon;
@@ -19,7 +20,12 @@ class ProductRepository implements ProductInterface
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
 		
-		$products = (auth()->user()->access_all_data) ? Product::select('products.*') :  auth()->user()->products();
+		if(request()->get('user_id') && !empty(request()->get('user_id'))){
+			$user = User::find(request()->get('user_id'));
+			$products = $this->getProductQuery($user);
+		}else{
+			$products = $this->getProductQuery(auth()->user());
+		}
 		$products = (Clone $products)->has('specialty')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 		   $data = ProductResource::collection($products);		
@@ -31,7 +37,7 @@ class ProductRepository implements ProductInterface
 			\DB::beginTransaction();
 			   $product = Product::updateOrCreate(['name'=>$request->name],$request->validated());
 
-			    if(isset($request->files) && !empty($request->files)){
+			    if(isset($request->files) && $request->has('files') && !empty($request->files)){
 						foreach($request->file('files') as $i=>$file){
 							$product->productfiles()->create(['file'=>$file]);
 						}
@@ -51,7 +57,7 @@ class ProductRepository implements ProductInterface
 			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
  
 			 $product->update($request->validated());
-			 if(isset($request->files) && !empty($request->files)){
+			 if(isset($request->files)  && $request->has('files') && !empty($request->files)){
 				$product->productfiles()->delete();
 						foreach($request->file('files') as $i=>$file){
 							$product->productfiles()->create(['file'=>$file]);
@@ -128,4 +134,10 @@ class ProductRepository implements ProductInterface
 
 	    return ["status"=>true, "message"=>trans('messages.success') ,'data'=>ProductNoteResource::collection($productModel)];					
 	  }
+
+	  protected function getProductQuery($user){
+	    return ($user->access_all_data) ? Product::select('products.*') : 
+				 $user->products();
+	   
+	}
 }

@@ -23,10 +23,11 @@ class NotificationResource extends JsonResource
     {
        return  [
             'id' => $this->id,
-			'title'=>__('messages.new_plan'),
-			'body'=>__('messages.created_new_plan', ['vName' => $this->NotifyUser->name]),
+			'title'=>__('messages.'.$this->vTitle),
+			'body'=>__('messages.'.$this->txBody, ['vName' => $this->NotifyUser->name]),
 			'model'=>$this->model_type,
 			'model_id'=>$this->model_id,
+			'tiIsRead'=>$this->tiIsRead,
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }

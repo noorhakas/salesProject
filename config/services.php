@@ -29,5 +29,9 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+	'fcm' => [
+		'fcm_server_url'=>'https://fcm.googleapis.com/fcm/send',
+        'fcm_server_key' => 'AAAAMhNm-RM:APA91bFRrKrHIwzFz9ONWlfUeftwTg93tFk4wkqpmBibBzJRzM-WYMcISIpuT9pUE8w-tnj6CwnGHw2YaaWnkBOzHMOO4lDqy3GGupJRLro8USX9tBvTa3MmoNFsTI_yyyxOb_SaEq8u',
+    ],
 
 ];

@@ -1,5 +1,7 @@
 <?php
 use Ramsey\Uuid\Uuid;
+use App\Models\User;
+use Carbon\Carbon;
 
 function GetUuid()
 {
@@ -42,7 +44,9 @@ function sendPushAndroid($registrationId, $msgData)
         'sound' =>'default',
         'icon' => asset('theme/dist/img/applogo.png'),
         'modelId' => isset($msgData['modelId']) && !empty($msgData['modelId']) ? $msgData['modelId'] : 0,
-		'topic'=>$msgData['topic']
+		'modelTye' => isset($msgData['modelType']) && !empty($msgData['modelType']) ? $msgData['modelType'] : 'notify',
+		'topic'=>$msgData['topic'],
+		'created_at'=>Carbon::now()->toDateTimeString()
     ];
 //	dd($fields);
     return pushCurlCall($registrationId, $fields);
@@ -50,23 +54,19 @@ function sendPushAndroid($registrationId, $msgData)
 
 function pushCurlCall($registrationId, $fields)
 {
-    $url = 'https://fcm.googleapis.com/fcm/send';;//config('services.fcm.fcm_server_url');
-	
-	if($fields['data']['topic'] == 'user')
-	{
-		if (is_array($registrationId)) {
-			$fields['registration_ids'] = $registrationId;
-		} else {
-			$fields['to'] = $registrationId;
-		}
-	}else{
-		$fields['to'] = 'topics/' . $fields['data']['topic'];
-	}
-    
+		
+	 $url = config('services.fcm.fcm_server_url');
+    if (is_array($registrationId)) {
+        $fields['registration_ids'] = $registrationId;
+    } else {
+        $fields['to'] = $registrationId;
+    }
+
     $headers = [
-        'Authorization: key=AAAAyaPsGb8:APA91bHwUFN9TruWwmZAy3GTqvXmceexz1mrnhN2qFPWu6MskoMhAgRJ9eSV9C98ZdKeZjRi6Nl_GfVXFFDGyYApxagtzghEvgnWCGX5zHAMvrsr0DspDErCTzTdXch25dJGT3CGSFtw',// . config('services.fcm.fcm_server_key'),
+        'Authorization: key=' . config('services.fcm.fcm_server_key'),
         'Content-Type: application/json',
     ];
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -78,6 +78,11 @@ function pushCurlCall($registrationId, $fields)
     curl_close($ch);
     Log::info(['notification payload19' => json_encode($fields)]);
     return ($result) ? 1 : 0;
+}
+
+ function getUserFcmTokens(){
+   return  User::where(['position'=>1,'status'=>1])->whereNotNULL('DeviceToken')->pluck('DeviceToken')->toArray();
+
 }
 
 

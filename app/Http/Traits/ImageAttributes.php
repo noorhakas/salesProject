@@ -17,7 +17,7 @@ trait ImageAttributes
 			return $this->attributes['image'];
 		}else{
              return isset($this->imgFolder) && !empty($this->attributes['image']) && file_exists(public_path('storage/'.$this->imgFolder.'/'.$this->attributes['image'])) 
-                   ? self::getImg($this->imgFolder,$this->attributes['image']) : asset('/assets/img/'.$this->vatar);
+                   ? self::getImg($this->imgFolder,$this->attributes['image']) : asset('/assets/img/'.$this->avatar);
 		}
     }
 
@@ -44,7 +44,7 @@ trait ImageAttributes
 
     static function getImg($imageFolder,$filename){
         $base_url = url('/');
-        return (!empty($filename)) ? $base_url . '/storage/' .$imageFolder. '/'. $filename : asset('/assets/img/'.$this->vatar);
+        return (!empty($filename)) ? $base_url . '/storage/' .$imageFolder. '/'. $filename : asset('/assets/img/'.$this->avatar);
     }
 
 

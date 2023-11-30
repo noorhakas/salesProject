@@ -41,7 +41,6 @@ class ForgetPasswordController extends Controller
             'code' => 'required|string|exists:password_resets,token',
         ]);
 
-        // find the code
         $passwordReset = ResetCodePassword::firstWhere('token', $request->code);
 
         // check if it does not expired: the time is one hour
@@ -60,21 +59,17 @@ class ForgetPasswordController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        // find the code
         $passwordReset = ResetCodePassword::firstWhere('token', $request->code);
         // check if it does not expired: the time is one hour
         if ($passwordReset->created_at > now()->addHour()) {
-            $passwordReset->delete();
+            ResetCodePassword::where('token', $request->code)->delete();
             return response(['message' => trans('passwords.code_is_expire')], 422);
         }
 
-        // find user's email 
         $user = User::firstWhere('email', $passwordReset->email);
-        // update user password
         $user->update($request->only('password'));
 
-        // delete current code 
-        $passwordReset->delete();
+        ResetCodePassword::where('token', $request->code)->delete();
 		return $this->SendResponse(['message' => 'password has been successfully reset', 'status' => true], 200);
     }
 
@@ -82,9 +77,6 @@ class ForgetPasswordController extends Controller
 	public static function generateNumber()
     {
         $number =str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
-        if(User::where('active_code', $number)->count()){
-            $number = self::generateNumber();
-        }
         return $number;
     }
 }

@@ -12,7 +12,7 @@ class Customer extends Model
 	use SoftDeletes, ImageAttributes, ObservantTrait;
     protected $table = 'customers';
 	protected $imgFolder = 'customers';
-	protected $vatar = 'avatar_logo.jpg';
+	protected $avatar = 'avatar_logo.jpg';
 	
 	protected $fillable = ['name','account_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','work_days','work_start_time','work_end_time'];
 

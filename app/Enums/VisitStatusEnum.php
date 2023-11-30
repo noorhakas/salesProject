@@ -4,11 +4,11 @@ namespace App\Enums;
 
 abstract class VisitStatusEnum 
 {
-	const  NOACTION = ["id"=>0 ,"color"=>"#ff1493"];
-    const  Pending = ["id"=>1 ,"color"=>"#ff1493"];
+    const  Pending = ["id"=>0 ,"color"=>"#ff1493"];
 	const  Visited = ["id"=>2 ,"color"=>"#228b22"];
 	const  Holiday = ["id"=>3 ,"color"=>"rgb(163 130 130)"];
 	const  False_Visit = ["id"=>4 ,"color"=>"rgb(163 130 130)"];
+	const  Missed = ["id"=>5 ,"color"=>"rgb(163 130 130)"];
 
  static function getConstants() {
         $oClass = new \ReflectionClass(__CLASS__);
@@ -19,7 +19,6 @@ abstract class VisitStatusEnum
     {
         $values = [];
         foreach (self::getConstants() as  $name => $value) {
-			if(!in_array($value["id"] ,[0]))
              array_push($values,["id"=>$value["id"],"name"=>$name ,"color"=>$value["color"]]);
         }
         return $values;

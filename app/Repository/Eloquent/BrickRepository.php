@@ -5,6 +5,7 @@ namespace App\Repository\Eloquent;
 
 use App\Repository\Interfaces\BrickInterface;
 use App\Models\Bricks;
+use App\Models\User;
 use App\Http\Resources\API\BricksResource;
 
 class BrickRepository implements BrickInterface
@@ -14,7 +15,13 @@ class BrickRepository implements BrickInterface
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
 		
-	    $bricks = (auth()->user()->access_all_data) ? Bricks::select('bricks.*') :  auth()->user()->bricks();
+		if(request()->get('user_id') && !empty(request()->get('user_id'))){
+			$user = User::find(request()->get('user_id'));
+			$bricks = $this->getBrickQuery($user);
+		}else{
+			$bricks = $this->getBrickQuery(auth()->user());
+		}
+
 		$bricks = (clone $bricks)->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 
@@ -73,6 +80,12 @@ class BrickRepository implements BrickInterface
 			return ["status"=>false, "message"=>trans('messages.server_error')];
 		}
     }
+
+	protected function getBrickQuery($user){
+	    return ($user->access_all_data) ? Bricks::select('bricks.*') : 
+				 $user->bricks();
+	   
+	}
 
 
 }

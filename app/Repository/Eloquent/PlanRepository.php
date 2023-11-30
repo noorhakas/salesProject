@@ -7,6 +7,8 @@ use App\Repository\Interfaces\PlanInterface;
 use App\Http\Resources\API\PlansResource;
 use App\Models\Plan;
 use App\Models\User;
+use App\Models\Visit;
+use App\Models\Notification;
 use Carbon\Carbon;
 use App\Enums\VisitStatusEnum;
 
@@ -16,8 +18,9 @@ class PlanRepository implements PlanInterface
         $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
 
 		$recent_plans = User::getCurrentPlan();
+		$recent_plans_collection= $recent_plans ? PlansResource::collection($recent_plans) : (object)[];
 		$previous_plans =  auth()->user()->plans()->filter($request)->when($recent_plans , fn($q,$v) => $q->where('id','!=',$v->id))->orderBy('plans.created_at','DESC')->paginate($limit);
-		    $data = ["recent_plans"=>new PlansResource($recent_plans) ,"previous_plans"=> PlansResource::collection($previous_plans)];
+		    $data = ["recent_plans"=>$recent_plans_collection ,"previous_plans"=> PlansResource::collection($previous_plans)];
 	 
 			return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	}
@@ -42,15 +45,15 @@ class PlanRepository implements PlanInterface
 			$planCreated = $this->createPlan(["min_date"=>$min_date , "max_date"=>$max_date ,"type"=>$request->type]);
 				foreach($visit_list as $single){
 					$status = (VisitStatusEnum::Pending)["id"];
-					$displayData = ['plan_id'=>$planCreated->id,'customer_id'=>$single['doctor_id'],'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$single['start_time'],'end_time'=>$single['end_time']];			
-					Visit::updateOrCreate(['customer_id'=>$single['doctor_id'],'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
+					$displayData = ['account_id'=>$single['account_id'],'plan_id'=>$planCreated->id,'customer_id'=>$single['doctor_id'],'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$single['start_time'],'end_time'=>$single['end_time']];			
+					Visit::updateOrCreate(['account_id'=>$single['account_id'],'customer_id'=>$single['doctor_id'],'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
 				}
 
 			$this->sendNotification(['model_id'=>$planCreated->id]);	
 			return ['status'=>true,'message'=> trans('messages.success')];
 		\DB::commit();
 		 } catch (\Exception $e) {
-		  \DB::rollback();
+		 \DB::rollback();
 		  return ['status'=>false,'message'=> trans('messages.server_error')];
 		}	
 	   } 
@@ -97,7 +100,8 @@ class PlanRepository implements PlanInterface
     }
 
 	protected function sendNotification(array $data){
-		
+		$allTokens = getUserFcmTokens();
+
 		Notification::CreateNotify(['created_by'=>auth()->user()->id??0 , 
 		       'model_id'=>$data['model_id'] , 'model_type'=>'plan',
 		       'notify_userId'=>0,
@@ -108,13 +112,14 @@ class PlanRepository implements PlanInterface
 		
 			$pushData = [
 				'id' => $data['model_id'],
-				'title' => __('message.new_plan'),
-				'msg' => __('message.created_new_plan', ['vName' => auth()->user()->vName]),
+				'title' => __('messages.new_plan'),
+				'msg' => __('messages.created_new_plan', ['vName' => auth()->user()->name]),
 				'sound' => 'default',
-				'modelId' =>  $data['model_id'],
-				'topic'=>'admins'
+				'model_id' =>  $data['model_id'],
+				'model'=>'plan',
+				'topic'=>'user'
 			];
-			__send_push(1,'admin_topic',$pushData);
+			__send_push(1,$allTokens,$pushData);
 	}
 
 }

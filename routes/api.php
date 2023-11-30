@@ -63,8 +63,10 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 		Route::post('/', 'VisitsController@index');
 		Route::get('/schedule', 'VisitsController@VisitAsSchedule');
 		Route::get('/all_visits', 'VisitsController@AllVisits');
-        Route::post('all_user_visit','VisitsController@UserVisits');	
+        Route::post('all_user_visit','VisitsController@UserVisits');
+		Route::post('whole_user_visits','VisitsController@getAllUserVisits');
 		Route::get("/{id}", 'VisitsController@show');
+		Route::post('create_unplanned_visit','VisitsController@createUnplannedVisit');
 		Route::post('savevisit','VisitsController@store');
 		Route::post('visit-charts', 'VisitsController@visitCharts');
 	});
@@ -79,7 +81,8 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::get('logs', 'HomeController@getLogs');
 	Route::post('maps', 'MapController@getMaps');
 	
-
+    Route::resource('setting', 'SettingController')->only(['index', 'store']);
+ 
 
 });
 

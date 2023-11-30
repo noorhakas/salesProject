@@ -60,6 +60,17 @@ class VisitsController extends Controller
 		     return $this->SendResponse($response);
 	  }
 
+	  public function getAllUserVisits(Request $request){
+           $response = $this->IVisit->getAllVisitsByUserId($request);
+		     return $this->SendResponse($response);
+	  }
+
+
+	  public function createUnplannedVisit(Request $request){
+			 $response = $this->IVisit->createUnplannedVisit($request);
+		     return $this->SendResponse($response);
+	  }
+
 
 
 }

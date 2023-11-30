@@ -8,7 +8,8 @@ class ResetCodePassword extends Model
 {
     protected $table = 'password_resets';
 
-	const UPDATED_AT = null;
+	public $timestamps = false;
+
 	protected $fillable = ['email' ,'token'];
 
 

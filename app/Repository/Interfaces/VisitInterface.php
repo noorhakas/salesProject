@@ -10,5 +10,7 @@ interface VisitInterface
 	  public function getVisitCharts($request);
 	  public function getAllVisits();
 	  public function getVisitsByUserId($request);
+	  public function createUnplannedVisit($request);
+	  public function getAllVisitsByUserId($request);
 	 
 }

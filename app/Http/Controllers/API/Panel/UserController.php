@@ -119,7 +119,7 @@ class UserController extends Controller
 
 	public function MycurrentPlan(){
 		$current_plan = User::getCurrentPlan();
-		$data = new PlansResource($current_plan);
+		$data = ($current_plan) ?new PlansResource($current_plan) : (object)[];
 		return $this->response_api(true,trans('messages.success'),$data);
 	}
 
