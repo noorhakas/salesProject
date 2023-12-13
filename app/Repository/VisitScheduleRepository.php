@@ -12,7 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Enums\VisitStatusEnum;
 use App\Http\Resources\API\VisitsResource;
-
+use App\Http\Resources\API\PlansResource;
 
 class VisitScheduleRepository{
         
@@ -47,7 +47,7 @@ class VisitScheduleRepository{
 
 			$all_Data->add($ACC_Data);
 	  }
-		return ['User'=>(Object)["id"=>$user->id ,"name"=>$user->name],'CurrentDate'=>$searchDate,"listOfSataus"=> VisitStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data ];
+		return ['User'=>(Object)["id"=>$user->id ,"name"=>$user->name],'CurrentDate'=>$searchDate,"listOfSataus"=> VisitStatusEnum::toArray(),"listOfDates"=>$list_days["listOfDates"] ,"schedule"=>$all_Data ,'plan'=>new PlansResource($plan) ];
 	}
 
 
@@ -68,7 +68,7 @@ class VisitScheduleRepository{
 			$date_arr[] = ["date"=>$date ,"number"=>$dateObj->day ,"day"=>substr($dateObj->dayName,0,3)];
 
 			$disabled = ($dateObj < Carbon::now() || $dateObj->dayName == "Friday" ) ? 1 : 0;
-			$status = ($dateObj->dayName == "Friday") ? (VisitStatusEnum::Holiday)["id"] : (VisitStatusEnum::NOACTION)["id"];
+			$status = ($dateObj->dayName == "Friday") ? (VisitStatusEnum::Holiday)["id"] : (VisitStatusEnum::Pending)["id"];
 			$dates[$date] = ["status"=>$status,"disabled"=>$disabled];
 		}
 		return ["listOfDates"=>$date_arr ,'dateWithSataus'=>$dates ];

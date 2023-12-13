@@ -4,10 +4,9 @@ namespace App\Enums;
 
 abstract class VisitStatusEnum 
 {
-    const  Pending = ["id"=>0 ,"color"=>"#ff1493"];
+    const  Pending = ["id"=>0 ,"color"=>"rgb(204 64 140)"];
 	const  Visited = ["id"=>2 ,"color"=>"#228b22"];
-	const  Holiday = ["id"=>3 ,"color"=>"rgb(163 130 130)"];
-	const  False_Visit = ["id"=>4 ,"color"=>"rgb(163 130 130)"];
+	const  Holiday = ["id"=>3 ,"color"=>"rgb(93 67 81)"];
 	const  Missed = ["id"=>5 ,"color"=>"rgb(163 130 130)"];
 
  static function getConstants() {

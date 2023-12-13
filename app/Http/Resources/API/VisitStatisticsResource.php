@@ -31,7 +31,6 @@ class VisitStatisticsResource extends JsonResource
 			'pln_visit_count'=>$this->pln_visit_count??0,
 			'unpln_visit_count'=>$this->unpln_visit_count??0,
 			'missed_visit_count'=>$this->missed_visit_count??0,
-			'false_visit_count'=>$this->false_visit_count??0,
 			'pending_count'=>$this->pending_count??0,
         ];
     }

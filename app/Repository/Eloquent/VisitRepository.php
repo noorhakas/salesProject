@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\Gift;
 use App\Models\Account;
+use App\Models\Setting;
 use App\Http\Resources\API\VisitDetailResource;
 use App\Http\Resources\API\VisitsResource;
 use App\Http\Resources\API\UserResource;
@@ -26,8 +27,16 @@ class VisitRepository implements VisitInterface
 		$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
 		$request->plan_id = ($request->plan_id)??User::getCurrentPlan()?->id;
 		$plan =Plan::find($request->plan_id); 
-			$visits = $plan->visits()->join('customers','customers.id','=','visits.customer_id')->filter($request)->paginate($limit);
+		if(!$plan)
+		  return ["status"=>true, "message"=>trans('messages.success'),'data'=>[]];
 
+		if($plan && $plan->status == 0 && auth()->user()->position == 3)
+		  return ["status"=>true, "message"=>trans('messages.plan_reviewed'),'data'=>[]];
+		
+		if($plan && $plan->status == 2 && auth()->user()->position == 3)
+		  return ["status"=>true, "message"=>trans('messages.plan_rejected'),'data'=>[]];  
+
+			$visits = $plan->visits()->join('customers','customers.id','=','visits.customer_id')->select('visits.*')->filter($request)->paginate($limit);
 			$data = VisitsResource::collection($visits);
 	    return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];		
 	}
@@ -123,30 +132,25 @@ class VisitRepository implements VisitInterface
 	}
 	
 	public function submitVisit($request){
-  
-         $visit = Visit::find($request->visit_id);
-			if(!$visit)
-			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
-      
+        try{
+            $visit = Visit::find($request->visit_id);
 		    $visitAccount = $visit->account;	 
-		    $data=['actual_start_date'=>$request->start_time,'actual_end_date'=>$request->end_time]; 
+		    $data=['actual_start_date'=>$request->start_time,'actual_end_date'=>$request->end_time];
+			
+			$distance  = $this->getDistance($visitAccount->lat??0,$visitAccount->lng??0 ,$request->current_location_lat ,$request->current_location_lng );
+			/*$allow_distance = !empty($this->getSetting()) && !empty($this->getSetting()->allow_distance) ? $this->getSetting()->allow_distance : 500;
+			if ($distance > $allow_distance) {
+				return ["status"=>false ,"message"=>trans('messages.wrong_place')];
+			}*/
+
            if($visit->type == 1){ //unplanned visit
                 $visit_date = Carbon::parse($request->start_time)->toDateString();
 				$start_time = ($request->start_time) ? Carbon::parse($request->start_time)->format("H:i:s") : Carbon::now()->format("H:i:s") ;
 				$end_time =   ($request->end_time) ? Carbon::parse($request->end_time)->format("H:i:s") : Carbon::now()->format("H:i:s") ;
-		      $data = array_merge($data,['visit_date'=>$visit_date,'start_time'=>$start_time,'end_time'=>$end_time]);
+		        $data = array_merge($data,['visit_date'=>$visit_date,'start_time'=>$start_time,'end_time'=>$end_time]);
 			}
-
-		$distance  = $this->getDistance($visitAccount->lat??0,$visitAccount->lng??0 ,$request->current_location_lat ,$request->current_location_lng );
-		if ($distance < 100) {
-			$status =  (VisitStatusEnum::Visited)["id"];
-			$message = ["status"=>true ,"message"=>trans('messages.visit_success')]; //'visit saved successfuly';
-		} else {
-			$status =  (VisitStatusEnum::False_Visit)["id"];
-			// $message = ["status"=>false,"message"=>trans('messages.visit_false')];
-			$message = ["status"=>true ,"message"=>trans('messages.visit_success')];
-		}
-
+            
+			$status =  (VisitStatusEnum::Visited)["id"];  
 		    $data = array_merge(['status'=>$status , 'user_location_lat'=>$request->current_location_lat ,'user_location_lng'=>$request->current_location_lng ,'notes'=>$request->notes],$data);
 			$createdVisit = Visit::updateOrCreate(['id'=>$visit->id],$data);
 			$items = [];
@@ -159,36 +163,20 @@ class VisitRepository implements VisitInterface
 					$createdVisit->visitdetails()->delete();
 					
 			VisitDetails::insert($items);
+			(new Notification)->sendNotification(['tokens'=>getUserFcmTokens(),'notify_title'=>'new_visit',
+										'notify_body'=>'created_success_visit',
+										'title' => __('messages.new_visit'),
+										'msg' => __('messages.created_success_visit', ['vName' => auth()->user()->name]),
+										'notify_userId'=>0,'model_type'=>'visit',
+										'tiDeviceType'=>1,'notify_type'=>1,
+										'model_id'=>$createdVisit->id]);	
 
-			$this->sendNotification(['model_id'=>$createdVisit->id ,'status'=>$status]);	
-         return $message;
+                 return ["status"=>true ,"message"=>trans('messages.visit_success')];
+		  }catch (\Exception $e) {
+			return ["status"=>false, "message"=>trans('messages.server_error')];
+		}
 	}
 
-
-
-	protected function sendNotification(array $data){
-		$allTokens = getUserFcmTokens();
-
-		$notify_body = ($data['status'] == 2 ) ? 'created_success_visit' : 'created_false_visit';
-		Notification::CreateNotify(['created_by'=>auth()->user()->id??0 , 
-		       'model_id'=>$data['model_id'] , 'model_type'=>'visit',
-		       'notify_userId'=>0,
-			   'notify_type'=>1,
-			   'notify_title'=>'new_visit',
-			   'notify_body'=>$notify_body
-			]);
-		
-			$pushData = [
-				'id' => $data['model_id'],
-				'title' => __('messages.new_visit'),
-				'msg' => __('messages.'.$notify_body, ['vName' => auth()->user()->name]),
-				'sound' => 'default',
-				'model_id' =>  $data['model_id'],
-				'model'=>'visit',
-				'topic'=>'user',
-			];
-			__send_push(1,$allTokens,$pushData);
-	}
 
 	function getDistance($latitude1, $longitude1, $latitude2, $longitude2) {  
 		$earth_radius = 6371;
@@ -201,6 +189,10 @@ class VisitRepository implements VisitInterface
 		$d = $earth_radius * $c;  
 	  
 		return $d;  
+	  }
+
+	  protected function getSetting(){
+		return Setting::first();
 	  }
 
 	  public function getVisitCharts($request){
@@ -230,17 +222,17 @@ class VisitRepository implements VisitInterface
 	  public function DrawVisitStatistics(){
 
 		return  Visit::selectRaw('
-			        sum(if(visits.status != 0, 1,0)) as visit_count,
-					sum(if(visits.status = 2 and visits.type = 0 , 1,0)) as pln_visit_count,
-			        sum(if(visits.status = 2 and visits.type = 1 , 1,0)) as unpln_visit_count, 
-					sum(if(visits.status = 4 , 1,0)) as false_visit_count,  
+			        sum(if(visits.status = 2, 1,0)) as visit_count,
+					sum(if(visits.type = 0 , 1,0)) as pln_visit_count,
+			        sum(if(visits.type = 1 , 1,0)) as unpln_visit_count, 
                     sum(if(visits.status = 0 and DATE(visits.visit_date) < CURDATE() , 1,0)) as missed_visit_count,
-			        sum(if(visits.status = 0  and DATE(visits.visit_date) > CURDATE(), 1,0)) as pending_count,users.name , users.id')->join('users','users.id','=','visits.user_id');
+			        sum(if(visits.status = 0  and DATE(visits.visit_date) > CURDATE(), 1,0)) as pending_count,users.name , users.id')->join('users','users.id','=','visits.user_id')
+					->join('plans','plans.id','=','visits.plan_id');
 	  }
 
 	  public function DrawVisitCountStatistics(){
 
-		return  Visit::selectRaw('visits.account_id , count(visits.id) as visit_count')->join('users','users.id','=','visits.user_id');
+		return  Visit::selectRaw('visits.account_id , count(visits.id) as visit_count')->join('users','users.id','=','visits.user_id')->join('plans','plans.id','=','visits.plan_id');
 	  }
 
 	  public function getVisitsByUserId($request){ //monthly
@@ -269,7 +261,7 @@ class VisitRepository implements VisitInterface
 			   return ["status"=>false, "message"=>trans('messages.data_not_found')];
 
 		   	$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
-			$visits = $user->visits()->filter($request)->paginate($limit);
+			$visits = $user->visits()->join('plans','plans.id','=','visits.plan_id')->filter($request)->paginate($limit);
 
 		  $data = ["data"=> VisitsResource::collection($visits) ];
           return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+use App\Models\Plan;
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
 		Route::post('sendOtpCode','ForgetPasswordController@SendEmail');
@@ -53,6 +54,9 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::prefix('/plans')->group(function () {
 		Route::get('/', 'PlansController@index');
 		Route::post('/','PlansController@store');
+		Route::post('accept_plan','PlansController@AcceptPlan');
+		Route::post('reject_plan','PlansController@RejectPlan');
+		Route::delete('/{plan}','PlansController@destroy');
 		Route::get('detail', 'PlansController@planDetail');
         Route::get('all_plans', 'PlansController@getAllPlans');
 		

@@ -23,9 +23,9 @@ class HomeRepository implements HomeInterface
 		$limit = 10;
 		$currentDate = Carbon::today();
 		$plans = Plan::whereHas('user', function ($query) {$query->where('users.status',1);})
-		   ->whereDate('plans.end_date', '<=', $currentDate)->orderBy('plans.created_at','DESC')->paginate($limit);
+		    ->where('plans.status',1)->whereDate('plans.start_date', '<=', $currentDate)->whereDate('plans.end_date', '>=', $currentDate)->orderBy('plans.created_at','DESC')->paginate($limit);
 	  
-		$visits = Visit::whereHas('user', function ($query) {$query->where('users.status',1);})
+		$visits = Visit::join('plans','plans.id','=','visits.plan_id')->whereHas('user', function ($query) {$query->where('users.status',1);})
 		   ->whereDate('visits.visit_date', '=', $currentDate)->orderBy('visits.created_at','DESC')->paginate($limit);
 
 		$logs = SiteLog::orderBy('site_logs.created_at','DESC')->paginate($limit);   

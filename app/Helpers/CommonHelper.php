@@ -26,7 +26,7 @@ function sendPushIOS($registrationId, $msgData)
         'title' => $msgData['title'],
         'body' => $msgData['msg'],
         'sound' => 'default',
-        'icon' => asset('theme/dist/img/applogo.png'),
+        'icon' => asset('assets/img/royal-logo.png'),
     ];
     $fields['data'] = [
         'modelId' => isset($msgData['modelId']) && !empty($msgData['modelId']) ? $msgData['modelId'] : 0,
@@ -38,17 +38,14 @@ function sendPushAndroid($registrationId, $msgData)
 {
 	
     $fields['data'] = [
-        // 'id' => isset($msgData['id']) && !empty($msgData['id']) ? $msgData['id'] : 0,
         'title' => $msgData['title'],
         'body' => $msgData['msg'],
         'sound' =>'default',
-        'icon' => asset('theme/dist/img/applogo.png'),
+        'icon' => asset('assets/img/royal-logo.png'),
         'modelId' => isset($msgData['modelId']) && !empty($msgData['modelId']) ? $msgData['modelId'] : 0,
 		'modelTye' => isset($msgData['modelType']) && !empty($msgData['modelType']) ? $msgData['modelType'] : 'notify',
-		'topic'=>$msgData['topic'],
 		'created_at'=>Carbon::now()->toDateTimeString()
     ];
-//	dd($fields);
     return pushCurlCall($registrationId, $fields);
 }
 

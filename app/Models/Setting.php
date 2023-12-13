@@ -14,7 +14,7 @@ class Setting extends Model
 	protected $imgFolder = 'settings';
 	protected $avatar = 'royal-logo.png';
 	
-	protected $fillable = ['app_name' , 'image' , 'map_key'];
+	protected $fillable = ['app_name' , 'image' , 'map_key','allow_distance','phone'];
 
 
 }

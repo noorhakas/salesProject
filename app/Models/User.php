@@ -99,7 +99,7 @@ class User extends Authenticatable
     }
 
 	public static function getCurrentPlan(){
-        return auth()->user()->plans()->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','DESC')->first();
+        return auth()->user()->plans()->Where('status',1)->whereDate('plans.start_date','<=' ,Carbon::today())->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','ASC')->first();
 	}
 
 	public function scopeFilter($q,$request)

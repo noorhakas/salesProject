@@ -18,7 +18,7 @@ class ProductRepository implements ProductInterface
       
 	  public function getAll($request)
 	  {
-		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 		
 		if(request()->get('user_id') && !empty(request()->get('user_id'))){
 			$user = User::find(request()->get('user_id'));

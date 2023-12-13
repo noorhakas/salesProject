@@ -9,7 +9,7 @@ use Carbon\Carbon;
 use App\Repository\Interfaces\VisitInterface;
 use App\Repository\VisitScheduleRepository;
 use App\Models\Plan;
-
+use App\Http\Requests\API\VisitRequest;
 
 
 class VisitsController extends Controller
@@ -39,7 +39,7 @@ class VisitsController extends Controller
 		return $this->SendResponse(["status"=>true, "message"=>trans('messages.success'),'data'=>$scheduleResult]);
 	 }
 
-	 public function store(Request $request){
+	 public function store(VisitRequest $request){
         
 		$response = $this->IVisit->submitVisit($request);
 		 return $this->SendResponse($response);

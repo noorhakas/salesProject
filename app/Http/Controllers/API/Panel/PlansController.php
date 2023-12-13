@@ -10,6 +10,10 @@ use Carbon\Carbon;
 use App\Repository\PlanRepository;
 use App\Repository\Interfaces\PlanInterface;
 use App\Models\User;
+use App\Models\Plan;
+use App\Http\Requests\API\PlanChangeStatusRequest;
+use App\Http\Requests\API\PlanRequest;
+
 
 class PlansController extends Controller
 {
@@ -33,7 +37,7 @@ class PlansController extends Controller
 	 }
 
 
-	 public function store(Request $request){
+	 public function store(PlanRequest $request){
         
 		$response = $this->IPlan->createNewPlan($request);
 		 return $this->SendResponse($response);
@@ -44,6 +48,27 @@ class PlansController extends Controller
 		$response = $this->IPlan->show($plan_id);
 		 return $this->SendResponse($response);
 	 }
+
+
+	 public function destroy(Plan $plan)
+    {
+		$response = $this->IPlan->deletePlan($id);
+		return $this->SendResponse($response);
+    }
+
+
+	public function AcceptPlan(PlanChangeStatusRequest $request)
+    {
+		$response = $this->IPlan->AcceptOrRejectPlan($request);
+		return $this->SendResponse($response);
+    }
+	
+
+	public function RejectPlan(PlanChangeStatusRequest $request)
+    {
+		$response = $this->IPlan->AcceptOrRejectPlan($request);
+		return $this->SendResponse($response);
+    }
 
 
 }

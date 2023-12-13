@@ -24,7 +24,7 @@ class Notification extends Model
     }
 	public static function CreateNotify(array $data)
     {
-		Notification::updateOrCreate(['created_by'=>auth()->user()->id??0 , 'model_id'=>$data['model_id'] ,'model_type'=>$data['model_type'] ],[
+		Notification::updateOrCreate(['created_by'=>auth()->user()->id??0 ,'vTitle' => $data['notify_title'], 'model_id'=>$data['model_id'] ,'model_type'=>$data['model_type'] ],[
 			'Uuid' => GetUuid(),
 			'user_id' =>$data['notify_userId'],
 			'tiNotificationType' => $data['notify_type'], // admins
@@ -40,29 +40,54 @@ class Notification extends Model
 	function notificationListing($request){
 
 		$limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
-				$getNotificationList = Notification::select(['notifications.*'])
-				->leftJoin('users', 'users.id', '=', 'notifications.user_id')
-				->where('notifications.user_id' ,auth()->user()->id)
-				->when(auth()->user()->position != 3 ,fn($q,$v) =>
-					$q->orWhere('notifications.tiNotificationType' , 1)
-				)->orderBy('notifications.created_at','desc')
-				
-				
-				->paginate($limit);
+				$getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
+				->where(function ($q) {
+                  $q->where('notifications.user_id' ,auth()->user()->id)
+				  ->when(auth()->user()->position != 3 ,fn($q,$v) =>
+					$q->orWhere('notifications.tiNotificationType' , 1));
+                 });
+	
+          $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])->orderBy('notifications.created_at','desc')->paginate($limit);
+		  $UnReadNotify =  (clone $getNotificationQuery)->selectRaw('count(notifications.id) as notify_count')->where('notifications.tiIsRead',0)->first();
+           $countOfUnRead = ($UnReadNotify) ? $UnReadNotify->notify_count : 0;
+			$data = ['data'=> NotificationResource::collection($notificationList) ,'countOfUnRead' =>$countOfUnRead];
 
-
-		return ['status'=>true,'message'=>trans('messages.success'),'data'=>NotificationResource::collection($getNotificationList)];
+		return ['status'=>true,'message'=>trans('messages.success'),'data'=>$data];
 	}
 
 	public function notificationBadgeReset()
     {
         try {
             $user = auth()->user()->id;
-            Notification::where(['user_id' => $user])->update(['tiIsRead' => 1]);
+            Notification::where(['user_id' => $user])
+			 ->when(auth()->user()->position != 3 ,fn($q) =>
+			           $q->orWhere('notifications.tiNotificationType' , 1)
+				)->update(['tiIsRead' => 1]);
             return ['status'=>true,'message'=>trans('messages.success')];
         } catch (Exception $e) {
             return ExceptionResponse($e);
         }
     }
+
+
+	public function sendNotification(array $data){
+			self::CreateNotify(['created_by'=>auth()->user()->id??0 , 
+				'model_id'=>$data['model_id'] , 'model_type'=>$data['model_type'],
+				'notify_userId'=>$data['notify_userId'],
+				'notify_type'=>$data['notify_type'],
+				'notify_title'=>$data['notify_title'],
+				'notify_body'=>$data['notify_body']
+				]);
+		
+			$pushData = [
+				'id' => $data['model_id'],
+				'title' => $data['title'],
+				'msg' => $data['msg'],
+				'sound' => 'default',
+				'model_id' =>  $data['model_id'],
+				'model'=>$data['model_type'],
+			];
+			__send_push($data['tiDeviceType'],$data['tokens'],$pushData);
+	}
 
 }

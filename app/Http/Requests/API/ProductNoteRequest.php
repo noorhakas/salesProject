@@ -28,7 +28,7 @@ class ProductNoteRequest extends FormRequest
     public function rules()
     {
 		 return [
-			    'product_id'=>'sometimes|required|exists:products,id',
+			    'product_id'=>'sometimes|required|exists:products,id,deleted_at,NULL',
 				'note'=> 'min:10'
 			];
     }

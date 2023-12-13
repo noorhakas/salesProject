@@ -152,7 +152,7 @@
 </tr>
 <tr>
 <td style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size: 30px;line-height: -3.4;display: flex;text-align: center;margin: 22px;margin-bottom: 15px;">
-<img src="#" class="main-logo" alt="logo" width="55" height="50" class="CToWUd"><span>Royal|MedicalRep</span>
+<img src="{{asset('/assets/img/royal-logo.png')}}" class="main-logo" alt="logo" width="55" height="50" class="CToWUd"><span>Royal|MedicalRep</span>
 </td>
 </tr>
 <tr>

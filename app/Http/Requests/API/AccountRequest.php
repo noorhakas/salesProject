@@ -30,9 +30,9 @@ class AccountRequest extends FormRequest
 
         $base = [
 			'name'=>'required|string|max:100|unique:customers,name,NULL,id,deleted_at,NULL',
-			'brick_id'=>'required|exists:bricks,id',
-			'acc_type_id'=>'required|exists:acc_type,id',
-			'class_id'=>'required|exists:classes,id',
+			'brick_id'=>'required|exists:bricks,id,deleted_at,NULL',
+			'acc_type_id'=>'required|exists:acc_type,id,deleted_at,NULL',
+			'class_id'=>'required|exists:classes,id,deleted_at,NULL',
 			'phone'=>'required|numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'phone1'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'address'=>'required|string',

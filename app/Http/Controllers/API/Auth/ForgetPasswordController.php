@@ -27,7 +27,7 @@ class ForgetPasswordController extends Controller
         $codeData = ResetCodePassword::create($data);
         
         $user->notify(new ResetMail($user,$codeData->token));
-        return $this->SendResponse(['message' => trans('Backend.message-sent'), 'status' => true ,'data'=>['code'=>$data['token']]], 200);
+        return $this->SendResponse(['message' => trans('messages.message_sent_successfully'), 'status' => true ,'data'=>['code'=>$data['token']]], 200);
     }
 
     /**
@@ -46,10 +46,10 @@ class ForgetPasswordController extends Controller
         // check if it does not expired: the time is one hour
         if ($passwordReset->created_at > now()->addHour()) {
             $passwordReset->delete();
-            return response(['message' => trans('passwords.code_is_expire')], 422);
+            return response([ 'status' => false,'message' => trans('messages.code_is_expire')], 422);
         }
 
-		return $this->SendResponse(['message' => trans('Backend.message-sent'), 'status' => true,'data'=>["code"=>$passwordReset->token] ], 200);
+		return $this->SendResponse(['message' => trans('messages.success'), 'status' => true,'data'=>["code"=>$passwordReset->token] ], 200);
     }
 
     public function ResetPassword(Request $request)
@@ -63,7 +63,7 @@ class ForgetPasswordController extends Controller
         // check if it does not expired: the time is one hour
         if ($passwordReset->created_at > now()->addHour()) {
             ResetCodePassword::where('token', $request->code)->delete();
-            return response(['message' => trans('passwords.code_is_expire')], 422);
+            return response([ 'status' => false ,'message' => trans('messages.code_is_expire')], 422);
         }
 
         $user = User::firstWhere('email', $passwordReset->email);

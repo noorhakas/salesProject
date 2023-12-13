@@ -19,6 +19,7 @@ return [
 	'permission_denied'=>'You do not have permission to view this page',
 	'visit_success'=>'visit saved successfuly',
 	'visit_false'=>'False visit',
+	'code_is_expire'=>'Code Is expired',
 
 	'new_plan' => 'New Plan',
     'created_new_plan' => ':vName, created new plan',
@@ -26,6 +27,15 @@ return [
 	'new_visit' => 'New Visit',
     'created_success_visit' => ':vName, created success visit ',
     'created_false_visit' => ':vName, created false visit ',
+	'accept_plan'=>'plan accepted',
+	'manager_accept_plan'=>':vName, accepted your plan',
+	'reject_plan'=>'plan rejected',
+	'manager_rejected_plan'=>':vName, rejected your plan',
+
+	'plan_reviewed' => 'Please wait while your plan is being verified',
+	'plan_rejected' => 'Sorry.. Plan is rejected',
+	'wrong_place'=>'You are in the Wrong Place'
+	
 
 	
 
