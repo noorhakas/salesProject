@@ -22,6 +22,10 @@ class LoginController extends Controller
         if (isset($user->status) && $user->status != 1) {
 			return $this->response_api(false,trans('messages.suspended_account'));
         }
+
+		if(isset($request->DeviceType) &&  $request->DeviceType== 3 && $user->position == 3)
+		    return $this->response_api(false,trans('messages.invalid_auth'));
+
         if (Auth::guard()->attempt($credentials) && $user->status == 1) {
 			if(isset($request->DeviceToken) && !empty($request->DeviceToken))
 			    $user->update(['DeviceToken'=>$request->DeviceToken ,'DeviceType'=>$request->DeviceType]);
