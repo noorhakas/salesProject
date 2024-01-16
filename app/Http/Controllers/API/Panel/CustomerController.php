@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Http\Requests\API\CustomerRequest;
 use App\Repository\Interfaces\CustomerInterface;
+use App\Http\Exports\DoctorExport;
+use App\Http\Imports\DoctorImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -61,6 +64,34 @@ class CustomerController extends Controller
 		$response = $this->Icustomer->deleteCustomer($customer);
 		return $this->SendResponse($response);
     }
+
+   public function FetchAccountAndCustomers(Request $request){
+		$response = $this->Icustomer->FetchcustomersAccount($request);
+		return $this->SendResponse($response);
+	}
+
+	public function exportDoctors(){
+        return Excel::download(new DoctorExport(), 'doctors.xlsx');
+    }
+	
+	 public function importDoctors(Request $request)
+    {
+
+        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
+        $path = $request->file('file');
+
+		try {
+			\DB::beginTransaction();
+				$doctor = Excel::import(new DoctorImport, $path);
+			\DB::commit();
+			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
+			} catch (\Exception $e) {
+				\DB::rollback();
+				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
+		}
+
+    }
+
 
 
 }

@@ -31,7 +31,7 @@ class PlanRequest extends FormRequest
 		 return [
 			'visit_list'      => 'required|array',
             'visit_list.*.account_id' => 'required|exists:accounts,id,deleted_at,NULL',
-			'visit_list.*.doctor_id' => 'required|exists:customers,id,deleted_at,NULL',
+			'visit_list.*.doctor_id' => 'sometimes|exists:customers,id,deleted_at,NULL',
             'visit_list.*.visit_date'=>'required|date|after_or_equal:now',
 			'visit_list.*.start_time'=>'required|date_format:H:i:s',
 			'visit_list.*.end_time'=>'required|date_format:H:i:s'

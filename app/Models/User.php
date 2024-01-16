@@ -75,7 +75,12 @@ class User extends Authenticatable
 
 	public function customers()
     {
-        return $this->belongsToMany(Customer::class, 'user_customers');
+        return $this->belongsToMany(Customer::class, 'user_customers','user_id','customer_id');
+    }
+
+	public function accounts()
+    {
+        return $this->belongsToMany(Account::class, 'user_customers','user_id','account_id');
     }
 
 	public function plans()

@@ -30,7 +30,9 @@ class ProductRequest extends FormRequest
 		return match(request()->method()){
             "POST" => [
 				'name'=>'required|string|max:100|unique:products,name,NULL,id,deleted_at,NULL',
-				'specialty_id'=>'required|exists:specialty,id,deleted_at,NULL',
+				//'specialty_id'=>'required|exists:specialty,id,deleted_at,NULL',
+				'category_id'=>'required|exists:category,id,deleted_at,NULL',
+				'company_id'=>'required|exists:companies,id,deleted_at,NULL',
 				'image'=>['image', 'mimes:jpeg,png,jpg', 'max:2048'],
 				'description'=> 'min:10',
 				'price'=>'sometimes|numeric',

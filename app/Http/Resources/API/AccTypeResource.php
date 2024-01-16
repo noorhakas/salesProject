@@ -25,6 +25,7 @@ class AccTypeResource extends JsonResource
        return  [
             'id' => $this->id,
             'name' => $this->name,
+			'is_pharmacy'=>$this->is_pharmacy,
 			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }

@@ -18,9 +18,9 @@ class AccountRepository implements AccountInterface
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 		if(request()->get('user_id') && !empty(request()->get('user_id'))){
 			$user = User::find(request()->get('user_id'));
-			$accounts = $this->getAccountQuery(["user_id"=>$user->id , "access_all_data"=>$user->access_all_data]);
+			$accounts = $this->getAccountQuery($user);
 		}else{
-			$accounts = $this->getAccountQuery(["user_id"=>auth()->user()->id , "access_all_data"=>auth()->user()->access_all_data]);
+			$accounts = $this->getAccountQuery(auth()->user());
 		}
 		
 	    $accounts = (clone $accounts)->filter($request)->orderBy('accounts.created_at','DESC')->paginate($limit);
@@ -79,13 +79,10 @@ class AccountRepository implements AccountInterface
     }
 
 
-	protected function getAccountQuery(array $data){
-       return $data['access_all_data'] 
-                           ? Account::select('accounts.*') :
-							Account::whereHas('customers', function ($query) use ($data){
-								$query->join('user_customers', 'user_customers.customer_id','customers.id')
-								->where('user_customers.user_id',$data['user_id']);
-							})->groupBy('accounts.id');
+	protected function getAccountQuery($user){
+       return ($user->access_all_data)
+                           ? Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id') :
+						    $user->accounts()->join('acc_type','acc_type.id','=','accounts.acc_type_id')->groupBy('accounts.id');
 	   
 	}
 

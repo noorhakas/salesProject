@@ -14,7 +14,7 @@ class Customer extends Model
 	protected $imgFolder = 'customers';
 	protected $avatar = 'avatar_logo.jpg';
 	
-	protected $fillable = ['name','account_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','work_days','work_start_time','work_end_time'];
+	protected $fillable = ['name','account_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','work_days','work_start_time','work_end_time','class_id'];
 
 	protected $casts = [ 'work_days' => 'array' ];
 
@@ -24,6 +24,11 @@ class Customer extends Model
         return $this->belongsTo(Specialty::class);
     }
 	
+	public function class()
+    {
+        return $this->belongsTo(Classes::class);
+    }
+
 	public function account()
     {
         return $this->belongsTo(Account::class);
@@ -54,7 +59,7 @@ class Customer extends Model
 					     $q->where('customers.account_id', $v))
 					->when($request->search,fn($q, $v) => 
 					$q->where('customers.name', 'like', "%{$v}%")->orWhere('accounts.name','like', "%{$v}%"));	 	
-
+               
         return $q;
     }
 

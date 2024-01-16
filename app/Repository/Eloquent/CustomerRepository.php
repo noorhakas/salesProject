@@ -5,15 +5,16 @@ namespace App\Repository\Eloquent;
 
 use App\Repository\Interfaces\CustomerInterface;
 use App\Models\Customer;
+use App\Models\Account;
 use App\Models\User;
 use App\Http\Resources\API\CustomerResource;
+use App\Http\Resources\API\AccountCustomerResource;
 
 class CustomerRepository implements CustomerInterface
 {
       
 	  public function getAll($request)
 	  {
-
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 		
 		if(request()->get('user_id') && !empty(request()->get('user_id'))){
@@ -27,6 +28,19 @@ class CustomerRepository implements CustomerInterface
 		   $data = CustomerResource::collection($customers);
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }
+
+
+      public function FetchcustomersAccount($request)
+	  {
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+		
+		$accounts =Account::selectraw('accounts.id as id ,accounts.name as account_name ,customers.name as customer_name,customers.id as customer_id')->leftjoin('customers','customers.account_id','=','accounts.id');
+		$customers = (clone $accounts)->filter($request)->orderBy('accounts.created_at','ASC')->paginate($limit);
+		   $data = AccountCustomerResource::collection($customers);
+
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+	  }
+	  
 
 	  public function createCustomer($request){
 		
@@ -82,7 +96,7 @@ class CustomerRepository implements CustomerInterface
 
 	protected function getCustomerQuery($user){
 
-	    return ($user->access_all_data) ? Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id') : 
+	    return ($user->access_all_data) ? Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id'): 
 				 $user->customers()->join('accounts','accounts.id','=','customers.account_id');
 	   
 	}

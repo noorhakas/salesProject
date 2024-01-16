@@ -13,7 +13,7 @@ class ClassRepository implements ClassInterface
 	  {
 		$data = Classes::select('id','name','frequency')
 		                 ->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		                 ->orderBy('created_at','DESC')->get();
+		                 ->orderBy('created_at','ASC')->get();
 
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }

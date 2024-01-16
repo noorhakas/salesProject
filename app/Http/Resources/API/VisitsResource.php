@@ -26,9 +26,17 @@ class VisitsResource extends JsonResource
 		$statusAsString = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 'Missed' : VisitStatusEnum::toString($this->status);
        	$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 5 : $this->status;
 
+    if($this->customer){
+       $base = new CustomerResource($this->customer);
+	}else{
+		$new_data = collect(['image'=>asset('/assets/img/avatar_logo.jpg') ,'specialty_name'=>''
+	                ,'work_days'=>[],'work_start_time'=>'','work_end_time'=>'','work_time'=>[],'work_days_AsString'=>'']);
+		    $base = collect(new AccountResource($this->account))->merge($new_data);
+	   }
+       
 		return  [
             'id' => $this->id,
-            'customer' => new CustomerResource($this->customer),
+            'customer' => $base,//new CustomerResource($this->customer),
 			'user_name'=>optional($this->user)->name,
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
 			'plan_code'=>optional($this->plan)->Uuid,
@@ -43,7 +51,6 @@ class VisitsResource extends JsonResource
 			'note'=>$this->note,
         ];
     }
-
 
 	public static function collection($resource)
     {

@@ -13,7 +13,9 @@ class AccTypeRepository implements AccTypeInterface
 	  public function getAll($request)
 	  {
 		$acc_types = AccType::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','Asc')->get();
+		            ->when(isset($request->is_pharmacy),function($q) use ($request){
+						 $q->where('is_pharmacy', $request->is_pharmacy);	
+					})->orderBy('created_at','Asc')->get();
         $data = AccTypeResource::collection($acc_types);
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }

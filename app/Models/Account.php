@@ -37,8 +37,10 @@ class Account extends Model
 	public function scopeFilter($q,$request)
     {
 		$q = $q->when($request->search,fn($q, $v) => 
-					$q->where('name', 'like', "%{$v}%"))
-					->when($request->acc_type_id,fn($q, $v) => 
+					$q->where('accounts.name', 'like', "%{$v}%"))
+					->when(isset($request->is_pharmacy),function($q) use ($request){
+						 $q->where('acc_type.is_pharmacy', $request->is_pharmacy);	
+					})->when($request->acc_type_id,fn($q, $v) => 
 					$q->where('acc_type_id', $v));		
 
         return $q;

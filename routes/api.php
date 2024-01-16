@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-use App\Models\Plan;
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
 		Route::post('sendOtpCode','ForgetPasswordController@SendEmail');
@@ -43,11 +42,15 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::post('add_product_note', 'ProductController@addNotes'); 
 	Route::get('product_notes/{id}','ProductController@getProductNotes');
 	Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
+	Route::resource('company', 'CompanyController')->except(['edit', 'create']);
 	Route::resource('bricks', 'BricksController')->except(['edit', 'create']);
 	Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
 	Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 	Route::resource('accounts', 'AccountController')->except(['edit', 'create']);
+	Route::resource('category', 'CategoryController')->except(['edit', 'create']);
 	Route::resource('gifts', 'GiftController')->except(['edit', 'create']);
+
+	Route::get('fetch_accounts_customers','CustomerController@FetchAccountAndCustomers');
 
 
 
@@ -84,9 +87,22 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::get('dashboard-stats', 'HomeController@index');
 	Route::get('logs', 'HomeController@getLogs');
 	Route::post('maps', 'MapController@getMaps');
-	
     Route::resource('setting', 'SettingController')->only(['index', 'store']);
  
+/*========================export&&import==================================*/
+		Route::prefix('/export')->group(function () {
+			Route::get('doctors','CustomerController@exportDoctors');
+			Route::get('pharmacy','AccountController@exportPharmacy');
+			Route::get('accounts','AccountController@exportAccounts');
+			Route::get('products','ProductController@exportProducts');
+		});
+
+		Route::prefix('/import')->group(function () {
+			Route::post('doctors','CustomerController@importDoctors');
+			Route::post('pharmacy','AccountController@importPharmacy');
+			Route::post('accounts','AccountController@importAccounts');
+			Route::post('products','ProductController@importProducts');
+		});
 
 });
 

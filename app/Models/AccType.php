@@ -11,7 +11,7 @@ class AccType extends Model
 	use SoftDeletes, ObservantTrait;
     protected $table = 'acc_type';
 	
-	protected $fillable = ['name'];
+	protected $fillable = ['name','is_pharmacy'];
 
 
 }

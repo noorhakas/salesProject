@@ -8,7 +8,9 @@ use App\Models\Product;
 use App\Http\Requests\API\ProductRequest;
 use App\Http\Requests\API\ProductNoteRequest;
 use App\Repository\Interfaces\ProductInterface;
-
+use App\Http\Exports\ProductExport;
+use App\Http\Imports\ProductImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -75,5 +77,28 @@ class ProductController extends Controller
 	    $response = $this->Iproduct->getAllProductNotes($id);
 		return $this->SendResponse($response);
 	}
+
+	public function exportProducts(){
+        return Excel::download(new ProductExport(), 'products.xlsx');
+    }
+	
+	 public function importProducts(Request $request)
+    {
+
+        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
+        $path = $request->file('file');
+
+		//try {
+			//\DB::beginTransaction();
+				$products = Excel::import(new ProductImport, $path);
+			//\DB::commit();
+			//return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
+			//} catch (\Exception $e) {
+				//\DB::rollback();
+				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
+		//}
+
+    }
+
 
 }

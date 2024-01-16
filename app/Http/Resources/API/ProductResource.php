@@ -27,8 +27,10 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
 			'image'=>$this->image,
-			'specialty_id'=>$this->specialty_id,
-			'specialty_name'=>(string)optional($this->specialty)->name,
+			'category_id'=>$this->category_id,
+			'specialty_name'=>(string)optional($this->category)->name,
+			'company_id'=>$this->company_id,
+			'company_name'=>(string)optional($this->company)->name,
 			'price'=>(float)$this->price,
 			'description'=>$this->description,
 			'files'=>$this->productfiles()->get(['id','file']),
@@ -38,7 +40,7 @@ class ProductResource extends JsonResource
 
 		if(in_array(request()->route()->getName(), ["products.show"]))
 		{
-              $base = array_merge($base,['similar_items' => self::where('specialty_id',$this->specialty_id)->get(['id','name','price','image'])]);
+              $base = array_merge($base,['similar_items' => self::where('category_id',$this->category_id)->get(['id','name','price','image'])]);
 		}
 		return $base;
 

@@ -41,9 +41,13 @@ class UserController extends Controller
 			if(isset($request->product_ids) && !empty($request->product_ids))
 			    $user->products()->sync($request->product_ids);
 
-			if(isset($request->customer_ids) && !empty($request->customer_ids))
-			    $user->customers()->sync($request->customer_ids);
-
+			if(isset($request->customer_ids) && !empty($request->customer_ids)){
+				foreach($request->customer_ids as $key){
+                   $keyData = explode('_',$key);
+                   $account_customerIds[] = ['account_id'=>$keyData[0] , 'customer_id'=>$keyData[1] ];
+				}
+				 $user->customers()->sync($account_customerIds);
+			}
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
 		} catch (\Exception $e) {
@@ -79,8 +83,14 @@ class UserController extends Controller
 			if(isset($request->product_ids) && !empty($request->product_ids))
 			    $user->products()->sync($request->product_ids);
 
-			if(isset($request->customer_ids) && !empty($request->customer_ids))
-			    $user->customers()->sync($request->customer_ids);
+			if(isset($request->customer_ids) && !empty($request->customer_ids)){
+				foreach($request->customer_ids as $key){
+                   $keyData = explode('_',$key);
+                   $account_customerIds[] = ['account_id'=>$keyData[0] , 'customer_id'=>$keyData[1] ];
+				}
+				 $user->customers()->sync($account_customerIds);
+			}
+			
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
 		} catch (\Exception $e) {

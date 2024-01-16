@@ -47,9 +47,9 @@ class PlanRepository implements PlanInterface
 					$status = (VisitStatusEnum::Pending)["id"];
 					$start_time = Carbon::parse($single['start_time'])->format('H:i:s');
 					$end_time = Carbon::parse($single['end_time'])->format('H:i:s');  
-
-					$displayData = ['account_id'=>$single['account_id'],'plan_id'=>$planCreated->id,'customer_id'=>$single['doctor_id'],'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$start_time,'end_time'=>$end_time];			
-					Visit::updateOrCreate(['account_id'=>$single['account_id'],'customer_id'=>$single['doctor_id'],'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
+                    $doctor_id = isset($single['doctor_id']) && !empty($single['doctor_id']) ? $single['doctor_id'] : 0;
+					$displayData = ['account_id'=>$single['account_id'],'plan_id'=>$planCreated->id,'customer_id'=>$doctor_id,'status'=>$status,'user_id'=>$user_id,'visit_date'=>$single['visit_date'],'start_time'=>$start_time,'end_time'=>$end_time];			
+					Visit::updateOrCreate(['account_id'=>$single['account_id'],'customer_id'=>$doctor_id,'user_id'=>$user_id,'visit_date'=>$single['visit_date']],$displayData);
 				}
 
 			    (new Notification)->sendNotification(['tokens'=>getUserFcmTokens(),'notify_title'=>'new_plan',

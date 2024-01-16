@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use App\Enums\StatusEnum;
 use App\Enums\UserPositionEnum;
+use App\Models\UserAccounts;
 use Carbon\Carbon;
 
 class UserResource extends JsonResource
@@ -37,6 +38,7 @@ class UserResource extends JsonResource
 			'position_name'=>UserPositionEnum::toString($this->position),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
 			'access_all_data'=>$this->access_all_data,
+			'DeviceToken'=>$this->DeviceToken,
 
         ];
 
@@ -48,10 +50,11 @@ class UserResource extends JsonResource
 					'brick_ids'=>[] ,'product_ids'=> [],'customer_ids'=> [] ,'permissions'=>$this->getAllPermissions()->pluck('name')] );
 			   break;
 			   default:
+			     $accounts_customers_ids = UserAccounts::where('user_id',$this->id)->get()->map(fn($q)=>$q->account_id.'_'.$q->customer_id);
 			     $base = array_merge($base,[
 					        'brick_ids'=>$this->bricks()->pluck('id') ,
 							'product_ids'=> $this->products()->pluck('id')
-			                ,'customer_ids'=> $this->customers()->pluck('id')
+			                ,'customer_ids'=> $accounts_customers_ids
 							,'permissions'=>$this->getAllPermissions()->pluck('name')
 					]);
 			   break;	

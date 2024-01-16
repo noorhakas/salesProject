@@ -36,7 +36,7 @@ class VisitRepository implements VisitInterface
 		if($plan && $plan->status == 2 && auth()->user()->position == 3)
 		  return ["status"=>true, "message"=>trans('messages.plan_rejected'),'data'=>[]];  
 
-			$visits = $plan->visits()->join('customers','customers.id','=','visits.customer_id')->select('visits.*')->filter($request)->paginate($limit);
+			$visits = $plan->visits()->join('accounts','accounts.id','=','visits.account_id')->select('visits.*')->filter($request)->paginate($limit);
 			$data = VisitsResource::collection($visits);
 	    return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];		
 	}
@@ -124,7 +124,7 @@ class VisitRepository implements VisitInterface
 		 $currentPlanId = User::getCurrentPlan()?->id;
 		 $visit_date = Carbon::now()->toDateString();
 		 $existData =['plan_id'=>$currentPlanId ,'user_id'=>auth()->user()->id,'account_id'=>$request->account_id,
-		                                     'customer_id'=>$request->doctor_id,'visit_date'=>$visit_date];			
+		                                     'customer_id'=>isset($request->doctor_id)?$request->doctor_id:0,'visit_date'=>$visit_date];			
 	
            $data = array_merge($existData , ['type'=>1]);											 
 		$createdVisit = Visit::updateOrCreate($existData,$data);

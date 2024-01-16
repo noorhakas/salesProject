@@ -26,7 +26,7 @@ class ProductRepository implements ProductInterface
 		}else{
 			$products = $this->getProductQuery(auth()->user());
 		}
-		$products = (Clone $products)->has('specialty')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		$products = (Clone $products)->has('category')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		               ->orderBy('created_at','DESC')->paginate($limit);
 		   $data = ProductResource::collection($products);		
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];

@@ -15,12 +15,22 @@ class Product extends Model
 	protected $avatar = 'medicine_logo.png';
 
 
-	protected $fillable = ['name','specialty_id','image','description','price'];
+	protected $fillable = ['name','specialty_id','image','description','price','company_id','category_id'];
 
 
 	public function specialty()
     {
         return $this->belongsTo(Specialty::class);
+    }
+
+	public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+	public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
 	public function productfiles()
