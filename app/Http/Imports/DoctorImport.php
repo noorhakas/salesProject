@@ -8,9 +8,11 @@ use App\Models\Specialty;
 use App\Models\Classes;
 use App\Models\Bricks;
 use App\Models\Customer;
+use App\Models\Product;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use App\Models\PharmacyGroup ;
 
 
 class DoctorImport implements ToCollection,WithHeadingRow
@@ -31,25 +33,43 @@ class DoctorImport implements ToCollection,WithHeadingRow
 			 $area_name = trim($row['area']);
 			 $account_type = trim($row['account_type']);
 			 $class_name = trim($row['class']);
-			 $specailty = trim($row['speciality']);
+             $account_class_name = trim($row['account_class']);
+			 $specailty = trim($row['specialty']);
 			 $account_name = trim($row['account_name']);
+             $doctor_name = trim($row['doctor_name']);
+             $groupData = '';
+             
+    
+            
+            $classData = !empty($class_name) ?  Classes::where('name','like', "{$class_name}")->first() : '';
+            $accountclassData = !empty($account_class_name) ?  Classes::where('name','like', "{$account_class_name}")->first() : '';
+            $bricks = Bricks::firstOrCreate(['name'=>$area_name]);
+            $specailty = Specialty::firstOrCreate(['name'=>$specailty]);
+            $accountType = AccType::firstOrCreate(['name'=>$account_type]);
 
-             $accountData = Account::where('name', 'like', "%{$account_name}%")->first();
-			 $accountType = AccType::where('name', 'like', "%{$account_type}%")->first();
-			 $specailty = Specialty::where('name', 'like', "%{$specailty}%")->first();
-             $bricks = Bricks::where('name','like', "%{$area_name}%")->first();
-			 $classData = Classes::where('name','like', "%{$class_name}%")->first();
+            if(isset($row['group_name']) && !empty($row['group_name']))
+              $groupData = PharmacyGroup::firstOrCreate(['name'=>$row['group_name']]);
 
-			 $doctor_name = trim($row['name']);
+            if(!empty($account_name)){
+                    $accountData = Account::updateOrCreate(['name'=>$account_name],
+                    [
+                        'name'=>$account_name,
+                        'brick_id'=>$bricks?$bricks->id:0,
+                        'acc_type_id'=>$accountType?$accountType->id:0,
+                        'class_id'=>!empty($accountclassData)?$accountclassData->id:0,
+                        'pharmacy_group_id'=>$groupData?$groupData->id:0,
+                    ]);
+            }
+
 
 			 if(!empty($doctor_name) && !empty($accountData) && !empty($specailty))
 			 {
 				 $account_id = $accountData->id;
-				 $account = Customer::updateOrCreate(['name'=>$doctor_name,'account_id'=>$account_id],
+				 $customer = Customer::updateOrCreate(['name'=>$doctor_name,'account_id'=>$account_id],
 				[
 					 'name'=>$doctor_name,
 					 'brick_id'=>$accountData?$accountData->brick_id:0,
-					 'class_id'=>$classData?$classData->id:0,
+					 'class_id'=>!empty($classData)?$classData->id:0,
 					 'acc_type_id'=>$accountType?$accountType->id:0,
 					 'account_id'=>$account_id,
 					 'specialty_id'=>$specailty ? $specailty->id : 0,
@@ -58,6 +78,14 @@ class DoctorImport implements ToCollection,WithHeadingRow
 					 'brief'=>isset($row['brief']) ? trim($row['brief']) : NULL,
 
 				]);
+
+
+                if(isset($row['products']) && !empty($row['products'])){
+                    $productItems = explode('-', $row['products']);
+                    $productIds = Product::whereIn('uuid', $productItems)->pluck('id');
+                    $customer->products()->sync($productIds);
+
+                }
 			 }
 		}
     }

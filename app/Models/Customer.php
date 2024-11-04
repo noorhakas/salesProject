@@ -14,14 +14,35 @@ class Customer extends Model
 	protected $imgFolder = 'customers';
 	protected $avatar = 'avatar_logo.jpg';
 	
-	protected $fillable = ['name','account_id','specialty_id','image','phone','phone1','acc_type_id','image','brief','work_days','work_start_time','work_end_time','class_id'];
+	protected $fillable = ['name','account_id','Uuid','specialty_id','image','phone','phone1','acc_type_id','image','brief','work_days','work_start_time','work_end_time','class_id'];
 
 	protected $casts = [ 'work_days' => 'array' ];
 
 
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model){
+            $model->Uuid = self::generateNumber();
+        });
+    }
+    public static function generateNumber()
+    {
+        $number =str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+        if(self::where('Uuid', $number)->count()){
+            $number = self::generateNumber();
+        }
+        return $number;
+    }
+
 	public function specialty()
     {
         return $this->belongsTo(Specialty::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'customer_products','customer_id','product_id');
     }
 	
 	public function class()
@@ -55,6 +76,10 @@ class Customer extends Model
     {
 		$q = $q->when($request->acc_type_id,fn($q, $v) => 
 					$q->where('customers.acc_type_id', $v)) 
+                    ->when($request->specialty_id,fn($q, $v) => 
+					$q->where('customers.specialty_id', $v)) 
+                    ->when($request->class_id,fn($q, $v) => 
+					$q->where('customers.class_id', $v)) 
 					->when($request->account_id,fn($q, $v) => 
 					     $q->where('customers.account_id', $v))
 					->when($request->search,fn($q, $v) => 

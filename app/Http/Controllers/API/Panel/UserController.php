@@ -32,9 +32,11 @@ class UserController extends Controller
 
         try {
 			\DB::beginTransaction();
-			$user = User::updateOrCreate(['user_name'=>$request->user_name],$request->validated());
+			  $acccess_all_data = $request->customer_select_all;
+            $data = array_merge(['access_all_data'=>$acccess_all_data],$request->validated());
+			$user = User::updateOrCreate(['user_name'=>$request->user_name],$data);
 			$user->syncRoles($request->role_id);
-
+ if($request->customer_select_all != 1){
 			if(isset($request->brick_ids) && !empty($request->brick_ids))
 			    $user->bricks()->sync($request->brick_ids);
 
@@ -48,6 +50,7 @@ class UserController extends Controller
 				}
 				 $user->customers()->sync($account_customerIds);
 			}
+}
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));
 		} catch (\Exception $e) {
@@ -73,10 +76,11 @@ class UserController extends Controller
 		 \DB::beginTransaction();
 		   if(!$user)
 		      return $this->response_api(false, trans('messages.user_not_found'));
-
-			$user->update($request->validated());
+                        $acccess_all_data = $request->customer_select_all;
+                        $data = array_merge(['access_all_data'=>$acccess_all_data],$request->validated());
+			$user->update($data);
 			$user->syncRoles($request->role_id);
-
+if($request->customer_select_all != 1){
 			if(isset($request->brick_ids) && !empty($request->brick_ids))
 			    $user->bricks()->sync($request->brick_ids);
 
@@ -90,6 +94,12 @@ class UserController extends Controller
 				}
 				 $user->customers()->sync($account_customerIds);
 			}
+}else{
+                $user->bricks()->delete();
+                $user->products()->delete();
+                $user->customers()->delete();
+
+            }
 			
 			\DB::commit();
             return $this->response_api(true, trans('messages.success'),new UserResource($user));

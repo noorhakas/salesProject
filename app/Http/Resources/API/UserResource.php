@@ -35,7 +35,7 @@ class UserResource extends JsonResource
 			'role_id'=>$this->getRoleId(),
 			'role_name'=>$this->getRoleName(),
 			'position_id'=>$this->position,
-			'position_name'=>UserPositionEnum::toString($this->position),
+			'position_name'=>$this->userposition?$this->userposition->name:'',
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
 			'access_all_data'=>$this->access_all_data,
 			'DeviceToken'=>$this->DeviceToken,

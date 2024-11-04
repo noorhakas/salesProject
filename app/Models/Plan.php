@@ -58,30 +58,36 @@ class Plan extends Model
 
 	public function scopeFilter($q,$request)
     {
+        $status =  isset($request->status) && $request->status == "0" ? "-1" : $request->status;
 		$q = $q->when($request->search,fn($q, $v) => 
 				$q->where('Uuid', 'like', "%{$v}%"))
 			->when($request->date,fn($q, $v) => 
-				$q->whereDate('plans.end_date', '<', $v))
+				$q->whereDate('plans.end_date', '<=', $v))
+            ->when($request->start_date,fn($q, $v) => 
+				$q->whereDate('plans.start_date', '>=', $v))
+             ->when($request->end_date,fn($q, $v) => 
+				$q->whereDate('plans.end_date', '<=', $v))        
 			->when($request->user_id,fn($q, $v) => 
 				$q->where('plans.user_id', $v))
-				->when($request->status,function($q) use ($request){
-                    if($request->status == 3){
-						$q->where(function ($q) use ($request){
-							 $q->where('plans.status',$request->status)
-							 ->orWhere(function($q2){
-								$q2->where('plans.status','!=' ,2)->whereDate('plans.end_date','<',Carbon::now()->toDateString());
-								});
-							});
-					}elseif($request->status == 4){
-						$q->where('plans.status', 1)->whereDate('plans.end_date','>=',Carbon::now()->toDateString())
-							->whereDate('plans.start_date','<=',Carbon::now()->toDateString());
+				->when($status,function($q) use ($status){
+                    if($status == 3){
+					$q->where(function ($q) use ($status){
+                        $q->where('plans.status',$status)
+                        ->orWhere(function($q2){
+                            $q2->whereDate('plans.end_date','<',Carbon::now()->toDateString());
+                        });
+					});
+					}elseif($status == 4){
+						$q2->whereDate('plans.start_date','>',Carbon::now()->toDateString());
 					}
-					elseif($request->status == 1){
+					elseif($status == 1){
+						$q->where('plans.status', 1)->whereDate('plans.end_date','>=',Carbon::now()->toDateString());
+					}elseif($status == 5){
 						$q->where('plans.status', 1)
-							->whereDate('plans.start_date','>=',Carbon::now()->toDateString());
+                        ->whereDate('plans.start_date','<=',Carbon::now()->toDateString())->whereDate('plans.end_date','>=',Carbon::now()->toDateString());
 					}
 					else{
-					 $q->where('plans.status',$request->status);
+					 $q->where('plans.status',$status);
 					}
 				});
         return $q;

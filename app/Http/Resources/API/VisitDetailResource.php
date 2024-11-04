@@ -8,6 +8,7 @@ use JsonSerializable;
 use Carbon\Carbon;
 
 use App\Models\ProductFiles;
+use App\Models\Product;
 
 
 class VisitDetailResource extends JsonResource
@@ -27,7 +28,9 @@ class VisitDetailResource extends JsonResource
 		 $base =  [
             'id' => $this->id,
             'item_name' => $this->name,
-			'file'=> $this->type == 3 && ProductFiles::find($this->id)? ProductFiles::find($this->id)->file : '',
+			//'file'=> $this->type == 3 && ProductFiles::find($this->id)? ProductFiles::find($this->id)->file : ($this->type == 0 ? Product::find($this->id)->image : '') ,
+            'file'=> $this->type == 0  ? ($this->file != '' ? url('/') . '/storage/products/' . $this->file : url('/') . '/storage/products/medicine_logo.png') : '',
+
 			'count_of_sample'=>$this->count_of_sample ,
 			'checked'=>$this->checked,
 			'type'=>$this->type,

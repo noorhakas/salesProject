@@ -59,10 +59,12 @@ class Notification extends Model
     {
         try {
             $user = auth()->user()->id;
-            Notification::where(['user_id' => $user])
+           /* Notification::where(['user_id' => $user])
 			 ->when(auth()->user()->position != 3 ,fn($q) =>
 			           $q->orWhere('notifications.tiNotificationType' , 1)
-				)->update(['tiIsRead' => 1]);
+				)->update(['tiIsRead' => 1]);*/
+
+             Notification::where(['tiIsRead' => 0])->update(['tiIsRead' => 1]);   
             return ['status'=>true,'message'=>trans('messages.success')];
         } catch (Exception $e) {
             return ExceptionResponse($e);

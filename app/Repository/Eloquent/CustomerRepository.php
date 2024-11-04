@@ -7,6 +7,8 @@ use App\Repository\Interfaces\CustomerInterface;
 use App\Models\Customer;
 use App\Models\Account;
 use App\Models\User;
+use App\Models\Specialty;
+use App\Models\AccType;
 use App\Http\Resources\API\CustomerResource;
 use App\Http\Resources\API\AccountCustomerResource;
 
@@ -24,8 +26,8 @@ class CustomerRepository implements CustomerInterface
 			$customer = $this->getCustomerQuery(auth()->user());
 		}
 
-		$customers = (clone $customer)->filter($request)->orderBy('created_at','DESC')->paginate($limit);
-		   $data = CustomerResource::collection($customers);
+		$customers = (clone $customer)->filter($request)->distinct()->orderBy('created_at','DESC')->paginate($limit);
+		   $data =CustomerResource::collection($customers);
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }
 
@@ -33,9 +35,13 @@ class CustomerRepository implements CustomerInterface
       public function FetchcustomersAccount($request)
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
-		
-		$accounts =Account::selectraw('accounts.id as id ,accounts.name as account_name ,customers.name as customer_name,customers.id as customer_id')->leftjoin('customers','customers.account_id','=','accounts.id');
-		$customers = (clone $accounts)->filter($request)->orderBy('accounts.created_at','ASC')->paginate($limit);
+//->orWhere('customers.name', 'like', "%{$v}%")
+                $secondaccounts =Account::selectraw('accounts.id as id ,accounts.name as account_name ,NULL as customer_name,0 as customer_id');
+		$accounts =Account::selectraw('accounts.id as id ,accounts.name as account_name ,customers.name as customer_name,customers.id as customer_id')->join('customers','customers.account_id','=','accounts.id');
+		$customers = (clone $accounts)       
+                           ->when($request->search,fn($q, $v) =>$q->where('accounts.name', 'like', "%{$v}%")->orWhere('customers.name', 'like', "%{$v}%")
+)
+                  ->union($secondaccounts)->DISTINCT()->paginate($limit);
 		   $data = AccountCustomerResource::collection($customers);
 
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
@@ -97,9 +103,42 @@ class CustomerRepository implements CustomerInterface
 	protected function getCustomerQuery($user){
 
 	    return ($user->access_all_data) ? Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id'): 
-				 $user->customers()->join('accounts','accounts.id','=','customers.account_id');
+				 $user->customers()->select('customers.*')->join('accounts','accounts.id','=','customers.account_id');
 	   
 	}
+
+  public function getDoctorCharts(){
+
+           $accountData = AccType::get();
+           $specialtyData = Specialty::get()->toArray();
+            $customers = Customer::select(\DB::raw('specialty.name as specialty_name, acc_type.name as acc_type_name, customers.acc_type_id ,customers.specialty_id,   COUNT(customers.id) as count'))
+            ->join('acc_type', 'acc_type.id', '=', 'customers.acc_type_id')
+            ->join('specialty', 'specialty.id', '=', 'customers.specialty_id')
+            ->groupBy('customers.acc_type_id')
+            ->groupBy('customers.specialty_id')
+            ->orderBy('customers.acc_type_id', 'asc')
+            ->DISTINCT()
+            ->get();
+
+        $customerData = $customers->mapWithKeys(function($customer) {  return [$customer->acc_type_id . '-' . $customer->specialty_id => $customer->count];});
+        $staticticsData = [];
+        $staticticsData = $accountData->map(function($account_type) use ($specialtyData,$customerData) {
+                
+                return [
+                      'name' => $account_type['name'],
+                      'specialty_data'=> array_map(function($specialty) use ($customerData,$account_type) {
+                        $key = $account_type['id'] . '-' . $specialty['id'];
+                        return [
+                            'id' => $specialty['id'],
+                            'name' => $specialty['name'], 
+                            'count' => $customerData->get($key, 0) 
+                        ];
+                      }, $specialtyData)
+                    ];
+            });
+    
+            return ["status"=>true, "message"=>trans('messages.success'),'data'=>$staticticsData];       
+   }
 
 
 }

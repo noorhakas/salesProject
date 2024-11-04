@@ -5,9 +5,11 @@ namespace App\Http\Controllers\API\Panel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\User;
 use App\Http\Requests\API\CustomerRequest;
 use App\Repository\Interfaces\CustomerInterface;
 use App\Http\Exports\DoctorExport;
+use App\Http\Exports\UserAccountExport;
 use App\Http\Imports\DoctorImport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -71,7 +73,7 @@ class CustomerController extends Controller
 	}
 
 	public function exportDoctors(){
-        return Excel::download(new DoctorExport(), 'doctors.xlsx');
+        return Excel::download(new DoctorExport(), 'masterlist.xlsx');
     }
 	
 	 public function importDoctors(Request $request)
@@ -85,13 +87,26 @@ class CustomerController extends Controller
 				$doctor = Excel::import(new DoctorImport, $path);
 			\DB::commit();
 			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-			} catch (\Exception $e) {
-				\DB::rollback();
+		} catch (\Exception $e) {
+			\DB::rollback();
 				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
 		}
 
     }
 
+    public function exportUserAccounts($id){
+        $user = User::find($id);
+        if(!$user)
+            return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
 
+        $user_name = $user->user_name;
+        return Excel::download(new UserAccountExport($user), $user_name.'_list.xlsx');
+    }
+
+    public function doctorChart(){
+        
+        $response = $this->Icustomer->getDoctorCharts();
+		return $this->SendResponse($response);
+    }
 
 }

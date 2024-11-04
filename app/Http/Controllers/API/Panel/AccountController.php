@@ -11,6 +11,7 @@ use App\Http\Exports\AccountExport;
 use App\Http\Exports\PharmacyExport;
 use App\Http\Imports\AccountImport;
 use App\Http\Imports\PharmacyImport;
+use App\Http\Imports\UserAccountImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AccountController extends Controller
@@ -64,6 +65,12 @@ class AccountController extends Controller
 		return $this->SendResponse($response);
     }
 
+    public function accountChart(){
+        
+        $response = $this->IAccount->getAccountCharts();
+		return $this->SendResponse($response);
+    }
+
 	public function exportAccounts(){
         return Excel::download(new AccountExport(), 'account.xlsx');
     }
@@ -95,16 +102,40 @@ class AccountController extends Controller
 
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
         $path = $request->file('file');
-		try {
-			\DB::beginTransaction();
+		//try {
+			//\DB::beginTransaction();
 				$pharamcy = Excel::import(new PharmacyImport, $path);
-			\DB::commit();
-			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-			} catch (\Exception $e) {
-				\DB::rollback();
-				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		}
+			//\DB::commit();
+			//return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
+			//} catch (\Exception $e) {
+				//\DB::rollback();
+				//return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
+		//}
 
     }
+
+  public function importUserAccounts(Request $request)
+    {
+
+        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
+        $path = $request->file('file');
+		//try {
+		//	\DB::beginTransaction();
+                $account_import = new UserAccountImport;
+				$data = Excel::import($account_import, $path);
+                $result = [ 'Exist'=>$account_import->exist_data,
+                            'DontExist'=>$account_import->dontexist_data, 
+                            'BrickExist'=>$account_import->exist_brick,
+                            'DontBrickExist'=>$account_import->dontexist_brick];
+		//	\DB::commit();
+		return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success'),'data'=>$result]);
+		//} catch (\Exception $e) {
+			//	\DB::rollback();
+			return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
+		//}
+
+    }
+
+ 
 
 }

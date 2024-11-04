@@ -23,7 +23,7 @@ class LoginController extends Controller
 			return $this->response_api(false,trans('messages.suspended_account'));
         }
 
-		if(isset($request->DeviceType) &&  $request->DeviceType== 3 && $user->position == 3)
+		if(isset($request->DeviceType) &&  $request->DeviceType== 3 && $user->position != 1)
 		    return $this->response_api(false,trans('messages.invalid_auth'));
 
         if (Auth::guard()->attempt($credentials) && $user->status == 1) {

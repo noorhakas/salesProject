@@ -8,6 +8,7 @@ abstract class PlanStatusEnum
 	const  Accepted = 1;
 	const  Rejected = 2; 
 	const  Completed = 3; 
+    const  Upcoming = 4; 
 
  static function getConstants() {
         $oClass = new \ReflectionClass(__CLASS__);

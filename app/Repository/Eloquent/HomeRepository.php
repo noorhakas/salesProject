@@ -22,11 +22,11 @@ class HomeRepository implements HomeInterface
 	  {
 		$limit = 10;
 		$currentDate = Carbon::today();
-		$plans = Plan::whereHas('user', function ($query) {$query->where('users.status',1);})
+		$plans = Plan::select('plans.*')->whereHas('user', function ($query) {$query->where('users.status',1);})
 		    ->where('plans.status',1)->whereDate('plans.start_date', '<=', $currentDate)->whereDate('plans.end_date', '>=', $currentDate)->orderBy('plans.created_at','DESC')->paginate($limit);
 	  
-		$visits = Visit::join('plans','plans.id','=','visits.plan_id')->whereHas('user', function ($query) {$query->where('users.status',1);})
-		   ->whereDate('visits.visit_date', '=', $currentDate)->orderBy('visits.created_at','DESC')->paginate($limit);
+		$visits = Visit::select('visits.*')->join('plans','plans.id','=','visits.plan_id')->whereHas('user', function ($query) {$query->where('users.status',1);})
+		   ->whereDate('visits.actual_start_date', '=', $currentDate)->where('visits.status',2)->orderBy('visits.created_at','DESC')->paginate($limit);
 
 		$logs = SiteLog::orderBy('site_logs.created_at','DESC')->paginate($limit);   
 
@@ -46,10 +46,10 @@ class HomeRepository implements HomeInterface
 
 			return [
 				 "total_users"=> User::selectRaw('count(*) as user_count')->where('position','!=',UserPositionEnum::MedicalRep)->where('status',1)->first()?->user_count,
-                 "total_medicalrep"=> User::selectRaw('count(*) as medicalrep_count')->where('position',UserPositionEnum::MedicalRep)->where('status',1)->first()?->medicalrep_count,
+                                  "total_medicalrep"=> User::selectRaw('count(*) as medicalrep_count')->where('position',UserPositionEnum::MedicalRep)->where('status',1)->first()?->medicalrep_count,
 				 "total_products"=> Product::selectRaw('count(*) as product_count')->first()?->product_count,
-				 "total_current_plans"=> Plan::has('user')->selectRaw('count(*) as plan_count')->where('end_date','<=',$currentDate)->first()?->plan_count,
-			     "total_current_visits"=> Visit::has('plan')->selectRaw('count(*) as visit_count')->where('visit_date',$currentDate)->first()?->visit_count,
+				 "total_current_plans"=> Plan::has('user')->selectRaw('count(*) as plan_count')->whereDate('plans.start_date', '<=', $currentDate)->where('plans.end_date','>=',$currentDate)->where('plans.status',1)->first()?->plan_count,
+			          "total_current_visits"=> Visit::has('plan')->selectRaw('count(*) as visit_count')->whereDate('visits.actual_start_date',$currentDate)->where('visits.status',2)->first()?->visit_count,
 				];
 	  }
 

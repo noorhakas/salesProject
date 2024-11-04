@@ -15,8 +15,24 @@ class Product extends Model
 	protected $avatar = 'medicine_logo.png';
 
 
-	protected $fillable = ['name','specialty_id','image','description','price','company_id','category_id'];
+	protected $fillable = ['Uuid','name','specialty_id','image','description','price','company_id','category_id'];
 
+
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model){
+            $model->Uuid = self::generateNumber();
+        });
+    }
+    public static function generateNumber()
+    {
+        $number =str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        if(self::where('Uuid', $number)->count()){
+            $number = self::generateNumber();
+        }
+        return $number;
+    }
 
 	public function specialty()
     {

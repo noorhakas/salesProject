@@ -23,21 +23,25 @@ class VisitsResource extends JsonResource
      */
     public function toArray($request)
     {
-		$statusAsString = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 'Missed' : VisitStatusEnum::toString($this->status);
-       	$status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status == 0  ? 5 : $this->status;
+		$statusAsString = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status !=2  ? 'Missed' : VisitStatusEnum::toString($this->status);
+       	        $status = (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $this->status != 2  ? 5 : $this->status;
 
-    if($this->customer){
+   /* if($this->customer){
        $base = new CustomerResource($this->customer);
 	}else{
 		$new_data = collect(['image'=>asset('/assets/img/avatar_logo.jpg') ,'specialty_name'=>''
 	                ,'work_days'=>[],'work_start_time'=>'','work_end_time'=>'','work_time'=>[],'work_days_AsString'=>'']);
 		    $base = collect(new AccountResource($this->account))->merge($new_data);
 	   }
-       
+       */
 		return  [
-            'id' => $this->id,
-            'customer' => $base,//new CustomerResource($this->customer),
+                       'id' => $this->id,
+                       'customer' => new CustomerResource($this->customer),
+                        'account'=>$this->account?$this->account->name:'',
+                        'brick'=>$this->account?$this->account?->brick->name:'',
+
 			'user_name'=>optional($this->user)->name,
+            'combine_user_name'=>optional($this->doubleVisit)->name,
 			'type'=>($this->type == 1)? 'unplanned' : 'planned',
 			'plan_code'=>optional($this->plan)->Uuid,
 			'status'=>$status,
@@ -46,9 +50,14 @@ class VisitsResource extends JsonResource
 			'short_visit_date'=>Carbon::parse($this->visit_date)->format("M-d"),
 			'start_time'=>Carbon::parse($this->start_time)->format("H:i a"),
 			'end_time'=>Carbon::parse($this->end_time)->format("H:i a"),
-			'actual_start_time'=> $this->actual_start_time ? Carbon::parse($this->actual_start_time)->format("Y-m-d H:i a") : '',
-			'actual_end_time'=>$this->actual_end_time ? Carbon::parse($this->actual_end_time)->format("Y-m-d H:i a") : '',
-			'note'=>$this->note,
+			 'actual_start_time'=> $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format("Y-m-d H:i a") : '',
+			'actual_end_time'=>$this->actual_end_date ? Carbon::parse($this->actual_end_date)->format("Y-m-d H:i a") : '',
+                        'actual_visit_date'=> $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format("Y-m-d") : '',
+			'actual_start_visit_time'=>$this->actual_start_date ? Carbon::parse($this->actual_start_date)->format("H:i a") : '',
+                        'actual_end_visit_time'=>$this->actual_end_date ? Carbon::parse($this->actual_end_date)->format("H:i a") : '',
+                         'note'=>$this->note,
+                        'user_location_lat'=>(string)$this->user_location_lat,
+                        'user_location_lng'=>(string)$this->user_location_lng,
         ];
     }
 

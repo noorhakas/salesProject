@@ -63,6 +63,11 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+    public function userposition()
+    {
+        return $this->belongsTo(Position::class,'position','id');
+    }
+
 	public function bricks()
     {
         return $this->belongsToMany(Bricks::class, 'user_bricks','user_id','brick_id');
@@ -90,7 +95,7 @@ class User extends Authenticatable
 
 	public function visits()
     {
-        return $this->hasMany(Visit::class)->join('customers', 'customers.id', '=', 'visits.customer_id');
+        return $this->hasMany(Visit::class);
     }
 
 	public function userVisits()
@@ -110,11 +115,13 @@ class User extends Authenticatable
 	public function scopeFilter($q,$request)
     {
 		$q =$q->when($request->position_id,fn($q, $v) =>
-		        $q->where('position', $v))
-		      ->when($request->search,fn($q, $v) => 
-					$q->where('name', 'like', "%{$v}%")
-					->orWhere('user_name', 'like', "%{$v}%")
-					->orWhere('email', 'like', "%{$v}%"));
+		        $q->where('position', $v)->where('id','!=',auth()->user()->id)) 
+		          ->when($request->search,fn($q, $v) => 
+                $q->where(function ($query) use ($v) {
+                $query->orWhere('name', 'like', "%{$v}%")
+                       ->orWhere('email', 'like', "%{$v}%")
+                      ->orWhere('user_name', 'like', "%{$v}%");
+            }));
 
         return $q;
     }

@@ -28,7 +28,6 @@ class AccountExport implements FromCollection, WithHeadings,WithEvents
                  'name'=>$q->name,
                  'acc_type'=>optional($q->accType)->name,
                  'area'=>optional($q->brick)->name,
-                 'class'=>optional($q->class)->name??'',
 				 'phone'=>$q->phone,
 				 'phone1'=>$q->phone1,
 				 'address'=>$q->address,
@@ -42,7 +41,7 @@ class AccountExport implements FromCollection, WithHeadings,WithEvents
 
     public function headings() :array
     {
-        return ["Account Name", "Account Type", "Area", "Class","Phone","Phone1", "Address","lat","lng"];
+        return ["Account Name", "Account Type", "Area","Phone","Phone1", "Address","lat","lng"];
     }
 
 	 public function registerEvents(): array
@@ -57,7 +56,7 @@ class AccountExport implements FromCollection, WithHeadings,WithEvents
                // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 // ->getStartColor()->set('FFFFF');
                 foreach ($this->coloumns() as $charachter) {
-					$width_value = in_array($charachter,['A','G'] ) ? 50 : 20;
+					$width_value = in_array($charachter,['A','F'] ) ? 50 : 20; 
                     $event->sheet->getDelegate()->getColumnDimension($charachter)->setWidth($width_value);
                 }
             },

@@ -17,7 +17,7 @@ class CompanyController extends Controller
 
 	public function index(Request $request)
 	{
-		//if (!auth()->user()->hasPermissionTo('display comapny'))
+		//if (!auth()->user()->hasPermissionTo('display Company'))
 			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->company->getAll($request);
@@ -26,7 +26,7 @@ class CompanyController extends Controller
 
 	public function store(CompanyRequest $request)
     {
-		if (!auth()->user()->hasPermissionTo('create comapny'))
+		if (!auth()->user()->hasPermissionTo('create Company'))
 			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->company->createCompany($request);
@@ -35,7 +35,7 @@ class CompanyController extends Controller
 
 	public function show($id)
     {
-		if (!auth()->user()->hasPermissionTo('display comapny'))
+		if (!auth()->user()->hasPermissionTo('display Company'))
 			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->company->show($id);
@@ -43,7 +43,7 @@ class CompanyController extends Controller
     }
 
 	public function update(CompanyRequest $request,$id) {
-		if (!auth()->user()->hasPermissionTo('update comapny'))
+		if (!auth()->user()->hasPermissionTo('update Company'))
 			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->company->updateCompany($request,$id);
@@ -52,8 +52,8 @@ class CompanyController extends Controller
 	}
 	public function destroy($id)
     {
-		//if (!auth()->user()->hasPermissionTo('delete comapny'))
-		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+		if (!auth()->user()->hasPermissionTo('delete Company'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->company->deleteCompany($id);
 		return $this->SendResponse($response);

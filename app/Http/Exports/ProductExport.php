@@ -25,6 +25,7 @@ class ProductExport implements FromCollection, WithHeadings,WithEvents
           $products = Product::has('category')->get();
            $data = $products->transform(function ($q){
              return[
+                 'uuid'=>$q->Uuid,
                  'name'=>$q->name,
                  'company'=>optional($q->comapny)->name,
                  'category'=>optional($q->category)->name,
@@ -38,7 +39,7 @@ class ProductExport implements FromCollection, WithHeadings,WithEvents
 
     public function headings() :array
     {
-        return ["Product Name", "Company","Therapeutic Category","WSP KD", "Description"];
+        return ["UUID","Product Name", "Company","Therapeutic Category","WSP KD", "Description"];
     }
 
 	 public function registerEvents(): array
@@ -53,7 +54,7 @@ class ProductExport implements FromCollection, WithHeadings,WithEvents
                // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 // ->getStartColor()->set('FFFFF');
                 foreach ($this->coloumns() as $charachter) {
-					$width_value = in_array($charachter,['A','C','E'] ) ? 50 : 20;
+                    $width_value = in_array($charachter,['A'] ) ? 12 : (in_array($charachter,['B','D','F'] ) ? 50 : 20);
                     $event->sheet->getDelegate()->getColumnDimension($charachter)->setWidth($width_value);
                 }
             },

@@ -2,7 +2,6 @@
 
 namespace App\Http\Traits;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Image, File;
 use Carbon\Carbon;
 
@@ -36,9 +35,10 @@ trait ImageAttributes
 				if(!empty($old_Image) && File::exists(public_path('/storage/' .$this->imgFolder. '/'.$old_Image)) )	
 				        File::delete(public_path('storage/'.$this->imgFolder.'/'.$old_Image));	
 
-			   $values = $value->storeAs($this->imgFolder,$this->generateImageName($value),"public");
-			   $arrVal =explode('/',$values);
-			   $this->attributes['image']=Str::snake($arrVal[count($arrVal)-1]);
+			   $values =$this->resizeImage($this->imgFolder,$value,$this->generateImageName($value));// $value->storeAs($this->imgFolder,$this->generateImageName($value),"public");
+			 // dd($values);
+               $arrVal =$values->basename;
+			   $this->attributes['image']=$arrVal;
 	   }
    }
 
@@ -51,10 +51,20 @@ trait ImageAttributes
 	function generateImageName($file){
         $fileNameWithExt = $file->getClientOriginalName();
         $filename = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-        $extention = ($file->getClientOriginalExtension()) ? strtolower($file->getClientOriginalExtension()) :'ogg';
+        $extention = strtolower($file->getClientOriginalExtension());
         $fileNameToStore = $filename.'_'.time().'.'.$extention;
         return Str::snake($fileNameToStore);
     }
+
+
+    public function resizeImage( $path ,$photo, $filename  )
+    {
+        $manager = new \Intervention\Image\ImageManager();
+        $image = $manager->make($photo)->save(storage_path('app/public/'.$path.'/' .$filename) ,40);
+        return $image;
+
+    }
+
 
 
 }

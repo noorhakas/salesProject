@@ -4,7 +4,8 @@ namespace App\Enums;
 
 abstract class VisitStatusEnum 
 {
-    const  Pending = ["id"=>0 ,"color"=>"rgb(204 64 140)"];
+    const  All = ["id"=>-1 ,"color"=>"#fafafa"];
+    const  Pending = ["id"=>0 ,"color"=>"rgb(231 238 79)"];
 	const  Visited = ["id"=>2 ,"color"=>"#228b22"];
 	const  Holiday = ["id"=>3 ,"color"=>"rgb(93 67 81)"];
 	const  Missed = ["id"=>5 ,"color"=>"rgb(163 130 130)"];

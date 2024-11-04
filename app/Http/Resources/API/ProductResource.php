@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
          
       $base =  [
             'id' => $this->id,
+            'Uuid' => $this->Uuid,
             'name' => $this->name,
 			'image'=>$this->image,
 			'category_id'=>$this->category_id,

@@ -22,13 +22,15 @@ class PharmacyExport implements FromCollection, WithHeadings,WithEvents
 
     public function collection()
     {
-          $account = Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id')->where('acc_type.is_pharmacy',1)->get();
+          $account = Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id')
+          ->leftjoin('pharmacy_group','pharmacy_group.id','=','accounts.pharmacy_group_id')->where('acc_type.is_pharmacy',1)
+          ->orderBy('accounts.pharmacy_group_id')->get();
            $data = $account->transform(function ($q){
              return[
+                 'group_name'=>optional($q->pharmacyGroup)->name,
                  'name'=>$q->name,
                  'acc_type'=>optional($q->accType)->name,
                  'area'=>optional($q->brick)->name,
-                 'class'=>optional($q->class)->name??'',
 				 'phone'=>$q->phone,
 				 'phone1'=>$q->phone1,
 				 'address'=>$q->address,
@@ -42,7 +44,7 @@ class PharmacyExport implements FromCollection, WithHeadings,WithEvents
 
     public function headings() :array
     {
-        return ["Pharmacy Name", "Account Type", "Area", "Class","Phone","Phone1", "Address","lat","lng"];
+        return ["Group Name","Pharmacy Name", "Account Type", "Area","Phone","Phone1", "Address","lat","lng"];
     }
 
 	 public function registerEvents(): array
@@ -57,7 +59,7 @@ class PharmacyExport implements FromCollection, WithHeadings,WithEvents
                // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 // ->getStartColor()->set('FFFFF');
                 foreach ($this->coloumns() as $charachter) {
-					$width_value = in_array($charachter,['A','G'] ) ? 50 : 20;
+					$width_value = in_array($charachter,['A','B','F'] ) ? 50 : 20;
                     $event->sheet->getDelegate()->getColumnDimension($charachter)->setWidth($width_value);
                 }
             },

@@ -12,8 +12,13 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use App\Models\Customer;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class DoctorExport implements FromCollection, WithHeadings,WithEvents
+
+class DoctorExport extends DefaultValueBinder implements FromCollection, WithHeadings,WithEvents, WithCustomValueBinder
 {
     use Exportable;
     /**
@@ -22,26 +27,55 @@ class DoctorExport implements FromCollection, WithHeadings,WithEvents
 
     public function collection()
     {
-          $customer = Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id')->get();
+          $customer = Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id')
+                        ->orderBy('customers.account_id')->get();
            $data = $customer->transform(function ($q){
+
+            $productUuid = $q->products?->pluck('Uuid')->toArray();
+            $formattedProductUuids = implode(' - ', $productUuid);
+
              return[
-                 'name'=>$q->name,
+                //
+                 'code'=>$q->Uuid,
+                 'group_name'=>optional($q->pharmacyGroup)->name,
                  'account_name'=>optional($q->account)->name,
+                 'account_type'=>optional($q->account?->accType)->name,
+                 'account_class'=>optional($q->account?->class)->name,
+                  'doctor_name'=>$q->name,
+                 'specialty'=>optional($q->specialty)->name??'',
                  'area'=>optional($q->account?->brick)->name,
                  'class'=>optional($q->class)->name??'',
-				 'phone'=>$q->phone,
-				 'phone1'=>$q->phone1,
-				 'specialty'=>optional($q->specialty)->name??'',
-				 'brief'=>$q->brief,
+                    'phone'=>$q->phone,
+                    'phone1'=>$q->phone1,
+                    'brief'=>$q->brief,
+                    'products'=>$formattedProductUuids,
+                    'action'=>[
+                        "del_account","del_doctor"
+                    ],
 
              ];
          });
         return $data;
     }
 
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_array($value)) {
+            $validation = $cell->getDataValidation();
+            $validation->setType(DataValidation::TYPE_LIST);
+            $validation->setAllowBlank(true);
+            $validation->setShowDropDown(true);
+            $validation->setFormula1('"'.collect($value)->join(',').'"');
+ 
+            $value = '';
+        }
+ 
+        return parent::bindValue($cell, $value);
+    }
+
     public function headings() :array
     {
-        return ["Name", "Account Name", "Area", "Class","Phone","Phone1", "Specialty","Brief"];
+        return ["CODE","Group Name","Account Name","Account Type" ,"Account Class","Doctor Name","Specialty",  "Area", "Class","Phone","Phone1","Brief","Product_items","Action"];
     }
 
 	 public function registerEvents(): array
@@ -53,14 +87,16 @@ class DoctorExport implements FromCollection, WithHeadings,WithEvents
                 $event->getSheet()->getDelegate()->getStyle('A1:AK1')->getFont()->setName('Calibri')->setSize(15);
                 $event->sheet->getDelegate()->getRowDimension('1')->setRowHeight(17);
                 $event->sheet->getDelegate()->getStyle('A1:AK1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_BLACK);
-               // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                $event->sheet->getDelegate()->getStyle('N1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
+
+                // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 // ->getStartColor()->set('FFFFF');
                 foreach ($this->coloumns() as $charachter) {
-					$width_value = in_array($charachter,['A','B'] ) ? 50 : 20;
+					$width_value = in_array($charachter,['A'] ) ? 15 : (in_array($charachter,['B','D','M'] ) ? 50 : 20);
                     $event->sheet->getDelegate()->getColumnDimension($charachter)->setWidth($width_value);
                 }
-            },
-            ];
+              },
+        ];
     }
 
 

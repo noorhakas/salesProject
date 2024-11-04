@@ -78,25 +78,28 @@ class ProductController extends Controller
 		return $this->SendResponse($response);
 	}
 
+         public function getProductFiles($id){
+	    $response = $this->Iproduct->getAllProductFiles($id);
+		return $this->SendResponse($response);
+	}
+
 	public function exportProducts(){
         return Excel::download(new ProductExport(), 'products.xlsx');
     }
 	
 	 public function importProducts(Request $request)
     {
-
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
         $path = $request->file('file');
-
-		//try {
-			//\DB::beginTransaction();
+		try {
+			\DB::beginTransaction();
 				$products = Excel::import(new ProductImport, $path);
-			//\DB::commit();
-			//return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-			//} catch (\Exception $e) {
-				//\DB::rollback();
+			\DB::commit();
+			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
+			} catch (\Exception $e) {
+				\DB::rollback();
 				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		//}
+		}
 
     }
 

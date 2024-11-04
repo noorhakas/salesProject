@@ -51,8 +51,8 @@ class ProductRepository implements ProductInterface
 	  }
 
 	  public function updateProduct($request,$product){
-		try {
-			\DB::beginTransaction();
+		//try {
+			//\DB::beginTransaction();
 			if(!$product)
 			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
  
@@ -63,12 +63,12 @@ class ProductRepository implements ProductInterface
 							$product->productfiles()->create(['file'=>$file]);
 						}
 				}
-			 \DB::commit();
+			// \DB::commit();
 			 return ["status"=>true, "message"=>trans('messages.success'),'data'=>new ProductResource($product)];
-		 } catch (\Exception $e) {
-			 \DB::rollback();
+		// } catch (\Exception $e) {
+			// \DB::rollback();
 			 return ["status"=>false, "message"=>trans('messages.server_error')];
-		 }
+		// }
 	  }
 
 	public function show($Product){
@@ -139,5 +139,16 @@ class ProductRepository implements ProductInterface
 	    return ($user->access_all_data) ? Product::select('products.*') : 
 				 $user->products();
 	   
+	}
+
+ public function getAllProductFiles($id){
+       
+    $product = Product::find($id);
+    if(!$product)
+		return ["status"=>false, "message"=>trans('messages.data_not_found')];
+
+          $files = $product->productfiles()->selectRaw('product_files.id , product_files.file ')->whereNULL('product_files.deleted_at')->get();
+	return ["status"=>true, "message"=>trans('messages.success') ,'data'=>$files];					
+  
 	}
 }

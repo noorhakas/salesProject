@@ -11,4 +11,5 @@ interface ProductInterface
      public function getAll($request);
 	 public function addProductNote($request);
 	 public function getAllProductNotes($id);
+     public function getAllProductFiles($id);
 }

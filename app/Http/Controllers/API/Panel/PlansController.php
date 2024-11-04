@@ -50,9 +50,9 @@ class PlansController extends Controller
 	 }
 
 
-	 public function destroy(Plan $plan)
+      public function destroy(Plan $plan)
     {
-		$response = $this->IPlan->deletePlan($id);
+		$response = $this->IPlan->deletePlan($plan);
 		return $this->SendResponse($response);
     }
 

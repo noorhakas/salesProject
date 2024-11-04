@@ -27,10 +27,8 @@ class AccountImport implements ToCollection,WithHeadingRow
         { 
 			 $area_name = trim($row['area']);
 			 $account_type = trim($row['account_type']);
-			 $class_name = trim($row['class']);
-			 $accountType = AccType::where('name', 'like', "%{$account_type}%")->first();
-             $bricks = Bricks::where('name','like', "%{$area_name}%")->first();
-			 $classData = Classes::where('name','like', "%{$class_name}%")->first();
+			 $accountType = AccType::where('name', 'like', "{$account_type}%")->first();
+              $bricks = Bricks::where('name','like', "%{$area_name}%")->first();
 			 
 			 $account_name = $row['account_name'];
 			 if(!empty($account_name) && !empty($accountType) && !empty($bricks) )
@@ -39,7 +37,6 @@ class AccountImport implements ToCollection,WithHeadingRow
 				[
 					'name'=>$account_name,
 					 'brick_id'=>$bricks?$bricks->id:0,
-					 'class_id'=>$classData?$classData->id:0,
 					 'acc_type_id'=>$accountType?$accountType->id:0,
 					 'phone'=>isset($row['phone']) ? trim($row['phone']) : NULL,
 					 'phone1'=>isset($row['phone1']) ? trim($row['phone1']) : NULL,

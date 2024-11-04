@@ -10,4 +10,5 @@ interface CustomerInterface
      public function deleteCustomer($id);
      public function getAll($request);
 	 public function FetchcustomersAccount($request);
+     public function getDoctorCharts();
 }

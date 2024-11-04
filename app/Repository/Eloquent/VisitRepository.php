@@ -24,7 +24,7 @@ use App\Models\Notification;
 class VisitRepository implements VisitInterface
 {
     public function getvisitsByPlan($request){
-		$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 		$request->plan_id = ($request->plan_id)??User::getCurrentPlan()?->id;
 		$plan =Plan::find($request->plan_id); 
 		if(!$plan)
@@ -36,7 +36,7 @@ class VisitRepository implements VisitInterface
 		if($plan && $plan->status == 2 && auth()->user()->position == 3)
 		  return ["status"=>true, "message"=>trans('messages.plan_rejected'),'data'=>[]];  
 
-			$visits = $plan->visits()->join('accounts','accounts.id','=','visits.account_id')->select('visits.*')->filter($request)->paginate($limit);
+			$visits = $plan->visits()->join('accounts','accounts.id','=','visits.account_id')->leftjoin('customers','customers.id','=','visits.customer_id')->select('visits.*')->filter($request)->paginate($limit);
 			$data = VisitsResource::collection($visits);
 	    return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];		
 	}
@@ -46,10 +46,11 @@ class VisitRepository implements VisitInterface
 		if(!$visit)
 		      return ["status"=>false, "message"=>trans('messages.data_not_found')];
 
-		$visitProductItem = $this->getVisitItemList($visit,0); //type -- products
-		$listOfProduct= $this->mergeDataById($this->getUserProducts(),$visitProductItem);
+           $user = User::find($visit->user_id);  
+	   $visitProductItem = $this->getVisitItemList($visit,0); //type -- products
+	   $listOfProduct= $this->mergeDataById($this->getUserProducts($user),$visitProductItem);
 
-       $visitleaveBehind = $this->getVisitItemList($visit,GiftTypeEnum::LeaveBehind);
+           $visitleaveBehind = $this->getVisitItemList($visit,GiftTypeEnum::LeaveBehind);
 	   $listOfLeaveBehind= $this->mergeDataById($this->getGifts(GiftTypeEnum::LeaveBehind),$visitleaveBehind);
 
 	   $visitGifts = $this->getVisitItemList($visit,GiftTypeEnum::Gift);
@@ -57,9 +58,8 @@ class VisitRepository implements VisitInterface
 
 	   $visitAdditionalFiles = $this->getVisitItemList($visit,GiftTypeEnum::AdditionalFiles);
 
-	  // dd($this->getUserProductFiles());
-	   $listOfAdditionalFiles= $this->mergeDataById($this->getUserProductFiles(),$visitAdditionalFiles);
-
+	   $listOfAdditionalFiles= $this->mergeDataById($this->getUserProductFiles($user),$visitAdditionalFiles);
+ 
 		$data=[
 			"visit"=>new VisitsResource($visit),
 			"products"=>VisitDetailResource::collection($listOfProduct),
@@ -70,14 +70,20 @@ class VisitRepository implements VisitInterface
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	 }
 
-	 protected function getUserProducts(){
-		return auth()->user()->products()->selectRaw('products.id , products.name ,0 as count_of_sample , 0 as checked , 0 as type,products.price')->get();
+	 protected function getUserProducts(User $user){
+		return $user->products()->selectRaw('products.id , products.name ,products.image as file ,0 as count_of_sample , 0 as checked , 0 as type,products.price')->get()->keyBy('id'); 
 	 }
 
 
-	 protected function getUserProductFiles(){
+	/* protected function getUserProductFiles2(){
 		return auth()->user()->products()->join('product_files','product_files.product_id','=','products.id')
-		->selectRaw('product_files.id , product_files.file as name ,0 as count_of_sample , 0 as checked , 3 as type')->get();
+		->selectRaw('product_files.id , product_files.file as name ,0 as count_of_sample , 0 as checked , 3 as type')->whereNULL('product_files.deleted_at')->get();
+	}*/
+
+        protected function getUserProductFiles(User $user){
+		return $user->products()->whereHas('productfiles', function($q){
+                           $q->whereNULL('product_files.deleted_at');
+                  })->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,0 as count_of_sample , 0 as checked , 3 as type')->get();
 	}
 
 	 protected function getGifts($type = GiftTypeEnum::Gift){
@@ -134,11 +140,17 @@ class VisitRepository implements VisitInterface
 	public function submitVisit($request){
         try{
             $visit = Visit::find($request->visit_id);
-		    $visitAccount = $visit->account;	 
-		    $data=['actual_start_date'=>$request->start_time,'actual_end_date'=>$request->end_time];
+		    $visitAccount = $visit->account;
+                    $doctor_id  =  isset($request->doctor_id) && is_numeric($request->doctor_id) && $request->doctor_id > 0 ? $request->doctor_id : $visit->customer_id ; 
+                    $combine_with  =  isset($request->combine_with) && is_numeric($request->combine_with) && $request->combine_with > 0 ? $request->combine_with : 0;  
+	               //$combine_with =  isset($request->combine_with) && !empty($request->combine_with) && $request->combine_with != null ? $request->combine_with : 0 ;  
+
+                    //'customer_id'=>$doctor_id
+		    $data=['actual_start_date'=>$request->start_time,'actual_end_date'=>$request->end_time, 'customer_id'=>$doctor_id ,'combine_with'=>$combine_with];
 			
-			$distance  = $this->getDistance($visitAccount->lat??0,$visitAccount->lng??0 ,$request->current_location_lat ,$request->current_location_lng );
+			
 			/*$allow_distance = !empty($this->getSetting()) && !empty($this->getSetting()->allow_distance) ? $this->getSetting()->allow_distance : 500;
+                         $distance  = $this->getDistance($visitAccount->lat??0,$visitAccount->lng??0 ,$request->current_location_lat ,$request->current_location_lng );
 			if ($distance > $allow_distance) {
 				return ["status"=>false ,"message"=>trans('messages.wrong_place')];
 			}*/
@@ -195,15 +207,38 @@ class VisitRepository implements VisitInterface
 		return Setting::first();
 	  }
 
-	  public function getVisitCharts($request){
+	 /* public function getVisitCharts($request){
 			$startDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-01') : Carbon::now()->startOfMonth()->toDateString();
 			$endDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-t') : Carbon::now()->endOfMonth()->toDateString();
 
 			$charts = (clone $this->DrawVisitStatistics())->whereDate('visits.visit_date','>=',$startDate)->whereDate('visits.visit_date','<=',$endDate)->where('visits.status',VisitStatusEnum::Visited)
-						  ->orderBy('visit_count','desc')->groupBy('users.id')->take(10)->get();
+						  ->orderBy('visit_count','desc')->groupBy('users.id')->take(3)->get();
+
+			return ["status"=>true, "message"=>trans('messages.success'),'data'=>$charts];
+	  }*/
+
+          public function getVisitCharts($request){
+
+            $searchDate  = isset($request->search_date) && !empty($request->search_date) ? $request->search_date : Carbon::now();
+            $formatDate  = isset($request->date_format) && !empty($request->date_format) ? $request->date_format : "YYYY-MM";
+            
+			//$startDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-01') : Carbon::now()->startOfMonth()->toDateString();
+			//$endDate =isset($request->search_date) && !empty($request->search_date) ? Carbon::parse($request->search_date)->format('Y-m-t') : Carbon::now()->endOfMonth()->toDateString();
+
+			$charts = (clone $this->DrawVisitStatistics())
+                ->when($searchDate,function($q) use ($formatDate, $searchDate){
+                if($formatDate == "YYYY-MM")
+                   $q->whereMonth('visits.visit_date', Carbon::parse($searchDate)->format('m'));
+                else if($formatDate == "YYYY")
+                   $q->whereYear('visits.visit_date', Carbon::parse($searchDate)->format('Y'));
+                else if($formatDate == "YYYY-MM-DD")
+                   $q->whereDate('visits.visit_date', Carbon::parse($searchDate)->format('Y-m-d'));
+             })->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))->where('visits.status',VisitStatusEnum::Visited)
+						  ->orderBy('visit_count','desc')->groupBy('users.id')->take(3)->get();
 
 			return ["status"=>true, "message"=>trans('messages.success'),'data'=>$charts];
 	  }
+
 
 	  public function getAllVisits(){
 
@@ -225,7 +260,7 @@ class VisitRepository implements VisitInterface
 			        sum(if(visits.status = 2, 1,0)) as visit_count,
 					sum(if(visits.type = 0 , 1,0)) as pln_visit_count,
 			        sum(if(visits.type = 1 , 1,0)) as unpln_visit_count, 
-                    sum(if(visits.status = 0 and DATE(visits.visit_date) < CURDATE() , 1,0)) as missed_visit_count,
+                    sum(if(visits.status != 2  and DATE(visits.visit_date) < CURDATE() , 1,0)) as missed_visit_count,
 			        sum(if(visits.status = 0  and DATE(visits.visit_date) > CURDATE(), 1,0)) as pending_count,users.name , users.id')->join('users','users.id','=','visits.user_id')
 					->join('plans','plans.id','=','visits.plan_id');
 	  }
@@ -245,7 +280,7 @@ class VisitRepository implements VisitInterface
 			   return ["status"=>false, "message"=>trans('messages.data_not_found')];
 
 		   	$limit = (is_numeric($request->per_page) && ($request->per_page) > 0) ? $request->per_page : 20;
-			$visits = $user->visits()->filter($request)->whereDate('visits.visit_date','>=',$startDate)->whereDate('visits.visit_date','<=',$endDate)->paginate($limit);
+			$visits = $user->visits()->join('plans','plans.id','=','visits.plan_id')->join('accounts','accounts.id','=','visits.account_id')->leftjoin('customers','customers.id','=','visits.customer_id')->selectRaw('visits.*')->filter($request)->paginate($limit);
 		    $visitStatistics = (clone $this->DrawVisitStatistics())->whereDate('visits.visit_date','>=',$startDate)->whereDate('visits.visit_date','<=',$endDate)->where('users.id',$userId)->groupBy('users.id')->first();
 			
 		  $data = ["visit_statistics"=>new VisitStatisticsResource($visitStatistics),"data"=> VisitsResource::collection($visits),"user"=>new UserResource($user),"currentDate"=>$startDate ];
@@ -267,6 +302,23 @@ class VisitRepository implements VisitInterface
           return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 
 	  }
+
+      public function getCurrentVisits(){
+
+        $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+
+        $startDate = request()->get('start_date') && !empty(request()->get('start_date')) ? request()->get('start_date') : Carbon::today();
+        $endDate = request()->get('end_date') && !empty(request()->get('end_date')) ? request()->get('end_date') : '';
+
+        $visits = Visit::select('visits.*')->join('plans','plans.id','=','visits.plan_id')->whereHas('user', function ($query) {$query->where('users.status',1);})
+         ->when($startDate ,fn($q,$v)=>$q->whereDate('visits.actual_start_date','>=',$v))
+         ->when($endDate ,fn($q,$v)=>$q->whereDate('visits.actual_start_date','<=',$v))
+        ->when(request()->get('user_id'),fn($q,$v)=>$q->where('visits.user_id', $v))
+        ->where('visits.status',2)->orderBy('visits.created_at','DESC')->paginate($limit);
+
+          $data = ["data"=> VisitsResource::collection($visits) ];
+          return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data ];
+      }
 
 
 }

@@ -21,7 +21,7 @@ class RoleController extends Controller
 		 if (!auth()->user()->hasPermissionTo('display Roles'))
 			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 		
-		$role = Role::when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+		$role = Role::where('id','!=',5)->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		     ->get(['id','name','created_at'])->map(fn ($role) => collect($role)
 		     ->put('created_at', Carbon::parse($role->created_at)->toDayDateTimeString())
 	    );

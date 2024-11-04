@@ -2,9 +2,9 @@
 
 namespace App\Http\Traits;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Image, File;
 use Carbon\Carbon;
+use Illuminate\Support\LazyCollection;
 
 trait FileAttributes
 {
@@ -16,8 +16,9 @@ trait FileAttributes
 		{
 			return $this->attributes['file'];
 		}else{
-             return isset($this->imgFolder) && !empty($this->attributes['file']) && file_exists(public_path('storage/'.$this->imgFolder.'/'.$this->attributes['file'])) 
-                   ? self::getFile($this->imgFolder,$this->attributes['file']) : '';
+
+        return isset($this->imgFolder) && !empty($this->attributes['file']) && file_exists(public_path('storage/'.$this->imgFolder.'/'.$this->attributes['file'])) 
+                   ?  self::getFile($this->imgFolder,$this->attributes['file']) : '';
 		}
     }
 
@@ -26,18 +27,21 @@ trait FileAttributes
      */
    public function setFileAttribute($value){
 		$base_url = url('/');
-		
 	   if (!empty($value)){
-				if(!file_exists(realpath(storage_path('app/public/'.$this->imgFolder))))
-						\Storage::makeDirectory('app/public/'.$this->imgFolder, 0755, true, true);
+        $path = $this->imgFolder;
+				if(!file_exists(realpath(storage_path('app/public/'.$path))))
+						\Storage::makeDirectory('app/public/'.$path, 0755, true, true);
 
                $old_File = (isset($this->file) && !empty($this->file)) ? substr(strrchr($this->file, '/'), 1) : '' ; 
-				if(!empty($old_File) && File::exists(public_path('/storage/' .$this->imgFolder. '/'.$old_File)) )	
-				        File::delete(public_path('storage/'.$this->imgFolder.'/'.$old_File));	
+				if(!empty($old_File) && File::exists(public_path('/storage/' .$path.'/'.$old_File)) )	
+				        File::delete(public_path('storage/'.$path.'/'.$old_File));	
 
-			   $values = $value->storeAs($this->imgFolder,$this->generateImageName($value),"public");
-			   $arrVal =explode('/',$values);
-			   $this->attributes['file']=Str::snake($arrVal[count($arrVal)-1]);
+                // $values =$this->resizeFile($path,$value,$this->generateImageName($value));
+               $values = $value->storeAs($path,$this->generateImageName($value),"public");
+                        $arrVal =explode('/',$values);
+                                        // Get the basename of the new file
+                        $this->attributes['file'] = Str::snake($arrVal[count($arrVal)-1]); //  Save the filename  
+			 			  
 	   }
    }
 
@@ -46,14 +50,23 @@ trait FileAttributes
         return (!empty($filename)) ? $base_url . '/storage/' .$imageFolder. '/'. $filename : '';
     }
 
-
 	function generateImageName($file){
         $fileNameWithExt = $file->getClientOriginalName();
         $filename = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-        $extention = ($file->getClientOriginalExtension()) ? strtolower($file->getClientOriginalExtension()) :'ogg';
+        $extention =strtolower($file->getClientOriginalExtension());
         $fileNameToStore = $filename.'_'.time().'.'.$extention;
         return Str::snake($fileNameToStore);
     }
+
+    public function resizeFile( $path ,$photo, $filename  )
+    {
+        $manager = new \Intervention\Image\ImageManager();
+        $image = $manager->make($photo)->save(storage_path('app/public/'.$path.'/' .$filename) ,40);
+        return $image;
+    }
+
+
+  
 
 
 }

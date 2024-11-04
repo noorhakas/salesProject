@@ -33,8 +33,7 @@ class VisitsController extends Controller
 	 }
 
 	 public function VisitAsSchedule(Request $request){
-		$plan = Plan::find($request->plan_id);
-		$scheduleResult =(new VisitScheduleRepository())->createSchedule($plan);
+		$scheduleResult =(new VisitScheduleRepository())->createSchedule($request);
 
 		return $this->SendResponse(["status"=>true, "message"=>trans('messages.success'),'data'=>$scheduleResult]);
 	 }
@@ -54,6 +53,11 @@ class VisitsController extends Controller
 		     $response = $this->IVisit->getAllVisits();
 		     return $this->SendResponse($response);
 	  }
+
+      public function currentVisits(){
+           $response = $this->IVisit->getCurrentVisits();
+		   return $this->SendResponse($response);
+      }
 
 	  public function UserVisits(Request $request){
 			 $response = $this->IVisit->getVisitsByUserId($request);
