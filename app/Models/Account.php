@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Http\Traits\FileAttributes;
 use App\Http\Traits\ObservantTrait;
 
 
 class Account extends Model
 {
-    use SoftDeletes ,ObservantTrait;
+    use SoftDeletes, FileAttributes ,ObservantTrait;
     protected $table = 'accounts';
 	protected $fillable = ['name','brick_id','phone','phone1','acc_type_id','address','lat','lng','class_id','pharmacy_group_id'];
 
@@ -53,5 +54,4 @@ class Account extends Model
 
         return $q;
     }
-
 }

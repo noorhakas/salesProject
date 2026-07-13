@@ -39,12 +39,12 @@ class VisitScheduleRepository{
 				$class_id = ($item->customer_class_id) ? $item->customer_class_id : $item->account_class_id;
 			        $Obj['id']= $item->id.'_'.$item->customer_id;
 				$Obj['name'] = $item->customer_name;
-                                $Obj['account_name'] = $item->name;
+                  $Obj['account_name'] = $item->name;
 				$Obj['class_name']=$class_id && Classes::find($class_id)? Classes::find($class_id)->name:'';
 			  			  
-			 	$listOfVisits = $user->visits()->selectRaw('visit_date as date , CASE WHEN visit_date < NOW() and visits.status = 0 THEN 5 ELSE visits.status END AS status, 1 as disabled ')->where(['visits.account_id'=>$item->id,'visits.customer_id'=>$item->customer_id,'visits.plan_id'=>$plan->id])->get()->keyBy('date');
+			 	$listOfVisits = $user->visits()->selectRaw('visit_date as date , CASE WHEN visit_date < Date(NOW()) and visits.status = 0 THEN 5 ELSE visits.status END AS status, 1 as disabled ,combine_with ')->where(['visits.account_id'=>$item->id,'visits.customer_id'=>$item->customer_id,'visits.plan_id'=>$plan->id])->get()->keyBy('date');
 				
-                                $result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
+                $result= $this->mergeDataByDate($list_days['dateWithSataus'],$listOfVisits);
 				$Obj['dates']= $result;
 				
 				$all_Data->add($Obj); 

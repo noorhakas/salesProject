@@ -15,7 +15,8 @@ class Product extends Model
 	protected $avatar = 'medicine_logo.png';
 
 
-	protected $fillable = ['Uuid','name','specialty_id','image','description','price','company_id','category_id'];
+	protected $fillable = ['Uuid','name','specialty_id','image','description','price','company_id','category_id','status'];
+
 
 
     public static function boot()
@@ -58,5 +59,13 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class, 'product_notes','product_id','user_id');
     }
+
+    public function departments()
+	{
+		return $this->belongsToMany(
+			Department::class,
+			'department_product'
+		);
+	}
 
 }

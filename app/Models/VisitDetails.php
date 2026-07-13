@@ -13,7 +13,7 @@ class VisitDetails extends Model
 	public function item()
     {
 		if($this->item_type == 0)
-          return $this->belongsTo(Product::class ,'item_id','id');
+                return $this->belongsTo(Product::class ,'item_id','id');
 		else
 		 return $this->belongsTo(Gift::class ,'item_id','id');
     }

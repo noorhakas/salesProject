@@ -27,7 +27,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ['name','email','password','user_name','status','position','access_all_data','DeviceToken','DeviceType','active_code'];
+    protected $fillable = ['name','email','password','user_name','whatsapp','phone','status','position','access_all_data','DeviceToken','DeviceType','active_code','manager_id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -63,21 +63,65 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
-    public function userposition()
+     public function userposition()
     {
         return $this->belongsTo(Position::class,'position','id');
     }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    #employee related to this manager
+    public function subordinates()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
+	#all user ids beneath this manager at every level (recursive subtree, excludes self)
+	public function getAllSubordinateIds(): array
+	{
+		$collected = [];
+		$queue = [$this->id];
+
+		while (!empty($queue)) {
+			$children = User::whereIn('manager_id', $queue)
+				->pluck('id')
+				->all();
+
+			$children = array_values(array_diff($children, $collected, [$this->id]));
+
+			if (empty($children)) {
+				break;
+			}
+
+			$collected = array_merge($collected, $children);
+			$queue = $children;
+		}
+
+		return array_values(array_unique($collected));
+	}
 
 	public function bricks()
     {
         return $this->belongsToMany(Bricks::class, 'user_bricks','user_id','brick_id');
     }
 
-	public function products()
+   public function departments()
     {
-        return $this->belongsToMany(Product::class, 'user_products');
+        return $this->belongsToMany( Department::class, 'user_departments','user_id','department_id');
     }
 
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class,'user_branches','user_id','branch_id');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'user_products','user_id','product_id');
+    }
 	public function customers()
     {
         return $this->belongsToMany(Customer::class, 'user_customers','user_id','customer_id');
@@ -108,24 +152,29 @@ class User extends Authenticatable
         return $this->morphMany(SiteLog::class, 'loggable');
     }
 
+    public function attendance()
+    {
+        return $this->hasOne(Attendance::class)
+            ->latestOfMany();
+    }
+
 	public static function getCurrentPlan(){
         return auth()->user()->plans()->Where('status',1)->whereDate('plans.start_date','<=' ,Carbon::today())->whereDate('plans.end_date','>=' ,Carbon::today())->orderBy('plans.created_at','ASC')->first();
 	}
 
+
 	public function scopeFilter($q,$request)
-    {
+    { 
 		$q =$q->when($request->position_id,fn($q, $v) =>
-		        $q->where('position', $v)->where('id','!=',auth()->user()->id)) 
+		       	$q->where('position', $v)) 
 		          ->when($request->search,fn($q, $v) => 
                 $q->where(function ($query) use ($v) {
-                $query->orWhere('name', 'like', "%{$v}%")
-                       ->orWhere('email', 'like', "%{$v}%")
-                      ->orWhere('user_name', 'like', "%{$v}%");
-            }));
+                    $query->orWhere('name', 'like', "%{$v}%")
+                        ->orWhere('email', 'like', "%{$v}%")
+                        ->orWhere('user_name', 'like', "%{$v}%");
+                }));
 
         return $q;
     }
-
-
 
 }

@@ -24,13 +24,14 @@ class AccountResource extends JsonResource
     public function toArray($request)
     {
          
+
       $base = [
             'id' => $this->id,
 			'name' => $this->name,
 			'acc_type_id'=>$this->acc_type_id,
-            'acc_type'=>optional($this->accType)->name,
-            'pharmacy_group_id'=>$this->pharmacy_group_id,
+                        'pharmacy_group_id'=>$this->pharmacy_group_id,
 			'pharmacy_group'=>optional($this->pharmacyGroup)->name,
+                         'acc_type'=>optional($this->accType)->name,
 			'address'=>$this->address,
 			'lat'=>(float)$this->lat??'',
 			'lng'=>(float)$this->lng??'',
@@ -40,7 +41,7 @@ class AccountResource extends JsonResource
 			'brick_name'=>optional($this->brick)->name,
 			'class_id'=>1,
 			'class_name'=>'A',
-            'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+                        'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
 
 		if(request()->route()->getName() == "accounts.show")
@@ -50,7 +51,7 @@ class AccountResource extends JsonResource
 				'name'=>$item->name,
 				'image'=>$item->image,
 				'specialty_name'=>$item->specialty?->name,
-                 'class_name'=>optional($item->class)->name??'',
+                                'class_name'=>optional($item->class)->name??'',
 				'work_days_AsString'=>($item->work_days ) ? collect(Customer::workDays())->whereIn('id',$item->work_days)->pluck('name') : [],
 				'work_start_time'=>Carbon::parse($item->work_start_time)->format('H:i:s'),
 				'work_end_time'=>Carbon::parse($item->work_end_time)->format('H:i:s'),

@@ -34,7 +34,10 @@ return [
 
 	'plan_reviewed' => 'Please wait while your plan is being verified',
 	'plan_rejected' => 'Sorry.. Plan is rejected',
-	'wrong_place'=>'You are in the Wrong Place'
+	'wrong_place'=>'You are in the Wrong Place',
+    'visit_notification_body'=>':userName would like you to accompany him to see :doctorName at :dateTime.',
+    'visit_request' => 'Visit Request',
+    'visit_request_msg' => ':userName would like you to accompany him to see :doctorName at :dateTime.',
 	
 
 	

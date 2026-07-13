@@ -19,12 +19,22 @@ class AccountRepository implements AccountInterface
 	  public function getAll($request)
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
-		if(request()->get('user_id') && !empty(request()->get('user_id'))){
-			$user = User::find(request()->get('user_id'));
-			$accounts = $this->getAccountQuery($user);
-		}else{
-			$accounts = $this->getAccountQuery(auth()->user());
-		}
+			$accounts = $this->getAccountQuery();
+		
+		
+	    $accounts = (clone $accounts)->filter($request)->orderBy('accounts.created_at','DESC')->paginate($limit);
+		   $data = AccountResource::collection($accounts);
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+	  }
+
+
+
+	  public function getUserAccount($request)
+	  {
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+
+		$accounts = $this->getUserAccountQuery(auth()->user());
+		
 		
 	    $accounts = (clone $accounts)->filter($request)->orderBy('accounts.created_at','DESC')->paginate($limit);
 		   $data = AccountResource::collection($accounts);
@@ -82,10 +92,14 @@ class AccountRepository implements AccountInterface
     }
 
 
-	protected function getAccountQuery($user){
-       return ($user->access_all_data)
-                           ? Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id') :
-			 $user->accounts()->join('acc_type','acc_type.id','=','accounts.acc_type_id')->groupBy('accounts.id');
+	protected function getAccountQuery(){
+       return  Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id') ;
+	   
+	}
+
+
+	protected function getUserAccountQuery($user){
+       return $user->accounts()->join('acc_type','acc_type.id','=','accounts.acc_type_id')->groupBy('accounts.id');
 	   
 	}
 
@@ -182,7 +196,7 @@ class AccountRepository implements AccountInterface
     return $chartData;
    }
 
-   protected function drawAccountStatictics($is_pharmacy){
+     protected function drawAccountStatictics($is_pharmacy){
             $classses = Classes::get()->toArray();
             $account_type = AccType::where('acc_type.is_pharmacy',$is_pharmacy)->get();
             $accounts = Account::select(\DB::raw('acc_type.name as acc_name, classes.name as class_name, acc_type_id , class_id,   COUNT(accounts.id) as count'))

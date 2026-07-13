@@ -22,6 +22,8 @@ class Controller extends BaseController
         return response()->json($response);
     }
 
+   
+
 	public function SendResponse($response,$status = 200)
     {
 		if($response['status'] == false && $status == 200)

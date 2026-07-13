@@ -39,12 +39,12 @@ class Customer extends Model
     {
         return $this->belongsTo(Specialty::class);
     }
-
+	
     public function products()
     {
         return $this->belongsToMany(Product::class, 'customer_products','customer_id','product_id');
     }
-	
+
 	public function class()
     {
         return $this->belongsTo(Classes::class);
@@ -87,5 +87,4 @@ class Customer extends Model
                
         return $q;
     }
-
 }

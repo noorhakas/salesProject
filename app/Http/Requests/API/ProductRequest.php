@@ -37,19 +37,23 @@ class ProductRequest extends FormRequest
 				'description'=> 'min:10',
 				'price'=>'sometimes|numeric',
 				'files' =>'array',
-				'files.*'=>['file', 'mimes:pdf','max:5048'],
+				'files.*'=>['file', 'mimes:pdf','max:2048'], 
+                                'status'=>'required|integer|in:0,1',
 
+ 
 			],
             "PUT", "PATCH" =>  [
                 'name' => 'sometimes|required|string|max:255|unique:products,name,' . $this->product?->id . ',id,deleted_at,NULL',
 			    'specialty_id'=>'sometimes|required|exists:specialty,id',
-                 'category_id'=>'required|exists:category,id,deleted_at,NULL',
+'category_id'=>'required|exists:category,id,deleted_at,NULL',
 				'company_id'=>'required|exists:companies,id,deleted_at,NULL',
 				'image'=>['image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
 				'description'=> 'min:10',
 				'price'=>'sometimes|numeric',
 				'files' =>'array',
-				'files.*'=>['file', 'mimes:pdf','max:5048'],
+				//'files.*'=>['file', 'mimes:pdf','max:6048'], 
+                                'status'=>'required|integer|in:0,1',
+
 			],
         };
     }

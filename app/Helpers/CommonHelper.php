@@ -2,6 +2,8 @@
 use Ramsey\Uuid\Uuid;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\Setting AS SiteSetting;
+use App\Enums\DayOffEnum;
 
 function GetUuid()
 {
@@ -81,6 +83,32 @@ function pushCurlCall($registrationId, $fields)
    return  User::where(['position'=>1,'status'=>1])->whereNotNULL('DeviceToken')->pluck('DeviceToken')->toArray();
 
 }
+
+    function setting(string $key = null, $default = null)
+    {
+        $settings = SiteSetting::first();
+
+
+        if ($key === null) {
+            return $settings;
+        }
+
+        return data_get($settings, $key, $default);
+    }
+
+    function is_weekly_off_day(Carbon $date): bool
+    {
+        $offDays = setting('weekly_off_days', []);
+
+        if (empty($offDays)) {
+            return false;
+        }
+
+        $currentDay = DayOffEnum::fromCarbon($date->dayOfWeek)->value;
+
+        return in_array($currentDay, array_map('intval', $offDays), true);
+    }
+
 
 
 ?>

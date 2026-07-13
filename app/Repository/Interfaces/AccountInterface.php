@@ -9,6 +9,7 @@ interface AccountInterface
      public function updateAccount($request,$id);
      public function deleteAccount($id);
      public function getAll($request);
+     public function getUserAccount($request);
      public function getAllPharmacyGroups($request);
      public function createPharmacyGroup($request);
      public function updatePharmacyGroup($request,$id);

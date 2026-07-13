@@ -35,12 +35,12 @@ class CustomerRequest extends FormRequest
 			'specialty_id'=>'sometimes|exists:specialty,id,deleted_at,NULL',
 			'class_id'=>'required|exists:classes,id,deleted_at,NULL',
 			'image'=>['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-			'phone'=>'required|numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
+			'phone'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'phone1'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'brief'=>'sometimes|string',
 		//	'work_days'=>'sometimes',
-			'work_start_time'=>'sometimes',
-			'work_end_time'=>'sometimes',
+		//	'work_start_time'=>'sometimes',
+		//	'work_end_time'=>'sometimes',
 		];
 		
 		return match(request()->method()){
@@ -60,3 +60,4 @@ class CustomerRequest extends FormRequest
             ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY));
     }
 }
+ 

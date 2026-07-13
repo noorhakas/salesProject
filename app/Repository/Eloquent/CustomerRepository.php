@@ -19,12 +19,21 @@ class CustomerRepository implements CustomerInterface
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 		
-		if(request()->get('user_id') && !empty(request()->get('user_id'))){
-			$user = User::find(request()->get('user_id'));
-			$customer = $this->getCustomerQuery($user);
-		}else{
-			$customer = $this->getCustomerQuery(auth()->user());
-		}
+		
+		$customer = $this->getCustomerQuery();
+		
+
+		$customers = (clone $customer)->filter($request)->distinct()->orderBy('created_at','DESC')->paginate($limit);
+		   $data =CustomerResource::collection($customers);
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+	  }
+
+
+	  public function getUserCustomer($request)
+	  {
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+		
+		$customer = $this->getUserCustomerQuery(auth()->user());
 
 		$customers = (clone $customer)->filter($request)->distinct()->orderBy('created_at','DESC')->paginate($limit);
 		   $data =CustomerResource::collection($customers);
@@ -100,10 +109,13 @@ class CustomerRepository implements CustomerInterface
 
     }
 
-	protected function getCustomerQuery($user){
+	protected function getCustomerQuery(){
+	    return Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id');
+	}
 
-	    return ($user->access_all_data) ? Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id'): 
-				 $user->customers()->select('customers.*')->join('accounts','accounts.id','=','customers.account_id');
+	protected function getUserCustomerQuery($user){
+
+	    return $user->customers()->select('customers.*')->join('accounts','accounts.id','=','customers.account_id');
 	   
 	}
 

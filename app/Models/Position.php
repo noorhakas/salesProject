@@ -11,7 +11,10 @@ class Position extends Model
 	use SoftDeletes, ObservantTrait;
     protected $table = 'positions';
 	
-	protected $fillable = ['name'];
+	protected $fillable = ['ps_key','name','parent_id'];
 
-
+   public function children()
+{
+    return $this->hasMany(Position::class, 'parent_id');
+}
 }

@@ -11,7 +11,7 @@ class Notification extends Model
 	use SoftDeletes;
     protected $table = 'notifications';
 	
-	protected $fillable = ['Uuid','user_id' ,'tiNotificationType','vTitle','txBody','tiIsRead','model_id','model_type','created_by'];
+	protected $fillable = ['Uuid','user_id' ,'tiNotificationType','vTitle','txBody','tiIsRead','model_id','model_type','account_id','customer_id','visit_date','visit_time','created_by'];
 
 
 	public function NotifyUser()
@@ -20,8 +20,18 @@ class Notification extends Model
     }
 	public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id','id');
     }
+    public function account()
+    {
+        return $this->belongsTo(Account::class,'account_id','id');
+    }
+
+	public function customer()
+    {
+        return $this->belongsTo(Customer::class,'customer_id','id');
+    }
+
 	public static function CreateNotify(array $data)
     {
 		Notification::updateOrCreate(['created_by'=>auth()->user()->id??0 ,'vTitle' => $data['notify_title'], 'model_id'=>$data['model_id'] ,'model_type'=>$data['model_type'] ],[
@@ -33,7 +43,11 @@ class Notification extends Model
 			'tiIsRead' => 0,
 			'created_by'=>auth()->user()->id??0,
 			'model_id'=>$data['model_id'],
-			'model_type'=>$data['model_type']
+			'model_type'=>$data['model_type'],
+            'account_id' => $data['account_id'] ?? 0,
+            'customer_id' => $data['customer_id'] ?? 0,
+            'visit_date' => $data['visit_date'] ?? '',
+            'visit_time' => $data['visit_time'] ?? ''
 		]);
 	}
 
@@ -78,7 +92,11 @@ class Notification extends Model
 				'notify_userId'=>$data['notify_userId'],
 				'notify_type'=>$data['notify_type'],
 				'notify_title'=>$data['notify_title'],
-				'notify_body'=>$data['notify_body']
+				'notify_body'=>$data['notify_body'],
+                'account_id' => $data['account_id'] ?? 0,
+                'customer_id' => $data['customer_id'] ?? 0,
+                'visit_date' => $data['visit_date'] ?? '',
+                'visit_time' => $data['visit_time'] ?? ''
 				]);
 		
 			$pushData = [

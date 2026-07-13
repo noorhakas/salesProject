@@ -27,17 +27,21 @@ class DoctorImport implements ToCollection,WithHeadingRow
     {
 
 	
-      foreach ($rows as $row) 
+        foreach ($rows as $row) 
         { 
+
+            $row = collect($row)->mapWithKeys(function ($value, $key) {
+              return [strtolower(str_replace(' ', '_', $key)) => $value];
+          });	
 			//print($row);
-			 $area_name = trim($row['area']);
-			 $account_type = trim($row['account_type']);
-			 $class_name = trim($row['class']);
-             $account_class_name = trim($row['account_class']);
-			 $specailty = trim($row['specialty']);
-			 $account_name = trim($row['account_name']);
-             $doctor_name = trim($row['doctor_name']);
-             $groupData = '';
+          $area_name = trim($row->get('area'));
+          $account_type = trim($row->get('account_type'));
+          $class_name = trim($row->get('class'));
+          $account_class_name = trim($row->get('account_class'));
+          $specailty = trim($row->get('specialty'));
+          $account_name = trim($row->get('account_name'));
+          $doctor_name = trim($row->get('doctor_name'));
+          $groupData = '';
              
     
             
@@ -74,18 +78,18 @@ class DoctorImport implements ToCollection,WithHeadingRow
 					 'account_id'=>$account_id,
 					 'specialty_id'=>$specailty ? $specailty->id : 0,
 					 'phone'=>isset($row['phone']) ? trim($row['phone']) : NULL,
-					 'phone1'=>isset($row['phone1']) ? trim($row['phone1']) : NULL,
-					 'brief'=>isset($row['brief']) ? trim($row['brief']) : NULL,
+					// 'phone1'=>isset($row['phone1']) ? trim($row['phone1']) : NULL,
+					// 'brief'=>isset($row['brief']) ? trim($row['brief']) : NULL,
 
 				]);
 
 
-                if(isset($row['products']) && !empty($row['products'])){
-                    $productItems = explode('-', $row['products']);
-                    $productIds = Product::whereIn('uuid', $productItems)->pluck('id');
-                    $customer->products()->sync($productIds);
+                // if(isset($row['products']) && !empty($row['products'])){
+                //     $productItems = array_map('trim', explode(',', $row['products']));
+                //     $productIds = Product::whereIn('name', $productItems)->pluck('id');
+                //     $customer->products()->sync($productIds);
 
-                }
+                // }
 			 }
 		}
     }

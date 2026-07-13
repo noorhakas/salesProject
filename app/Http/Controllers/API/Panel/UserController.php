@@ -2,150 +2,289 @@
 
 namespace App\Http\Controllers\API\Panel;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Spatie\Permission\Models\Role;
-use App\Http\Resources\API\UserResource;
-use App\Http\Resources\API\PlansResource;
-use App\Http\Requests\API\UserRequest;
 use App\Http\Requests\API\ProfileRequest;
+use App\Http\Requests\API\UserRequest;
+use App\Http\Imports\UserCustomerImport;
+use App\Http\Resources\API\PlansResource;
+use App\Http\Resources\API\UserResource;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
-	public function index(Request $request)
-	{
-		if (!auth()->user()->hasPermissionTo('display Users'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
-		$limit = (is_numeric(request()->get('per_page'))) && (request()->get('per_page') > 0) ? request()->get('per_page') : 20;
-		$users = User::filter($request)->orderBy('created_at','DESC')->paginate($limit);
-		   $data = UserResource::collection($users);
-		return $this->response_api(true,trans('messages.success'),$data);
-	}
-
-
-	public function store(UserRequest $request)
+    public function index(Request $request)
     {
-		if (!auth()->user()->hasPermissionTo('create User'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+        $limit = $request->filled('per_page') && is_numeric($request->per_page)
+            ? $request->per_page
+            : 20;
+
+        $users = User::filter($request)
+            ->latest()
+            ->paginate($limit);
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            UserResource::collection($users)
+        );
+    }
+
+    public function managers()
+    {
+        $managers = User::whereHas('userposition', function ($q) {
+            $q->where('parent_id', '!=', 0);
+        })
+        ->select('id', 'name')
+        ->get();
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $managers
+        );
+    }
+
+    public function store(UserRequest $request)
+    {
+        try {
+            $user = DB::transaction(function () use ($request) {
+
+                $data = array_merge(
+                    $request->validated(),
+                    [
+                        'access_all_data' => $request->customer_select_all
+                    ]
+                );
+
+                $user = User::create($data);
+
+                if ($request->type === 'admin' && $request->filled('role_id')) {
+                    $user->syncRoles($request->role_id);
+                }
+
+				if(!empty($request->department_ids)){
+					$user->departments()->sync($request->department_ids);
+				}
+
+				if(!empty($request->branch_ids)){
+					$user->branches()->sync($request->branch_ids);
+				}
+
+                if (
+                    $request->type === 'sales'
+                    && $request->hasFile('file')
+                ) {
+                    $filePath = $request->file('file')->store('uploads');
+
+                    Excel::import(
+                        new UserCustomerImport($user->id),
+                        $filePath
+                    );
+                }
+
+                return $user;
+            });
+
+            return $this->response_api(
+                true,
+                trans('messages.success'),
+                new UserResource($user)
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error('User Store Error', [
+                'message' => $e->getMessage()
+            ]);
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
+    }
+
+    public function show(User $user)
+    {
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new UserResource($user)
+        );
+    }
+
+    public function update(UserRequest $request, User $user)
+    {
+        try {
+
+            DB::transaction(function () use ($request, $user) {
+
+                $data = array_merge(
+                    $request->validated(),
+                    [
+                        'access_all_data' => $request->customer_select_all
+                    ]
+                );
+
+                $user->update($data);
+
+                if ($request->type === 'admin' && $request->filled('role_id')) {
+                    $user->syncRoles($request->role_id);
+                }
+
+				if(!empty($request->department_ids)){
+					$user->departments()->sync($request->department_ids);
+				}
+
+				if(!empty($request->branch_ids)){
+					$user->branches()->sync($request->branch_ids);
+				}
+
+                if (
+                    $request->type === 'sales'
+                    && $request->hasFile('file')
+                ) {
+                    $user->bricks()->detach();
+                    $user->products()->detach();
+                    $user->customers()->detach();
+
+                    $filePath = $request->file('file')->store('uploads');
+
+                    Excel::import(
+                        new UserCustomerImport($user->id),
+                        $filePath
+                    );
+                }
+            });
+
+            return $this->response_api(
+                true,
+                trans('messages.success'),
+                new UserResource($user->fresh())
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error('User Update Error', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage()
+            ]);
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return $this->response_api(
+            true,
+            trans('messages.success')
+        );
+    }
+
+    public function myProfile(Request $request)
+    {
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new UserResource($request->user())
+        );
+    }
+
+    public function updateProfile(ProfileRequest $request)
+    {
+        try {
+
+            $user = auth()->user();
+
+            $user->update($request->validated());
+
+            return $this->response_api(
+                true,
+                trans('messages.success'),
+                new UserResource($user)
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error('Profile Update Error', [
+                'user_id' => auth()->id(),
+                'message' => $e->getMessage()
+            ]);
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
+    }
+
+    public function myCurrentPlan()
+    {
+        $currentPlan = User::getCurrentPlan();
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $currentPlan
+                ? new PlansResource($currentPlan)
+                : (object)[]
+        );
+    }
+
+    public function getPositionList()
+    {
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            \App\Enums\UserPositionEnum::toArray()
+        );
+    }
+
+    public function importUserList(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xls,xlsx',
+            'user_id' => 'required|exists:users,id',
+        ]);
 
         try {
-			\DB::beginTransaction();
-			  $acccess_all_data = $request->customer_select_all;
-            $data = array_merge(['access_all_data'=>$acccess_all_data],$request->validated());
-			$user = User::updateOrCreate(['user_name'=>$request->user_name],$data);
-			$user->syncRoles($request->role_id);
- if($request->customer_select_all != 1){
-			if(isset($request->brick_ids) && !empty($request->brick_ids))
-			    $user->bricks()->sync($request->brick_ids);
 
-			if(isset($request->product_ids) && !empty($request->product_ids))
-			    $user->products()->sync($request->product_ids);
+            DB::transaction(function () use ($request) {
 
-			if(isset($request->customer_ids) && !empty($request->customer_ids)){
-				foreach($request->customer_ids as $key){
-                   $keyData = explode('_',$key);
-                   $account_customerIds[] = ['account_id'=>$keyData[0] , 'customer_id'=>$keyData[1] ];
-				}
-				 $user->customers()->sync($account_customerIds);
-			}
-}
-			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),new UserResource($user));
-		} catch (\Exception $e) {
-			\DB::rollback();
-			return $this->response_api(false, trans('messages.server_error'));
-		}
+                $filePath = $request->file('file')->store('uploads');
+
+                Excel::import(
+                    new UserCustomerImport($request->user_id),
+                    $filePath
+                );
+            });
+
+            return $this->response_api(
+                true,
+                trans('messages.success')
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error('Import User List Error', [
+                'user_id' => $request->user_id,
+                'message' => $e->getMessage()
+            ]);
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
     }
-
-
-	public function show(User $user)
-    {
-	   if(!$user)
-           return $this->response_api(false, trans('messages.user_not_found'));
-
-	   return $this->response_api(true, trans('messages.success'),new UserResource($user));
-    }
-
-	public function update(UserRequest $request,User $user) {
-		
-		if (!auth()->user()->hasPermissionTo('update User'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-      try {
-		 \DB::beginTransaction();
-		   if(!$user)
-		      return $this->response_api(false, trans('messages.user_not_found'));
-                        $acccess_all_data = $request->customer_select_all;
-                        $data = array_merge(['access_all_data'=>$acccess_all_data],$request->validated());
-			$user->update($data);
-			$user->syncRoles($request->role_id);
-if($request->customer_select_all != 1){
-			if(isset($request->brick_ids) && !empty($request->brick_ids))
-			    $user->bricks()->sync($request->brick_ids);
-
-			if(isset($request->product_ids) && !empty($request->product_ids))
-			    $user->products()->sync($request->product_ids);
-
-			if(isset($request->customer_ids) && !empty($request->customer_ids)){
-				foreach($request->customer_ids as $key){
-                   $keyData = explode('_',$key);
-                   $account_customerIds[] = ['account_id'=>$keyData[0] , 'customer_id'=>$keyData[1] ];
-				}
-				 $user->customers()->sync($account_customerIds);
-			}
-}else{
-                $user->bricks()->delete();
-                $user->products()->delete();
-                $user->customers()->delete();
-
-            }
-			
-			\DB::commit();
-            return $this->response_api(true, trans('messages.success'),new UserResource($user));
-		} catch (\Exception $e) {
-			\DB::rollback();
-			return $this->response_api(false, trans('messages.server_error'));
-		}
-	}
-	public function destroy(User $user)
-    {
-       if (!auth()->user()->hasPermissionTo('delete User'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
-		if(!$user)
-           return $this->response_api(false, trans('messages.user_not_found'));
-
-        $user->delete();
-        return $this->response_api(true,  trans('messages.success'));
-    }
-
-	public function myProfile(Request $request){
-		$user = $request->user();
-		$data = new UserResource($user);
-		return $this->response_api(true,trans('messages.success'),$data);
-	}
-
-	public function updateProfile(ProfileRequest $request){
-		try {	
-			$user = auth()->user();
-			$user->update($request->validated());
-			  return $this->response_api(true, trans('messages.success'),new UserResource($user));
-		} catch (\Exception $e) {
-			\DB::rollback();
-			return $this->response_api(false, trans('messages.server_error'));
-		}
-	}
-
-	public function MycurrentPlan(){
-		$current_plan = User::getCurrentPlan();
-		$data = ($current_plan) ?new PlansResource($current_plan) : (object)[];
-		return $this->response_api(true,trans('messages.success'),$data);
-	}
-
-	public function getPositionList(){
-		$data = \App\Enums\UserPositionEnum::toArray();
-		return $this->response_api(true,trans('messages.success'),$data);
-	}
-
 }

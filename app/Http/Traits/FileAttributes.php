@@ -37,7 +37,7 @@ trait FileAttributes
 				        File::delete(public_path('storage/'.$path.'/'.$old_File));	
 
                 // $values =$this->resizeFile($path,$value,$this->generateImageName($value));
-               $values = $value->storeAs($path,$this->generateImageName($value),"public");
+               $values = $value->storeAs($this->imgFolder,$this->generateImageName($value),"public");
                         $arrVal =explode('/',$values);
                                         // Get the basename of the new file
                         $this->attributes['file'] = Str::snake($arrVal[count($arrVal)-1]); //  Save the filename  

@@ -110,31 +110,40 @@ class ProductRepository implements ProductInterface
 	  }
 
 
-	  public function getAllProductNotes($id)
+	 
+	 public function getAllProductNotes($id)
       {
-        $limit = (is_numeric(request()->per_page) && (request()->per_page) > 0) ? request()->per_page : 20;
-		
-		$firstQuery = Visit::select('visits.notes as note','customers.name as customer_name','visits.created_at')
-							->join('visit_details','visits.id','=','visit_details.visit_id')
-							->join('customers','customers.id','=','visits.customer_id')
-		                      ->whereNotNull('visits.notes')->where(['visit_details.item_id'=>$id,'visit_details.item_type'=>0]);
-
-	   $secondQuery = ProductNotes::select('product_notes.note as note','users.name as customer_name','product_notes.created_at')->join('users','users.id','=','product_notes.user_id')
-			             ->where('product_id',$id)->whereNotNull('note');
-						
-
-	    $finalQuery = $firstQuery->union($secondQuery);
-
-					$productModel = \DB::table(\DB::raw("({$finalQuery->toSql()}) as activities"))->select('*')
-					->mergeBindings($finalQuery->getQuery())
-					->when(request()->search,fn($q, $v) =>
-						 $q->where('note', 'like', "%{$v}%")->orWhere('customer_name', 'like', "%{$v}%"))
-				   ->Paginate($limit);
-
-
-	    return ["status"=>true, "message"=>trans('messages.success') ,'data'=>ProductNoteResource::collection($productModel)];					
-	  }
-
+          $limit = (is_numeric(request()->per_page) && (request()->per_page) > 0) ? request()->per_page : 20;
+      
+          // First Query (Visits)
+          $firstQuery = Visit::select('visits.notes as note', 'customers.name as customer_name',
+                  'visits.created_at')
+              ->join('visit_details', 'visits.id', '=', 'visit_details.visit_id')
+              ->join('customers', 'customers.id', '=', 'visits.customer_id')
+              ->whereNotNull('visits.notes') // Ensuring note is not null
+              ->where([
+                  'visit_details.item_id' => $id,
+                  'visit_details.item_type' => 0
+              ]);
+      
+          $secondQuery = ProductNotes::select('product_notes.note as note','users.name as customer_name','product_notes.created_at')
+              ->join('users', 'users.id', '=', 'product_notes.user_id')
+              ->where('product_id', $id)
+              ->whereNotNull('product_notes.note'); // Ensuring note is not null
+      
+          $finalQuery = $firstQuery->unionAll($secondQuery); // Use UNION ALL for better performance
+      
+          $productModel = \DB::query()->fromSub($finalQuery, 'activities')
+              ->select('*')->whereNotNull('note') // Final check to ensure `note` is not null
+              ->when(request()->search, function ($q) {
+                  $search = request()->search;
+                  $q->where('note', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%");
+              })
+              ->paginate($limit);
+      
+          return [ "status" => true, "message" => trans('messages.success'),"data" => ProductNoteResource::collection($productModel)];
+      }
 	  protected function getProductQuery($user){
 	    return ($user->access_all_data) ? Product::select('products.*') : 
 				 $user->products();

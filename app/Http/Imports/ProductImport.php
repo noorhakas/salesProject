@@ -27,6 +27,7 @@ class ProductImport implements ToCollection,WithHeadingRow
 			//print($row);
 			 $company = trim($row['company']);
 			 $category = trim($row['therapeutic_category']);
+             $active = isset($row['active']) ? (strtolower(trim($row['active'])) === 'yes' ? 1 : 0) : 1;
 
 
 			 $categoryData = Category::where('name', 'like', "%{$category}%")->first();
@@ -43,6 +44,7 @@ class ProductImport implements ToCollection,WithHeadingRow
 					 'company_id'=>$companyData?$companyData->id:0,
 					 'description'=>isset($row['description']) ? $row['description'] : NULL,
 					 'price'=>isset($row['wsp_kd']) ? trim($row['wsp_kd']) : 0,
+                                         'status' => $active
 					
 
 				]);

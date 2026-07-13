@@ -4,7 +4,7 @@ namespace App\Enums;
 
 abstract class UserPositionEnum
 {
-    const  Admin = 1;
+   // const  Admin = 1;
     //const  Manager = 2;
 	const  MedicalRep = 3; 
 

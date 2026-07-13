@@ -25,7 +25,7 @@ class ProductResource extends JsonResource
          
       $base =  [
             'id' => $this->id,
-            'Uuid' => $this->Uuid,
+             'Uuid' => $this->Uuid,
             'name' => $this->name,
 			'image'=>$this->image,
 			'category_id'=>$this->category_id,
@@ -34,15 +34,14 @@ class ProductResource extends JsonResource
 			'company_name'=>(string)optional($this->company)->name,
 			'price'=>(float)$this->price,
 			'description'=>$this->description,
-			'files'=>$this->productfiles()->get(['id','file']),
+             'status'=>$this->status,
+            'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
 
         ];
 
-		if(in_array(request()->route()->getName(), ["products.show"]))
-		{
-              $base = array_merge($base,['similar_items' => self::where('category_id',$this->category_id)->get(['id','name','price','image'])]);
-		}
+
+	
 		return $base;
 
     }

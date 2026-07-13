@@ -38,8 +38,7 @@ class Visit extends Model
         return $this->hasMany(VisitDetails::class);
     }
 
-
-    public function doubleVisit()
+     public function doubleVisit()
     {
         return $this->belongsTo(User::class,'combine_with','id');
     }

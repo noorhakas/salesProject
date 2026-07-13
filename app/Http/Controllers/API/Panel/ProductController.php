@@ -23,8 +23,8 @@ class ProductController extends Controller
 
 	public function index(Request $request)
 	{
-		if (!auth()->user()->hasPermissionTo('display Product'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+		//if (!auth()->user()->hasPermissionTo('display Products'))
+		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->Iproduct->getAll($request);
 		return $this->SendResponse($response);
@@ -42,8 +42,8 @@ class ProductController extends Controller
 
 	public function show(Product $Product)
     {
-		if (!auth()->user()->hasPermissionTo('display Product'))
-			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+		//if (!auth()->user()->hasPermissionTo('display Product'))
+			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$response = $this->Iproduct->show($Product);
 		return $this->SendResponse($response); 
@@ -87,21 +87,20 @@ class ProductController extends Controller
         return Excel::download(new ProductExport(), 'products.xlsx');
     }
 	
-	 public function importProducts(Request $request)
+	public function importProducts(Request $request)
     {
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
         $path = $request->file('file');
-		try {
+		//try {
 			\DB::beginTransaction();
 				$products = Excel::import(new ProductImport, $path);
 			\DB::commit();
 			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-			} catch (\Exception $e) {
+		/*	} catch (\Exception $e) {
 				\DB::rollback();
 				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		}
+		}*/
 
     }
-
 
 }

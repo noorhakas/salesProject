@@ -29,7 +29,7 @@ class VisitDetailResource extends JsonResource
             'id' => $this->id,
             'item_name' => $this->name,
 			//'file'=> $this->type == 3 && ProductFiles::find($this->id)? ProductFiles::find($this->id)->file : ($this->type == 0 ? Product::find($this->id)->image : '') ,
-            'file'=> $this->type == 0  ? ($this->file != '' ? url('/') . '/storage/products/' . $this->file : url('/') . '/storage/products/medicine_logo.png') : '',
+            'image'=> $this->type == 0  ? ($this->file != '' ? url('/') . '/storage/products/' . $this->file : url('/') . '/assets/img/medicine_logo.png') : '',
 
 			'count_of_sample'=>$this->count_of_sample ,
 			'checked'=>$this->checked,

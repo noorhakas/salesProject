@@ -9,7 +9,7 @@ use App\Http\Traits\FileAttributes;
 
 class ProductFiles extends Model
 {
-	use SoftDeletes,FileAttributes,ObservantTrait;
+	use SoftDeletes,ObservantTrait,FileAttributes;
     protected $table = 'product_files';
 	protected $imgFolder = 'product_files';
 	protected $vatar = 'avatar_logo.jpg';

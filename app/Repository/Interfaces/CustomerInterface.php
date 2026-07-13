@@ -9,6 +9,7 @@ interface CustomerInterface
      public function updateCustomer($request,$id);
      public function deleteCustomer($id);
      public function getAll($request);
-	 public function FetchcustomersAccount($request);
+     public function getUserCustomer($request);
+     public function FetchcustomersAccount($request);
      public function getDoctorCharts();
 }

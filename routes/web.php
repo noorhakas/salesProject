@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,3 +18,23 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+Route::get('/run-migration', function (Request $request) {
+    $migrationFile = '2025_03_22_143622_add_customer_id_to_user_products_table.php';
+    
+    try {
+        Artisan::call('migrate', [
+            '--path' => "database/migrations/$migrationFile"
+        ]);
+
+        return response()->json([
+            'message' => 'Migration executed successfully!',
+            'output' => Artisan::output(),
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error executing migration!',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});

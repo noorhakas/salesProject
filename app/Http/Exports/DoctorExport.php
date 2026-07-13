@@ -2,60 +2,54 @@
 
 namespace App\Http\Exports;
 
-use App\Http\Resources\DoctorXlsxResource;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use App\Models\Customer;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\NamedRange;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use App\Models\Customer;
+use App\Models\User;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use App\Models\Product;
+use App\Models\Specialty;
 
-
-class DoctorExport extends DefaultValueBinder implements FromCollection, WithHeadings,WithEvents, WithCustomValueBinder
+class DoctorExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithEvents, WithCustomValueBinder
 {
     use Exportable;
-    /**
-    * @return \Illuminate\Support\Collection
-    */
 
     public function collection()
     {
-          $customer = Customer::select('customers.*')->join('accounts','accounts.id','=','customers.account_id')
-                        ->orderBy('customers.account_id')->get();
-           $data = $customer->transform(function ($q){
+        $customers = Customer::select('customers.*')
+            ->join('accounts', 'accounts.id', '=', 'customers.account_id')
+            ->orderBy('customers.account_id')
+            ->get();
 
-            $productUuid = $q->products?->pluck('Uuid')->toArray();
-            $formattedProductUuids = implode(' - ', $productUuid);
-
-             return[
-                //
-                 'code'=>$q->Uuid,
-                 'group_name'=>optional($q->pharmacyGroup)->name,
-                 'account_name'=>optional($q->account)->name,
-                 'account_type'=>optional($q->account?->accType)->name,
-                 'account_class'=>optional($q->account?->class)->name,
-                  'doctor_name'=>$q->name,
-                 'specialty'=>optional($q->specialty)->name??'',
-                 'area'=>optional($q->account?->brick)->name,
-                 'class'=>optional($q->class)->name??'',
-                    'phone'=>$q->phone,
-                    'phone1'=>$q->phone1,
-                    'brief'=>$q->brief,
-                    'products'=>$formattedProductUuids,
-                    'action'=>[
-                        "del_account","del_doctor"
-                    ],
-
-             ];
-         });
-        return $data;
+        return $customers->map(function ($q) {
+            return [
+                'code' => $q->Uuid,
+                'group_name' => optional($q->pharmacyGroup)->name,
+                'account_name' => optional($q->account)->name,
+                'account_type' => optional($q->account?->accType)->name,
+                'account_class' => optional($q->account?->class)->name,
+                'doctor_name' => $q->name,
+                'specialty' => optional($q->specialty)->name ?? '',
+                'area' => optional($q->account?->brick)->name,
+                'class' => optional($q->class)->name ?? '',
+                'phone' => $q->phone,
+                 "", "", "", "", "", // ??? ????? ????? ????????
+                'user' => '',
+                'action' => ["del_account", "del_doctor"],
+            ];
+        });
     }
 
     public function bindValue(Cell $cell, $value)
@@ -65,44 +59,174 @@ class DoctorExport extends DefaultValueBinder implements FromCollection, WithHea
             $validation->setType(DataValidation::TYPE_LIST);
             $validation->setAllowBlank(true);
             $validation->setShowDropDown(true);
-            $validation->setFormula1('"'.collect($value)->join(',').'"');
- 
+            $validation->setFormula1('"' . collect($value)->join(',') . '"');
             $value = '';
         }
- 
         return parent::bindValue($cell, $value);
     }
 
-    public function headings() :array
+    public function headings(): array
     {
-        return ["CODE","Group Name","Account Name","Account Type" ,"Account Class","Doctor Name","Specialty",  "Area", "Class","Phone","Phone1","Brief","Product_items","Action"];
+        return ["CODE", "Group Name", "Account Name", "Account Type", "Account Class", "Doctor Name", "Specialty", "Area", "Class", "Phone",
+                 "", "", "", "", "", // ??? ????? ????? ???????
+                  "Assign", "Action"];
     }
 
-	 public function registerEvents(): array
-    {
-        $styleArray = ['font' => ['bold' => true]];
+    public function registerEvents(): array
+{
+    return [
+        AfterSheet::class => function (AfterSheet $event) {
 
-        return [
-            AfterSheet::class => function(AfterSheet $event) {
-                $event->getSheet()->getDelegate()->getStyle('A1:AK1')->getFont()->setName('Calibri')->setSize(15);
-                $event->sheet->getDelegate()->getRowDimension('1')->setRowHeight(17);
-                $event->sheet->getDelegate()->getStyle('A1:AK1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_BLACK);
-                $event->sheet->getDelegate()->getStyle('N1')->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
+            $sheet = $event->sheet->getDelegate();
+            $spreadsheet = $sheet->getParent();
 
-                // $event->sheet->getDelegate()->getStyle('A1:AK1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                // ->getStartColor()->set('FFFFF');
-                foreach ($this->coloumns() as $charachter) {
-					$width_value = in_array($charachter,['A'] ) ? 15 : (in_array($charachter,['B','D','M'] ) ? 50 : 20);
-                    $event->sheet->getDelegate()->getColumnDimension($charachter)->setWidth($width_value);
+            // =========================
+            // HEADER STYLE (UPDATED)
+            // =========================
+            $sheet->getStyle('A1:O1')->applyFromArray([
+                'font' => [
+                    'name'  => 'Calibri',
+                    'size'  => 15,
+                    'bold'  => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => Alignment::VERTICAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '5A0A0A'], // 👈 نبيتي غامق
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['rgb' => 'FFFFFF'],
+                    ],
+                ],
+            ]);
+
+            $sheet->getRowDimension(1)->setRowHeight(22);
+
+            // =========================
+            // COLUMN WIDTHS
+            // =========================
+            foreach ($this->columns() as $char) {
+
+                $width = match (true) {
+                    $char === 'A' => 15,
+                    in_array($char, ['F', 'G', 'H']) => 30,
+                    in_array($char, ['K','L','M','N','O']) => 40,
+                    default => 20,
+                };
+
+                $sheet->getColumnDimension($char)->setWidth($width);
+            }
+
+            // =========================
+            // ROW HEIGHTS + BORDERS
+            // =========================
+            $highestRow = $sheet->getHighestRow();
+
+            for ($row = 2; $row <= $highestRow; $row++) {
+                $sheet->getRowDimension($row)->setRowHeight(22);
+
+                $sheet->getStyle("A{$row}:O{$row}")
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle(Border::BORDER_THIN);
+            }
+
+            // =========================
+            // GLOBAL ALIGNMENT
+            // =========================
+            $sheet->getStyle("A1:O{$highestRow}")
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+
+            // =========================
+            // PRODUCT GROUP HEADER
+            // =========================
+            $sheet->mergeCells('K1:O1');
+            $sheet->setCellValue('K1', 'Product Items');
+
+            $sheet->getStyle('K1')->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '800020'], // 👈 نبيتي أغمق للـ group
+                ],
+            ]);
+
+            // =========================
+            // PRODUCTS SHEET (UNCHANGED LOGIC)
+            // =========================
+            $productSheet = $spreadsheet->getSheetByName('ProductsSheet')
+                ?? new Worksheet($spreadsheet, 'ProductsSheet');
+
+            if (!$spreadsheet->sheetNameExists('ProductsSheet')) {
+                $spreadsheet->addSheet($productSheet);
+            }
+
+            $products = Product::where('status', 1)->pluck('name')->take(300)->toArray();
+
+            if (!empty($products)) {
+                foreach ($products as $index => $product) {
+                    $productSheet->setCellValue("A" . ($index + 1), $product);
                 }
-              },
-        ];
-    }
 
+                $spreadsheet->addNamedRange(
+                    new NamedRange('ProductList', $productSheet, '$A$1:$A$' . count($products))
+                );
 
+                $productSheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+            }
 
-	public function coloumns()
+            // =========================
+            // DROPDOWN PRODUCT COLUMNS
+            // =========================
+            for ($row = 2; $row <= 3000; $row++) {
+                foreach (range('K', 'O') as $col) {
+                    $validation = $sheet->getCell("{$col}{$row}")->getDataValidation();
+                    $validation->setType(DataValidation::TYPE_LIST);
+                    $validation->setAllowBlank(true);
+                    $validation->setShowDropDown(true);
+                    $validation->setFormula1('=ProductList');
+                }
+            }
+
+            // =========================
+            // SPECIALTY DROPDOWN
+            // =========================
+            $specialties = Specialty::pluck('name')->take(30)->toArray();
+
+            if (!empty($specialties)) {
+                $formattedSpecialties = '"' . implode(',', $specialties) . '"';
+
+                for ($row = 2; $row <= 3000; $row++) {
+                    $validation = $sheet->getCell("G{$row}")->getDataValidation();
+                    $validation->setType(DataValidation::TYPE_LIST);
+                    $validation->setAllowBlank(true);
+                    $validation->setShowDropDown(true);
+                    $validation->setFormula1($formattedSpecialties);
+                }
+            }
+
+            $spreadsheet->setActiveSheetIndex(0);
+        },
+    ];
+}
+
+    public function columns()
     {
-        return ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        return range('A', 'N');
     }
 }

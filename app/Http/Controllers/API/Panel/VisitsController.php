@@ -9,7 +9,10 @@ use Carbon\Carbon;
 use App\Repository\Interfaces\VisitInterface;
 use App\Repository\VisitScheduleRepository;
 use App\Models\Plan;
+use App\Models\User;
 use App\Http\Requests\API\VisitRequest;
+use App\Http\Exports\DoctorVisitExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class VisitsController extends Controller
@@ -54,10 +57,10 @@ class VisitsController extends Controller
 		     return $this->SendResponse($response);
 	  }
 
-      public function currentVisits(){
-           $response = $this->IVisit->getCurrentVisits();
+         public function currentVisits(){
+                   $response = $this->IVisit->getCurrentVisits();
 		   return $this->SendResponse($response);
-      }
+         }
 
 	  public function UserVisits(Request $request){
 			 $response = $this->IVisit->getVisitsByUserId($request);
@@ -74,6 +77,39 @@ class VisitsController extends Controller
 			 $response = $this->IVisit->createUnplannedVisit($request);
 		     return $this->SendResponse($response);
 	  }
+
+         
+        public function userVisitStatictics(Request $request){
+		$response = $this->IVisit->getUserVisitStatictics($request);
+                return $this->SendResponse($response);
+
+	  }
+
+        public function userVisitSalesStatictics(Request $request){
+		$response = $this->IVisit->getUserVisitAndSalesStatictics($request);
+		 return $this->SendResponse($response);
+	  }
+
+
+	   public function exportUserVisitsToExcel(Request $request)
+		{
+			$result = $this->IVisit->getUserVisitStatictics($request);
+
+			$user = User::find($request->user_id);
+			$repName = $user ? $user->name : 'Unknown Rep';
+
+			$startDate = $request->start_date ?? now()->toDateString();
+			$endDate = $request->end_date ?? now()->toDateString();
+			$visitDate = "$startDate - $endDate";
+
+			$title = "Visits for $repName on $visitDate";
+
+			return Excel::download(
+				new DoctorVisitExport($result['data']['by_account'], $title),
+				'user-visits-by-account.xlsx'
+			);
+		}
+
 
 
 
