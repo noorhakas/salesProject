@@ -13,7 +13,7 @@ class CreateAccListTable extends Migration
      */
     public function up()
     {
-        Schema::create('acc_list', function (Blueprint $table) {
+        Schema::create('acc_type', function (Blueprint $table) {
             $table->id();
 			$table->string('name');
             $table->timestamps();

@@ -19,12 +19,6 @@ use Illuminate\Support\Facades\Log;
 
 class PlanRepository implements PlanInterface
 {
-    // Plan.status values. Move these to a proper PlanStatusEnum if/when
-    // other parts of the app need to share them (mirrors VisitStatusEnum).
-    protected const STATUS_PENDING  = 0;
-    protected const STATUS_ACCEPTED = 1;
-    protected const STATUS_REJECTED = 2;
-
     // User.position values.
     protected const POSITION_REP = 3;
 
@@ -40,6 +34,7 @@ class PlanRepository implements PlanInterface
     public function getMyPlans($request)
     {
         $limit = $this->resolvePerPage($request);
+        $this->applyDefaultDateRange($request);
 
         $recentPlan = User::getCurrentPlan();
         $recentPlanResource = $recentPlan ? new PlansResource($recentPlan) : (object) [];
@@ -65,6 +60,7 @@ class PlanRepository implements PlanInterface
     public function getALL($request)
     {
         $limit = $this->resolvePerPage($request);
+        $this->applyDefaultDateRange($request);
 
         $plans = Plan::select('plans.*')
             ->join('users', 'users.id', '=', 'plans.user_id')
@@ -119,12 +115,12 @@ class PlanRepository implements PlanInterface
 
             $isRep = auth()->user()->position == self::POSITION_REP;
 
-            if ($plan->status == self::STATUS_PENDING && $isRep) {
+            if ($plan->status == PlanStatusEnum::Pending && $isRep) {
                 return $this->failure('plan_reviewed');
             }
 
-            if ($plan->status == self::STATUS_REJECTED && $isRep) {
-                $note = optional($plan->plan_status()->where('status', self::STATUS_REJECTED)->first())->note;
+            if ($plan->status == PlanStatusEnum::Rejected && $isRep) {
+                $note = optional($plan->plan_status()->where('status', PlanStatusEnum::Rejected)->first())->note;
 
                 return ['status' => false, 'message' => trans('messages.plan_rejected') . '. ' . $note];
             }
@@ -159,10 +155,26 @@ class PlanRepository implements PlanInterface
         }
     }
 
-    public function AcceptOrRejectPlan($request)
+    /**
+     * Accept a plan. 
+     */
+    public function acceptPlan($request)
+    {
+        return $this->reviewPlan($request, PlanStatusEnum::Accepted);
+    }
+
+    /**
+     * Reject a plan. 
+     */
+    public function rejectPlan($request)
+    {
+        return $this->reviewPlan($request, PlanStatusEnum::Rejected);
+    }
+
+
+    protected function reviewPlan($request, int $status): array
     {
         $planId = $request->plan_id;
-        $status = $request->status; // 1 = Accepted, 2 = Rejected
         $reviewer = auth()->user();
         $approvedBy = $reviewer->id ?? 0;
 
@@ -173,8 +185,8 @@ class PlanRepository implements PlanInterface
             $owner = User::findOrFail($plan->user_id);
 
             $plan->update([
-                'status'                   => $status,
-                'approved_or_rejected_by'  => $approvedBy,
+                'status'                  => $status,
+                'approved_or_rejected_by' => $approvedBy,
             ]);
 
             PlanStatus::updateOrCreate(
@@ -188,7 +200,7 @@ class PlanRepository implements PlanInterface
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Plan approval failed: ' . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile(), [
+            Log::error('Plan review failed: ' . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile(), [
                 'plan_id'   => $planId,
                 'exception' => $e,
             ]);
@@ -196,11 +208,9 @@ class PlanRepository implements PlanInterface
             return $this->failure('server_error');
         }
 
-        // As above: notifications are fired after the transaction commits
-        // so a notification failure can never undo a real status change.
-        $this->notifications->sendPlanReviewed($plan, $owner, (int) $status, $reviewer);
+        $this->notifications->sendPlanReviewed($plan, $owner, $status, $reviewer);
 
-        if ((int) $status === self::STATUS_ACCEPTED) {
+        if ($status === PlanStatusEnum::Accepted) {
             $this->notifications->sendVisitRequests($plan, $owner);
         }
 
@@ -208,10 +218,12 @@ class PlanRepository implements PlanInterface
     }
 
 
-     public function statistics($request, array $subordinateIds): array
+    public function statistics($request, array $subordinateIds): array
     {
+        $this->applyDefaultDateRange($request);
+        
         $stats = Plan::join('users', 'users.id', '=', 'plans.user_id')
-                ->whereIn('plans.user_id', $subordinateIds)
+                ->whereIn('plans.user_id', $subordinateIds)->filter($request)
             ->selectRaw("
                 COUNT(plans.id) as total,
                 SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as pending,
@@ -241,6 +253,9 @@ class PlanRepository implements PlanInterface
     public function getManagerPlans($request, array $subordinateIds)
     {
         $limit = $this->resolvePerPage($request);
+        $this->applyDefaultDateRange($request);
+
+       
 
         $plans = Plan::select('plans.*')->whereHas('user')
                 ->whereIn('plans.user_id', $subordinateIds)
@@ -299,7 +314,7 @@ class PlanRepository implements PlanInterface
         $userId = auth()->user()->id ?? 0;
 
         return Plan::updateOrCreate(
-            ['user_id' => $userId, 'start_date' => $data['min_date'], 'status' => self::STATUS_PENDING],
+            ['user_id' => $userId, 'start_date' => $data['min_date'], 'status' => PlanStatusEnum::Pending],
             [
                 'user_id'    => $userId,
                 'start_date' => $data['min_date'],
@@ -341,6 +356,17 @@ class PlanRepository implements PlanInterface
         return (is_numeric($request->per_page) && $request->per_page > 0)
             ? (int) $request->per_page
             : self::DEFAULT_PER_PAGE;
+    }
+
+    
+    protected function applyDefaultDateRange($request): void
+    {
+        if (!$request->filled('start_date') && !$request->filled('end_date')) {
+            $request->merge([
+                'start_date' => Carbon::now()->startOfMonth()->toDateString(),
+                'end_date'   => Carbon::now()->endOfMonth()->toDateString(),
+            ]);
+        }
     }
 
     protected function success($data): array

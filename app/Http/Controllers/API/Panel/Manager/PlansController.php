@@ -22,8 +22,6 @@ class PlansController extends Controller
         $manager = $request->user();
         $subordinateIds = $manager->getAllSubordinateIds();
 
-
-        
         $statistics = $this->IPlan->statistics($request, $subordinateIds);
         $plans = $this->IPlan->getManagerPlans($request, $subordinateIds);
         $response = [
@@ -34,7 +32,7 @@ class PlansController extends Controller
         return $this->response_api($plans['status'], $plans['message'], $response ?? null);
     }
 
-   
+
     public function show(Request $request, $plan_id)
     {
         $manager = $request->user();
@@ -45,8 +43,35 @@ class PlansController extends Controller
         return $this->response_api($response['status'], $response['message'], $response['data'] ?? null);
     }
 
-   
-    public function acceptOrReject(PlanApprovalRequest $request)
+
+    public function accept(PlanApprovalRequest $request)
+    {
+        $plan = $this->authorizeManagedPlan($request);
+
+        if ($plan instanceof \Illuminate\Http\JsonResponse) {
+            return $plan;
+        }
+
+        $response = $this->IPlan->acceptPlan($request);
+
+        return $this->response_api($response['status'], $response['message']);
+    }
+
+    public function reject(PlanApprovalRequest $request)
+    {
+        $plan = $this->authorizeManagedPlan($request);
+
+        if ($plan instanceof \Illuminate\Http\JsonResponse) {
+            return $plan;
+        }
+
+        $response = $this->IPlan->rejectPlan($request);
+
+        return $this->response_api($response['status'], $response['message']);
+    }
+
+    
+    protected function authorizeManagedPlan(Request $request)
     {
         $manager = $request->user();
         $subordinateIds = $manager->getAllSubordinateIds();
@@ -61,8 +86,6 @@ class PlansController extends Controller
             return $this->response_api(false, trans('messages.permission_denied'));
         }
 
-        $response = $this->IPlan->AcceptOrRejectPlan($request);
-
-        return $this->response_api($response['status'], $response['message']);
+        return $plan;
     }
 }

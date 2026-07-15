@@ -17,6 +17,7 @@ class CreateAccountsTable extends Migration
 			$table->id();
 			$table->string('name');
 			$table->integer('brick_id');
+			$table->integer('class_id');
 			$table->integer('acc_type_id');
 			$table->bigInteger('phone');
 			$table->bigInteger('phone1')->nullable();

@@ -84,7 +84,8 @@ class VisitRepository implements VisitInterface
      */
     public function getVisitsForManager($request, array $subordinateIds)
     {
-        $limit = $this->resolvePerPage($request);
+         $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
+         $request->plan_id = $request->plan_id ?? '';
 
         $visits = $this->joinAccountsAndCustomers(
                 Visit::select('visits.*')->whereIn('visits.user_id', $subordinateIds)

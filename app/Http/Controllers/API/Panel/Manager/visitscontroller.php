@@ -26,7 +26,7 @@ class VisitsController extends Controller
     }
 
    
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $manager = $request->user();
         $subordinateIds = $manager->getAllSubordinateIds();
