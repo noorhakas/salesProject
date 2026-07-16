@@ -9,50 +9,132 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // إنشاء الـ Positions
-        $areaManager = Position::create([
-            'ps_key' => 'area_manager',
-            'name' => 'Area manager',
-            'parent_id' => 0,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Positions
+        |--------------------------------------------------------------------------
+        */
 
-        $supervisor = Position::create([
-            'ps_key' => 'supervisor',
-            'name' => 'Supervisor',
-            'parent_id' => $areaManager->id,
-        ]);
-
-        $salesRep = Position::create([
-            'ps_key' => 'sales_rep',
-            'name' => 'Sales',
-            'parent_id' => $supervisor->id,
-        ]);
+        $areaManager = Position::updateOrCreate(
+            ['ps_key' => 'area_manager'],
+            [
+                'name' => 'Area Manager',
+                'parent_id' => 0,
+            ]
+        );
 
 
-        // إنشاء User
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@gmail.com',
-            'user_name' => 'admin',
-            'password' => Hash::make('123456'),
-            'phone' => '01000000000',
-            'whatsapp' => '01000000000',
-            'status' => 1,
-            'position' => $areaManager->id,
-        ]);
+        $supervisor = Position::updateOrCreate(
+            ['ps_key' => 'supervisor'],
+            [
+                'name' => 'Supervisor',
+                'parent_id' => $areaManager->id,
+            ]
+        );
 
 
-         User::create([
-            'name' => 'Area User',
-            'email' => 'area@gmail.com',
-            'user_name' => 'Area',
-            'password' => Hash::make('123456'),
-            'phone' => '01000000000',
-            'whatsapp' => '01000000000',
-            'status' => 1,
-            'position' => $areaManager->id,
-        ]);
+        $salesRep = Position::updateOrCreate(
+            ['ps_key' => 'sales_rep'],
+            [
+                'name' => 'Sales Representative',
+                'parent_id' => $supervisor->id,
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Users
+        |--------------------------------------------------------------------------
+        */
+
+        $password = Hash::make('123456');
+
+
+        // Admin
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'System Admin',
+                'user_name' => 'admin',
+                'password' => $password,
+                'phone' => '01011111111',
+                'whatsapp' => '01011111111',
+                'status' => 1,
+                'position' => $areaManager->id,
+                'access_all_data' => 1,
+                'manager_id' => null,
+            ]
+        );
+
+
+        // Area Manager
+        $manager = User::updateOrCreate(
+            ['email' => 'manager@gmail.com'],
+            [
+                'name' => 'Ahmed Manager',
+                'user_name' => 'manager',
+                'password' => $password,
+                'phone' => '01022222222',
+                'whatsapp' => '01022222222',
+                'status' => 1,
+                'position' => $areaManager->id,
+                'access_all_data' => 1,
+                'manager_id' => $admin->id,
+            ]
+        );
+
+
+        // Supervisor
+        $supervisorUser = User::updateOrCreate(
+            ['email' => 'supervisor@gmail.com'],
+            [
+                'name' => 'Mohamed Supervisor',
+                'user_name' => 'supervisor',
+                'password' => $password,
+                'phone' => '01033333333',
+                'whatsapp' => '01033333333',
+                'status' => 1,
+                'position' => $supervisor->id,
+                'access_all_data' => 0,
+                'manager_id' => $manager->id,
+            ]
+        );
+
+
+        // Sales 1
+        User::updateOrCreate(
+            ['email' => 'sales1@gmail.com'],
+            [
+                'name' => 'Omar Sales',
+                'user_name' => 'sales1',
+                'password' => $password,
+                'phone' => '01044444444',
+                'whatsapp' => '01044444444',
+                'status' => 1,
+                'position' => $salesRep->id,
+                'access_all_data' => 0,
+                'manager_id' => $supervisorUser->id,
+            ]
+        );
+
+
+        // Sales 2
+        User::updateOrCreate(
+            ['email' => 'sales2@gmail.com'],
+            [
+                'name' => 'Ali Sales',
+                'user_name' => 'sales2',
+                'password' => $password,
+                'phone' => '01055555555',
+                'whatsapp' => '01055555555',
+                'status' => 1,
+                'position' => $salesRep->id,
+                'access_all_data' => 0,
+                'manager_id' => $supervisorUser->id,
+            ]
+        );
     }
 }
