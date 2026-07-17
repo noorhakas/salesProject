@@ -45,7 +45,7 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
+       //     'url' => env('DATABASE_URL'),
             'host' => 'db-a2465a05-14b0-4f77-8bb4-7e88f299de1e.us-east-1.public.db.laravel.cloud',//env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
             'database' =>'salesproject_1',// env('DB_DATABASE', 'forge'),
