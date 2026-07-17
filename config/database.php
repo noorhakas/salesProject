@@ -45,12 +45,12 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-       //     'url' => env('DATABASE_URL'),
-            'host' => 'db-a2465a05-14b0-4f77-8bb4-7e88f299de1e.us-east-1.public.db.laravel.cloud',//env('DB_HOST', '127.0.0.1'),
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' =>'salesproject_1',// env('DB_DATABASE', 'forge'),
-            'username' => 'b0tbbnzd9cwkhhlm',//env('DB_USERNAME', 'forge'),
-            'password' => '5572MHOfSBQNXPh1YGer',//env('DB_PASSWORD', ''),
+            'database' => env('DB_DATABASE', 'salesproject_1'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
