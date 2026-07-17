@@ -120,7 +120,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-
+### sales & sales 2
         // Sales 2
         User::updateOrCreate(
             ['email' => 'sales2@gmail.com'],
