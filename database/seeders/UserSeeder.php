@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Position;
+use App\Models\Branch;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -19,30 +20,28 @@ class UserSeeder extends Seeder
 
         $areaManager = Position::updateOrCreate(
             ['ps_key' => 'area_manager'],
-            [
-                'name' => 'Area Manager',
-                'parent_id' => 0,
-            ]
+            ['name' => 'Area Manager', 'parent_id' => 0]
         );
-
 
         $supervisor = Position::updateOrCreate(
             ['ps_key' => 'supervisor'],
-            [
-                'name' => 'Supervisor',
-                'parent_id' => $areaManager->id,
-            ]
+            ['name' => 'Supervisor', 'parent_id' => $areaManager->id]
         );
-
 
         $salesRep = Position::updateOrCreate(
             ['ps_key' => 'sales_rep'],
-            [
-                'name' => 'Sales Representative',
-                'parent_id' => $supervisor->id,
-            ]
+            ['name' => 'Sales Representative', 'parent_id' => $supervisor->id]
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Branches (هات الفروع الموجودة أو اعمل واحد افتراضي لو مفيش)
+        |--------------------------------------------------------------------------
+        */
+
+        $cairoBranch      = Branch::firstOrCreate(['name' => 'Cairo - Nasr City'], ['address' => 'Nasr City, Cairo', 'phone' => '0221234567']);
+        $alexBranch       = Branch::firstOrCreate(['name' => 'Alexandria - Smouha'], ['address' => 'Smouha, Alexandria', 'phone' => '0345678912']);
+        $mansouraBranch   = Branch::firstOrCreate(['name' => 'Mansoura - Downtown'], ['address' => 'Downtown, Mansoura', 'phone' => '0501234567']);
 
         /*
         |--------------------------------------------------------------------------
@@ -51,7 +50,6 @@ class UserSeeder extends Seeder
         */
 
         $password = '123456';
-
 
         // Admin
         $admin = User::updateOrCreate(
@@ -68,6 +66,8 @@ class UserSeeder extends Seeder
                 'manager_id' => null,
             ]
         );
+        // الأدمن له صلاحية على كل الفروع
+        $admin->branches()->sync([$cairoBranch->id, $alexBranch->id, $mansouraBranch->id]);
 
 
         // Area Manager
@@ -85,6 +85,7 @@ class UserSeeder extends Seeder
                 'manager_id' => $admin->id,
             ]
         );
+        $manager->branches()->sync([$cairoBranch->id, $alexBranch->id]);
 
 
         // Supervisor
@@ -102,10 +103,11 @@ class UserSeeder extends Seeder
                 'manager_id' => $manager->id,
             ]
         );
+        $supervisorUser->branches()->sync([$cairoBranch->id]);
 
 
         // Sales 1
-        User::updateOrCreate(
+        $sales1 = User::updateOrCreate(
             ['email' => 'sales1@gmail.com'],
             [
                 'name' => 'Omar Sales',
@@ -119,10 +121,11 @@ class UserSeeder extends Seeder
                 'manager_id' => $supervisorUser->id,
             ]
         );
+        $sales1->branches()->sync([$cairoBranch->id]);
 
-### sales & sales 2
+
         // Sales 2
-        User::updateOrCreate(
+        $sales2 = User::updateOrCreate(
             ['email' => 'sales2@gmail.com'],
             [
                 'name' => 'Ali Sales',
@@ -136,5 +139,6 @@ class UserSeeder extends Seeder
                 'manager_id' => $supervisorUser->id,
             ]
         );
+        $sales2->branches()->sync([$mansouraBranch->id]);
     }
 }
