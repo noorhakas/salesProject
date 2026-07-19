@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\Notification;
 
-
+// 
 class NotificationService
 {
     /**
