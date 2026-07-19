@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Department;
 use App\Models\Specialty;
 use Illuminate\Database\Seeder;
+use Faker\Factory as FakerFactory;
 
 class ProductSeeder extends Seeder
 {
@@ -16,6 +17,8 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        $faker = FakerFactory::create();
+
         $companyIds    = Company::pluck('id');
         $categoryIds   = Category::pluck('id');
         $departmentIds = Department::pluck('id');
@@ -53,10 +56,10 @@ class ProductSeeder extends Seeder
                 'specialty_id' => $specialtyIds->isNotEmpty() ? $specialtyIds->random() : null,
                 'image'        => null,
                 'description'  => 'وصف تجريبي للمنتج ' . $name,
-                'price'        => fake()->randomFloat(2, 10, 500),
+                'price'        => $faker->randomFloat(2, 10, 500),
                 'company_id'   => $companyIds->random(),
                 'category_id'  => $categoryIds->random(),
-                'status'       => fake()->boolean(85),
+                'status'       => $faker->boolean(85),
             ]);
 
             if ($departmentIds->isNotEmpty()) {
