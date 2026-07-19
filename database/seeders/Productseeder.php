@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Department;
 use App\Models\Specialty;
 use Illuminate\Database\Seeder;
-use Faker\Factory as FakerFactory;
 
 class ProductSeeder extends Seeder
 {
@@ -17,14 +16,10 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = FakerFactory::create();
-
         $companyIds    = Company::pluck('id');
         $categoryIds   = Category::pluck('id');
         $departmentIds = Department::pluck('id');
 
-        // ملحوظة: الموديل Specialty مش موجود عندي في الملفات اللي بعتهالي،
-        // فلو الاسم مختلف أو الجدول فاضي هتحتاج تعدّل السطر ده.
         $specialtyIds = class_exists(Specialty::class) ? Specialty::pluck('id') : collect();
 
         if ($companyIds->isEmpty() || $categoryIds->isEmpty()) {
@@ -56,10 +51,10 @@ class ProductSeeder extends Seeder
                 'specialty_id' => $specialtyIds->isNotEmpty() ? $specialtyIds->random() : null,
                 'image'        => null,
                 'description'  => 'وصف تجريبي للمنتج ' . $name,
-                'price'        => $faker->randomFloat(2, 10, 500),
+                'price'        => round(mt_rand(1000, 50000) / 100, 2),
                 'company_id'   => $companyIds->random(),
                 'category_id'  => $categoryIds->random(),
-                'status'       => $faker->boolean(85),
+                'status'       => mt_rand(1, 100) <= 85 ? 1 : 0,
             ]);
 
             if ($departmentIds->isNotEmpty()) {
