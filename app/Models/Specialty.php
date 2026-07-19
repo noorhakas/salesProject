@@ -12,8 +12,5 @@ class Specialty extends Model
     protected $table = 'specialty';
 	protected $fillable = ['name'];
 
-	public function products() : HasMany
-    {
-        return $this->hasMany(Product::class);
-    }
+	
 }

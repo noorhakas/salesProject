@@ -21,13 +21,22 @@ class DatabaseSeeder extends Seeder
       //  $this->call(VisitSeeder::class);
 
 
-        $this->call([
-       /* Companyseeder::class,
+     /*   $this->call([
+        Companyseeder::class,
         Categoryseeder::class,
         Departmentseeder::class,
-        Branchseeder::class,*/
+        Branchseeder::class,
         Productseeder::class,
         UserSeeder::class
+    ]);*/
+
+    $this->call([
+        ClassSeeder::class,
+        SpecialtySeeder::class,
+        AccTypeSeeder::class,
+        BricksSeeder::class,
+        AccountSeeder::class,
+        CustomerSeeder::class,
     ]);
        
         
