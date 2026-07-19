@@ -24,7 +24,7 @@ class PlanSeeder extends Seeder
 
         $plansData = [
             // خطة Pending لسه منتظرة موافقة السوبرفايزر
-            [
+     /*       [
                 'user_id'     => $sales1->id,
                 'type'        => 0,
                 'start_date'  => Carbon::now()->addDays(3),
@@ -61,7 +61,7 @@ class PlanSeeder extends Seeder
                 'end_date'    => Carbon::now()->addDays(5),
                 'status'      => PlanStatusEnum::Rejected,
                 'approved_or_rejected_by' => $supervisor?->id,
-            ],
+            ],*/
 
             // خطة Pending لسيلز 2
             [
@@ -70,7 +70,7 @@ class PlanSeeder extends Seeder
                 'start_date'  => Carbon::now()->addDays(4),
                 'end_date'    => Carbon::now()->addDays(10),
                 'status'      => PlanStatusEnum::Pending,
-                'approved_or_rejected_by' => null,
+                'approved_or_rejected_by' => 0,
             ],
 
             // خطة Upcoming (مقبولة بس لسه ماجتش)
