@@ -20,13 +20,13 @@ class DatabaseSeeder extends Seeder
        // $this->call(PlanSeeder::class);
       //  $this->call(VisitSeeder::class);
 
-      
+
         $this->call([
-        CompanySeeder::class,
-        CategorySeeder::class,
-        DepartmentSeeder::class,
-        BranchSeeder::class,
-        ProductSeeder::class,
+        Companyseeder::class,
+        Categoryseeder::class,
+        Departmentseeder::class,
+        Branchseeder::class,
+        Productseeder::class,
         UserSeeder::class
     ]);
        
