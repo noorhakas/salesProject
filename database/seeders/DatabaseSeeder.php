@@ -17,8 +17,7 @@ class DatabaseSeeder extends Seeder
       //  $this->call(PermissionSeeder::class);
         // $this->call(AssignPermissionsToUserSeeder::class);
       //  $this->call(UserSeeder::class);
-       // $this->call(PlanSeeder::class);
-      //  $this->call(VisitSeeder::class);
+       
 
 
      /*   $this->call([
@@ -30,14 +29,17 @@ class DatabaseSeeder extends Seeder
         UserSeeder::class
     ]);*/
 
-    $this->call([
+   /* $this->call([
       //  ClassSeeder::class,
        // SpecialtySeeder::class,
         AcctypeSeeder::class,
         BricksSeeder::class,
         AccountSeeder::class,
         CustomerSeeder::class,
-    ]);
+    ]);*/
+
+     $this->call(PlanSeeder::class);
+     $this->call(VisitSeeder::class);
        
         
     }
