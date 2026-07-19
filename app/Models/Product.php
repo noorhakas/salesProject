@@ -15,7 +15,7 @@ class Product extends Model
 	protected $avatar = 'medicine_logo.png';
 
 
-	protected $fillable = ['Uuid','name','specialty_id','image','description','price','company_id','category_id','status'];
+	protected $fillable = ['Uuid','name','image','description','price','company_id','category_id','status'];
 
 
 

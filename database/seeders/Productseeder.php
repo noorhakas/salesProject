@@ -6,7 +6,7 @@ use App\Models\Product;
 use App\Models\Company;
 use App\Models\Category;
 use App\Models\Department;
-use App\Models\Specialty;
+//use App\Models\Specialty;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -20,7 +20,7 @@ class ProductSeeder extends Seeder
         $categoryIds   = Category::pluck('id');
         $departmentIds = Department::pluck('id');
 
-        $specialtyIds = class_exists(Specialty::class) ? Specialty::pluck('id') : collect();
+       // $specialtyIds = class_exists(Specialty::class) ? Specialty::pluck('id') : collect();
 
         if ($companyIds->isEmpty() || $categoryIds->isEmpty()) {
             $this->command->warn('لازم تشغل CompanySeeder و CategorySeeder الأول قبل ProductSeeder.');
@@ -48,7 +48,7 @@ class ProductSeeder extends Seeder
         foreach ($productNames as $name) {
             $product = Product::create([
                 'name'         => $name,
-                'specialty_id' => $specialtyIds->isNotEmpty() ? $specialtyIds->random() : null,
+             //   'specialty_id' => $specialtyIds->isNotEmpty() ? $specialtyIds->random() : null,
                 'image'        => null,
                 'description'  => 'وصف تجريبي للمنتج ' . $name,
                 'price'        => round(mt_rand(1000, 50000) / 100, 2),
