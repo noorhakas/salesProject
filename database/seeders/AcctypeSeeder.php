@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\AccType;
 use Illuminate\Database\Seeder;
 
-class AccTypeSeeder extends Seeder
+class AcctypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.

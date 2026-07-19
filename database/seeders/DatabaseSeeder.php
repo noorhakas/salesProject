@@ -31,9 +31,9 @@ class DatabaseSeeder extends Seeder
     ]);*/
 
     $this->call([
-        ClassSeeder::class,
-        SpecialtySeeder::class,
-        AccTypeSeeder::class,
+      //  ClassSeeder::class,
+       // SpecialtySeeder::class,
+        AcctypeSeeder::class,
         BricksSeeder::class,
         AccountSeeder::class,
         CustomerSeeder::class,
