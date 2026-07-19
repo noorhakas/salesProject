@@ -30,7 +30,7 @@ class PlanSeeder extends Seeder
                 'start_date'  => Carbon::now()->addDays(3),
                 'end_date'    => Carbon::now()->addDays(7),
                 'status'      => PlanStatusEnum::Pending,
-                'approved_or_rejected_by' => null,
+                'approved_or_rejected_by' => 0,
             ],
 
             // خطة Accepted، شغالة دلوقتي (In Progress)
