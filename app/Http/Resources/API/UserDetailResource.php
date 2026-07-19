@@ -38,7 +38,7 @@ class UserDetailResource extends JsonResource
 			'role_name'=>$this->getRoleName(),
             'branches' => $this->branches->map->only(['id', 'name'])->values(),
             'departments' => $this->departments->map->only(['id', 'name'])->values(),
-            'position' => $this->userposition->map->only(['id','ps_key', 'name'])->values(),
+            'position' => optional($this->userposition)->only(['id', 'ps_key', 'name']),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
 			'access_all_data'=>$this->access_all_data,
 			'DeviceToken'=>$this->DeviceToken,
