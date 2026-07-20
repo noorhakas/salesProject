@@ -9,8 +9,10 @@ use App\Models\Sale;
 use App\Models\Visit;
 use App\Models\Branch;
 use App\Models\Department;
+use App\Models\Plan;
 use App\Enums\StatusEnum;
 use App\Enums\UserPositionEnum;
+use App\Enums\PlanStatusEnum;
 use App\Http\Controllers\Controller;
 
 class ManagerController extends Controller
@@ -37,50 +39,61 @@ class ManagerController extends Controller
             })
             ->get(['id', 'name']);
 
-        $teamOverview = [
-            'total_sales' => (float) Sale::whereIn('user_id', $subordinateIds)->sum('total_price'),
-
-            'total_active_rep' => User::whereIn('id', $subordinateIds)
-                ->where('status', StatusEnum::Active)
-                ->where('position', UserPositionEnum::MedicalRep)
-                ->count(),
-
-            'total_branch' => $branches->count(),
-
-            'total_department' => $departments->count(),
-
-            'branches' => $branches,
-
-            'departments' => $departments,
-        ];
+        $teamOverview = $this->buildTeamOverview($subordinateIds, $branches, $departments);
 
         return $this->response_api(
             true,
             trans('messages.success'),
             [
-                'team_overview' => $teamOverview,
+                'team_overview'   => $teamOverview,
                 'visits_overview' => $this->visitsOverview($subordinateIds, $today),
             ]
         );
+    }
+
+    private function buildTeamOverview(array $subordinateIds, $branches, $departments): array
+    {
+        $totalSalesReps = User::whereIn('id', $subordinateIds)
+            ->where('position', UserPositionEnum::MedicalRep)
+            ->count();
+
+        $activeReps = User::whereIn('id', $subordinateIds)
+            ->where('status', StatusEnum::Active)
+            ->where('position', UserPositionEnum::MedicalRep)
+            ->count();
+
+        $absentReps = max(0, $totalSalesReps - $activeReps);
+
+        $pendingPlans = Plan::whereIn('user_id', $subordinateIds)
+            ->where('status', PlanStatusEnum::Pending)
+            ->count();
+
+        return [
+            'pending_plans'    => $pendingPlans,
+            'total_sales_reps' => $totalSalesReps,
+            'active_reps'      => $activeReps,
+            'absent_reps'      => $absentReps,
+            'total_branch'     => $branches->count(),
+            'total_department' => $departments->count(),
+            'branches'         => $branches,
+            'departments'      => $departments,
+        ];
     }
 
     private function getFilteredSubordinateIds(User $manager, Request $request): array
     {
         return User::query()
             ->whereIn('id', $manager->getAllSubordinateIds())
-
             ->when($request->filled('branch_id'), function ($q) use ($request) {
                 $q->whereHas('branches', function ($branch) use ($request) {
                     $branch->where('branches.id', $request->branch_id);
                 });
             })
-
             ->when($request->filled('department_id'), function ($q) use ($request) {
                 $q->whereHas('departments', function ($department) use ($request) {
                     $department->where('departments.id', $request->department_id);
                 });
             })
-
             ->pluck('id')
             ->toArray();
     }
