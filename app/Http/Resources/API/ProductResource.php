@@ -8,9 +8,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use App\Enums\StatusEnum;
 use Carbon\Carbon;
+use App\Http\Resources\API\Concerns\FormatsIdName;
+
+
 
 class ProductResource extends JsonResource
 {
+
+    use FormatsIdName;
+
     public function __construct($resource)
     {
         parent::__construct($resource);
@@ -28,11 +34,9 @@ class ProductResource extends JsonResource
              'Uuid' => $this->Uuid,
             'name' => $this->name,
 			'image'=>$this->image,
-			'category_id'=>$this->category_id,
-			'specialty_name'=>(string)optional($this->category)->name,
-			'company_id'=>$this->company_id,
-			'company_name'=>(string)optional($this->company)->name,
-			'price'=>(float)$this->price,
+             'category' => $this->idName($this->category),
+             'company' => $this->idName($this->company),
+            'price'=>(float)$this->price,
 			'description'=>$this->description,
              'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),

@@ -15,20 +15,45 @@ use Carbon\Carbon;
 
 class ProductRepository implements ProductInterface
 {
-      
+
 	  public function getAll($request)
 	  {
 		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
-		
-		if(request()->get('user_id') && !empty(request()->get('user_id'))){
-			$user = User::find(request()->get('user_id'));
-			$products = $this->getProductQuery($user);
-		}else{
-			$products = $this->getProductQuery(auth()->user());
+
+		$user = request()->get('user_id')
+			? User::find(request()->get('user_id'))
+			: null;
+
+		if (request()->get('user_id') && ! $user) {
+			return ["status" => false, "message" => trans('messages.data_not_found')];
 		}
-		$products = (Clone $products)->has('category')->when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
-		               ->orderBy('created_at','DESC')->paginate($limit);
-		   $data = ProductResource::collection($products);		
+
+		$products = $this->getProductQuery($user);
+
+		$products = (clone $products)
+			->has('category')
+			->when(request()->get('search'), fn ($q, $v) => $q->where('name', 'like', "%{$v}%"))
+			->orderBy('created_at', 'DESC')
+			->paginate($limit);
+
+		   $data = ProductResource::collection($products);
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+	  }
+
+
+	  public function getUserProduct($request)
+	  {
+		$limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+
+			$products = $this->getProductQuery(auth()->user());
+
+		$products = (clone $products)
+			->has('category')
+			->when(request()->get('search'), fn ($q, $v) => $q->where('name', 'like', "%{$v}%"))
+			->orderBy('created_at', 'DESC')
+			->paginate($limit);
+
+		   $data = ProductResource::collection($products);
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }
 
@@ -51,32 +76,40 @@ class ProductRepository implements ProductInterface
 	  }
 
 	  public function updateProduct($request,$product){
-		//try {
-			//\DB::beginTransaction();
-			if(!$product)
-			  return ["status"=>false, "message"=>trans('messages.data_not_found')];
- 
-			 $product->update($request->validated());
-			 if(isset($request->files)  && $request->has('files') && !empty($request->files)){
+
+		if (! $product) {
+			return ["status" => false, "message" => trans('messages.data_not_found')];
+		}
+
+		try {
+			\DB::beginTransaction();
+
+			$product->update($request->validated());
+
+			if (isset($request->files) && $request->has('files') && ! empty($request->files)) {
 				$product->productfiles()->delete();
-						foreach($request->file('files') as $i=>$file){
-							$product->productfiles()->create(['file'=>$file]);
-						}
+
+				foreach ($request->file('files') as $i => $file) {
+					$product->productfiles()->create(['file' => $file]);
 				}
-			// \DB::commit();
-			 return ["status"=>true, "message"=>trans('messages.success'),'data'=>new ProductResource($product)];
-		// } catch (\Exception $e) {
-			// \DB::rollback();
-			 return ["status"=>false, "message"=>trans('messages.server_error')];
-		// }
+			}
+
+			\DB::commit();
+			return ["status" => true, "message" => trans('messages.success'), 'data' => new ProductResource($product)];
+		} catch (\Exception $e) {
+			\DB::rollback();
+			return ["status" => false, "message" => trans('messages.server_error')];
+		}
 	  }
 
-	public function show($Product){
+	public function show($product){
 
-		if(!$Product)
+		if(!$product)
 		return ["status"=>false, "message"=>trans('messages.data_not_found')];
 
-		return ["status"=>true, "message"=>trans('messages.success'),'data'=>new ProductResource($Product)];
+		$product->load(['category', 'productfiles']);
+
+		return ["status"=>true, "message"=>trans('messages.success'),'data'=>new ProductResource($product)];
     }
 
 	public function deleteProduct($product)
@@ -94,12 +127,18 @@ class ProductRepository implements ProductInterface
     }
 
 
-	
+
      public function addProductNote($request){
+
+		$product = Product::find($request->product_id);
+
+		if (! $product) {
+			return ["status" => false, "message" => trans('messages.data_not_found')];
+		}
+
 		try {
 			\DB::beginTransaction();
-			 $user =auth()->user();
-				$product = Product::find($request->product_id);
+			 $user = auth()->user();
 				$product->productNotes()->syncWithoutDetaching([$user->id => ['note' => $request->note ,'created_at'=>Carbon::now()]]);
 			 \DB::commit();
 			 return ["status"=>true, "message"=>trans('messages.success')];
@@ -144,10 +183,13 @@ class ProductRepository implements ProductInterface
       
           return [ "status" => true, "message" => trans('messages.success'),"data" => ProductNoteResource::collection($productModel)];
       }
+
 	  protected function getProductQuery($user){
-	    return ($user->access_all_data) ? Product::select('products.*') : 
-				 $user->products();
-	   
+		$query = ($user && $user->access_all_data)
+			? Product::select('products.*')
+			: $user->products();
+
+		return $query->with(['category', 'productfiles']);
 	}
 
  public function getAllProductFiles($id){

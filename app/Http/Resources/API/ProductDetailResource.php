@@ -9,9 +9,12 @@ use JsonSerializable;
 use App\Enums\StatusEnum;
 use App\Models\Product;
 use Carbon\Carbon;
+use App\Http\Resources\API\Concerns\FormatsIdName;
 
 class ProductDetailResource extends JsonResource
 {
+    use FormatsIdName;
+
     public function __construct($resource)
     {
         parent::__construct($resource);
@@ -29,10 +32,8 @@ class ProductDetailResource extends JsonResource
              'Uuid' => $this->Uuid,
             'name' => $this->name,
 			'image'=>$this->image,
-			'category_id'=>$this->category_id,
-			'specialty_name'=>(string)optional($this->category)->name,
-			'company_id'=>$this->company_id,
-			'company_name'=>(string)optional($this->company)->name,
+			'category' => $this->idName($this->category),
+             'company' => $this->idName($this->company),
 			'price'=>(float)$this->price,
 			'description'=>$this->description,
 			'files'=>$this->productfiles()->get(['id','file']),

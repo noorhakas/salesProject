@@ -9,6 +9,7 @@ interface ProductInterface
      public function updateProduct($request,$id);
      public function deleteProduct($id);
      public function getAll($request);
+     public function getUserProduct($request);
 	 public function addProductNote($request);
 	 public function getAllProductNotes($id);
      public function getAllProductFiles($id);

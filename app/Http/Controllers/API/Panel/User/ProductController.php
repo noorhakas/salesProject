@@ -5,10 +5,8 @@ namespace App\Http\Controllers\API\Panel\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Http\Requests\API\ProductRequest;
 use App\Http\Requests\API\ProductNoteRequest;
 use App\Repository\Interfaces\ProductInterface;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -21,7 +19,7 @@ class ProductController extends Controller
 
 	public function index(Request $request)
 	{
-		$response = $this->Iproduct->getAll($request);
+		$response = $this->Iproduct->getUserProduct($request);
 		return $this->SendResponse($response);
 	}
 
