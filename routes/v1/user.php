@@ -28,6 +28,11 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    Route::get('accounts', 'AccountController@index');
    Route::get('accounts/{account}', 'AccountController@show');
 
+   Route::get('products', 'ProductController@index');
+   Route::get('products/{product}', 'ProductController@show');
+   Route::post('add_product_note', 'ProductController@addNotes');
+
+   
       Route::prefix('/plans')->group(function () {
          Route::get('/', 'PlansController@index');
          Route::post('/','PlansController@store');
