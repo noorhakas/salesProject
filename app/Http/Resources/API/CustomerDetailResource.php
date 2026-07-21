@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Customer;
 use Carbon\Carbon;
 
-class CustomerResource extends JsonResource
+class CustomerDetailResource extends JsonResource
 {
     public function toArray($request)
     {
@@ -27,7 +27,24 @@ class CustomerResource extends JsonResource
             'class_name'         => optional($this->class)->name ?? '',
             'phone'              => (string) $this->phone,
             'phone1'             => (string) ($this->phone1 ?? ''),
-           
+            'address'            => optional($this->account)->address ?? '',
+            'brief'              => (string) $this->brief,
+            'lat'                => optional($this->account)->lat,
+            'lng'                => optional($this->account)->lng,
+            'work_days_AsString' => $this->work_days
+                ? collect(Customer::workDays())->whereIn('id', $this->work_days)->pluck('name')->values()
+                : [],
+            'work_days'          => (array) $this->work_days,
+            'work_start_time'    => $this->work_start_time
+                ? Carbon::parse($this->work_start_time)->format('H:i:s')
+                : null,
+            'work_end_time'      => $this->work_end_time
+                ? Carbon::parse($this->work_end_time)->format('H:i:s')
+                : null,
+            'work_time'          => [
+                $this->work_start_time ? Carbon::parse($this->work_start_time)->format('H:i:s') : null,
+                $this->work_end_time ? Carbon::parse($this->work_end_time)->format('H:i:s') : null,
+            ],
             'created_at'         => Carbon::parse($this->created_at)->toDateTimeString(),
         ];
     }
