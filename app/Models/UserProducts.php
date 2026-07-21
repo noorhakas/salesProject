@@ -9,7 +9,7 @@ class UserProducts extends Model
     public $timestamps = false;
     protected $table = 'user_products';
 	
-	protected $fillable = ['user_id','customer_id','product_id'];
+	protected $fillable = ['user_id','product_id'];
 
 
 }
