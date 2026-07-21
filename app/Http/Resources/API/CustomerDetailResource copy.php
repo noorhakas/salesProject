@@ -4,26 +4,28 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\GlobalCollection;
-use App\Http\Resources\API\Concerns\FormatsIdName;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Customer;
 use Carbon\Carbon;
 
-class CustomerResource extends JsonResource
+class CustomerDetailResource extends JsonResource
 {
-    use FormatsIdName;
-
     public function toArray($request)
     {
         return [
             'id'                 => $this->id,
             'name'               => $this->name,
             'image'              => $this->image,
-            'account'            => $this->idName($this->account),
-            'brick'              => $this->idName($this->account?->brick),
-            'acc_type'           => $this->idName($this->accType),
-            'specialty'          => $this->idName($this->specialty),
-            'class'              => $this->idName($this->class),
+            'account_id'         => $this->account_id,
+            'account'            => optional($this->account)->name,
+            'brick_name'         => optional($this->account?->brick)->name,
+            'brick_id'           => optional($this->account?->brick)->id,
+            'acc_type_id'        => $this->acc_type_id,
+            'class_id'           => $this->class_id,
+            'acc_type'           => optional($this->accType)->name,
+            'specialty_id'       => $this->specialty_id,
+            'specialty_name'     => optional($this->specialty)->name ?? '',
+            'class_name'         => optional($this->class)->name ?? '',
             'phone'              => (string) $this->phone,
             'phone1'             => (string) ($this->phone1 ?? ''),
             'address'            => optional($this->account)->address ?? '',

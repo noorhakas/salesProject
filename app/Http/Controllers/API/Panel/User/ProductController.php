@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers\API\Panel;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Http\Requests\API\ProductRequest;
+use App\Http\Requests\API\ProductNoteRequest;
+use App\Repository\Interfaces\ProductInterface;
+use App\Http\Exports\ProductExport;
+use App\Http\Imports\ProductImport;
+use Maatwebsite\Excel\Facades\Excel;
+
+class ProductController extends Controller
+{
+	public $Iproduct;
+    public function __construct(ProductInterface $Iproduct)
+    {
+        $this->Iproduct = $Iproduct;
+    }
+
+
+	public function index(Request $request)
+	{
+		//if (!auth()->user()->hasPermissionTo('display Products'))
+		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
+		$response = $this->Iproduct->getAll($request);
+		return $this->SendResponse($response);
+	}
+
+	public function store(ProductRequest $request)
+    {
+		if (!auth()->user()->hasPermissionTo('create Product'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
+		$response = $this->Iproduct->createProduct($request);
+		return $this->SendResponse($response); 
+      
+    }
+
+	public function show(Product $Product)
+    {
+		//if (!auth()->user()->hasPermissionTo('display Product'))
+			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
+		$response = $this->Iproduct->show($Product);
+		return $this->SendResponse($response); 
+    }
+
+	public function update(ProductRequest $request,Product $product) {
+		if (!auth()->user()->hasPermissionTo('update Product'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
+		$response = $this->Iproduct->updateProduct($request,$product);
+		return $this->SendResponse($response);
+     
+	}
+	public function destroy(Product $product)
+    {
+		if (!auth()->user()->hasPermissionTo('delete Product'))
+			return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
+
+
+		$response = $this->Iproduct->deleteProduct($product);
+		return $this->SendResponse($response);
+    }
+
+
+	public function addNotes(ProductNoteRequest $request){
+	   $response = $this->Iproduct->addProductNote($request);
+		return $this->SendResponse($response);
+	}
+
+	public function getProductNotes($id){
+	    $response = $this->Iproduct->getAllProductNotes($id);
+		return $this->SendResponse($response);
+	}
+
+         public function getProductFiles($id){
+	    $response = $this->Iproduct->getAllProductFiles($id);
+		return $this->SendResponse($response);
+	}
+
+	public function exportProducts(){
+        return Excel::download(new ProductExport(), 'products.xlsx');
+    }
+	
+	public function importProducts(Request $request)
+    {
+        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
+        $path = $request->file('file');
+		//try {
+			\DB::beginTransaction();
+				$products = Excel::import(new ProductImport, $path);
+			\DB::commit();
+			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
+		/*	} catch (\Exception $e) {
+				\DB::rollback();
+				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
+		}*/
+
+    }
+
+}

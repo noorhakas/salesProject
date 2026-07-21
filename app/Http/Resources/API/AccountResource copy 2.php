@@ -4,27 +4,27 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\GlobalCollection;
-use App\Http\Resources\API\Concerns\FormatsIdName;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 
 class AccountResource extends JsonResource
 {
-    use FormatsIdName;
-
     public function toArray($request)
     {
         return [
             'id'          => $this->id,
             'name'        => $this->name,
-            'acc_type'    => $this->idName($this->accType),
+            'acc_type_id' => $this->acc_type_id,
+            'acc_type'    => optional($this->accType)->name,
             'address'     => $this->address,
             'lat'         => $this->lat !== null ? (float) $this->lat : null,
             'lng'         => $this->lng !== null ? (float) $this->lng : null,
             'phone'       => $this->phone,
             'phone1'      => $this->phone1,
-            'brick'       => $this->idName($this->brick),
-            'class'       => $this->idName($this->class),
+            'brick_id'    => $this->brick_id,
+            'brick_name'  => optional($this->brick)->name,
+            'class_id'    => $this->class_id,
+            'class_name'  => optional($this->class)->name,
             'created_at'  => Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
     }
