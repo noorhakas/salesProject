@@ -5,9 +5,9 @@ namespace App\Http\Controllers\API\Panel\Manager;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\API\SupervisorSimpleResource;
 use App\Http\Resources\API\SupervisorResource;
-
 use App\Http\Resources\API\UserDetailResource;
 use App\Models\User;
+use App\Enums\PositionKey;
 use Illuminate\Http\Request;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
@@ -21,7 +21,7 @@ class SupervisorController extends Controller
         $statistics = app(AttendanceStatusService::class)->statistics(
             User::query()
                 ->where('manager_id', $manager->id)
-                ->whereHas('userposition', fn ($q) => $q->where('ps_key', 'supervisor')),
+                ->whereHas('userposition', fn ($q) => $q->where('ps_key', PositionKey::SUPERVISOR->value)),
             Carbon::parse($request->date ?? today())
         );
 
@@ -37,7 +37,7 @@ class SupervisorController extends Controller
         $supervisors = User::with('userposition')
             ->where('manager_id', $manager->id)
             ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', 'supervisor');
+                $q->where('ps_key', PositionKey::SUPERVISOR->value);
             })
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%');
@@ -70,7 +70,7 @@ class SupervisorController extends Controller
         $reps = User::with('userposition')
             ->whereIn('id', $supervisor->getAllSubordinateIds())
             ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', 'sales_rep');
+                $q->where('ps_key', PositionKey::SALES_REP->value);
             })
             ->filter($request)
             ->latest()

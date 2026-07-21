@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
+use App\Enums\PositionKey;
 
 class SalesRepController extends Controller
 {
@@ -19,7 +20,7 @@ class SalesRepController extends Controller
         $statistics = app(AttendanceStatusService::class)->statistics(
             User::query()
                 ->whereIn('users.id', $subordinateIds)
-                ->whereHas('userposition', fn ($q) => $q->where('ps_key', 'sales_rep')),
+                ->whereHas('userposition', fn ($q) => $q->where('ps_key', PositionKey::SALES_REP->value)),
             Carbon::parse($request->date ?? today())
         );
 
@@ -37,7 +38,7 @@ class SalesRepController extends Controller
         $reps = User::with('userposition')
             ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', 'sales_rep');
+                $q->where('ps_key', PositionKey::SALES_REP->value);
             })
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('users.name', 'like', '%' . $request->search . '%');

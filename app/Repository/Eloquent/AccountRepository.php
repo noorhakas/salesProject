@@ -11,6 +11,8 @@ use App\Models\PharmacyGroup;
 use App\Models\Classes;
 use App\Models\AccType;
 use App\Http\Resources\API\AccountResource;
+use App\Http\Resources\API\AccountDetailResource;
+
 use App\Http\Resources\API\PharmacyGroupResource;
 
 class AccountRepository implements AccountInterface
@@ -69,13 +71,20 @@ class AccountRepository implements AccountInterface
 			}
 	  }
 
-	public function show($account){
+		public function show($account){
 
-		if(!$account)
-		return ["status"=>false, "message"=>trans('messages.data_not_found')];
+		if (! $account) {
+			return ["status" => false, "message" => trans('messages.data_not_found')];
+		}
 
-		return ["status"=>true, "message"=>trans('messages.success'),'data'=>new AccountResource($account)];	
-   }
+		$account->load(['customers.specialty', 'customers.class','accType', 'brick', 'class']);
+
+		return [
+			"status"  => true,
+			"message" => trans('messages.success'),
+			'data'    => new AccountDetailResource($account),
+		];
+	}
 
 	public function deleteAccount($account)
     {
@@ -92,16 +101,20 @@ class AccountRepository implements AccountInterface
     }
 
 
-	protected function getAccountQuery(){
-       return  Account::select('accounts.*')->join('acc_type','acc_type.id','=','accounts.acc_type_id') ;
-	   
+	  protected function getAccountQuery(){
+		return Account::select('accounts.*')
+			->join('acc_type', 'acc_type.id', '=', 'accounts.acc_type_id')
+			->with(['accType', 'brick', 'class']);
 	}
-
 
 	protected function getUserAccountQuery($user){
-       return $user->accounts()->join('acc_type','acc_type.id','=','accounts.acc_type_id')->groupBy('accounts.id');
-	   
+		return $user->accounts()
+			->join('acc_type', 'acc_type.id', '=', 'accounts.acc_type_id')
+			->with(['accType', 'brick', 'class'])
+			->groupBy('accounts.id');
 	}
+
+
 
 
   public function getAllPharmacyGroups($request)
