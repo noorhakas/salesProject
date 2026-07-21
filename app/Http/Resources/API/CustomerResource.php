@@ -17,7 +17,7 @@ class CustomerResource extends JsonResource
             'name'               => $this->name,
             'image'              => $this->image,
             'account_id'         => $this->account_id,
-            'account'            => optional($this->account)->only(['id','name']),
+            'account'            => optional($this->account)->name,
             'brick_name'         => optional($this->account?->brick)->name,
             'acc_type_id'        => $this->acc_type_id,
             'class_id'           => $this->class_id,
