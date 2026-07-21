@@ -23,10 +23,10 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
 
    Route::get('customers', 'CustomerController@index');
-   Route::get('customers/{id}', 'CustomerController@show');
+   Route::get('customers/{customer}', 'CustomerController@show');
 
    Route::get('accounts', 'AccountController@index');
-   Route::get('accounts/{id}', 'AccountController@show');
+   Route::get('accounts/{account}', 'AccountController@show');
 
       Route::prefix('/plans')->group(function () {
          Route::get('/', 'PlansController@index');
