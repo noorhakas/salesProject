@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Panel\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\UserResource;
+use App\Http\Resources\API\CoachResource;
 use App\Models\User;
 use App\Enums\PositionKey;
 use Illuminate\Http\Request;
@@ -41,12 +41,12 @@ class UserController extends Controller
                 : 20;
         }
 
-        $colleagues = $query->paginate($limit);
+        $coach = $query->paginate($limit);
 
         return $this->response_api(
             true,
             trans('messages.success'),
-            UserResource::collection($colleagues)
+            CoachResource::collection($coach)
         );
     }
 }
