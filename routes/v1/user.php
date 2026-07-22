@@ -32,7 +32,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    Route::get('products/{product}', 'ProductController@show');
    Route::post('add_product_note', 'ProductController@addNotes');
 
-   Route::get('available-colleagues','UserController@index');
+   Route::get('coach','UserController@index');
 
       Route::prefix('/plans')->group(function () {
          Route::get('/', 'PlansController@index');
