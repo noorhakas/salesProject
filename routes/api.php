@@ -32,7 +32,6 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::get('current_plan', 'UserController@MycurrentPlan');   
 	
  
-	Route::get('position_list', 'PositionController@index');
 
 	/** specialty && products*/
 	/*Route::post('add_product_note', 'ProductController@addNotes'); 
@@ -40,6 +39,9 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
     Route::get('product_file/{id}','ProductController@getProductFiles');*/
 
 });
+
+	Route::get('position_list', 'Panel\PositionController@index');
+
  
 
 
