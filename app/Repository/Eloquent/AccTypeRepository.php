@@ -81,7 +81,7 @@ class AccTypeRepository implements AccTypeInterface
 
     public function getPositionAll($request)
     {
-      $positions = Position::where('id','!=',1)->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+      $positions = Position::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
                         ->orderBy('created_at','Asc')->get();
       $data = PositionResource::collection($positions);
       return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];

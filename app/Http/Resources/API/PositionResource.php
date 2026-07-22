@@ -24,6 +24,7 @@ class PositionResource extends JsonResource
          
        return  [
             'id' => $this->id,
+            'key' => $this->ps_key,
             'name' => $this->name,
 			'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
         ];
