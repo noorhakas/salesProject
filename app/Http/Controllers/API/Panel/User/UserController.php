@@ -22,7 +22,7 @@ class UserController extends Controller
         $query = User::where('id', '!=', $currentUser->id)
             ->where('id', '!=', 1)
             ->whereHas('userposition', function ($q) use ($allowedPositions) {
-                $q->whereIn('key', $allowedPositions);
+                $q->whereIn('ps_key', $allowedPositions);
             })
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($query) use ($request) {
