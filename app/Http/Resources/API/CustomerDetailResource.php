@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Customer;
 use Carbon\Carbon;
 
-class CustomerResource extends JsonResource
+class CustomerDetailResource extends JsonResource
 {
     use FormatsIdName;
 
