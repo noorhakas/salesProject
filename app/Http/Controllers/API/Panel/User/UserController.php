@@ -13,7 +13,7 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        $query = User::where('id', '!=', $currentUser->id)
+        $query = User::where('id', '!=', $currentUser->id)->where('id', '!=', 1)
             ->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($query) use ($request) {
                     $query->where('name', 'like', "%{$request->search}%")
