@@ -113,17 +113,17 @@ class PlanRepository implements PlanInterface
                 return $this->failure('data_not_found');
             }
 
-            $isRep = auth()->user()->position == self::POSITION_REP;
+            // $isRep = auth()->user()->position == self::POSITION_REP;
 
-            if ($plan->status == PlanStatusEnum::Pending && $isRep) {
-                return $this->failure('plan_reviewed');
-            }
+            // if ($plan->status == PlanStatusEnum::Pending && $isRep) {
+            //     return $this->failure('plan_reviewed');
+            // }
 
-            if ($plan->status == PlanStatusEnum::Rejected && $isRep) {
-                $note = optional($plan->plan_status()->where('status', PlanStatusEnum::Rejected)->first())->note;
+            // if ($plan->status == PlanStatusEnum::Rejected && $isRep) {
+            //     $note = optional($plan->plan_status()->where('status', PlanStatusEnum::Rejected)->first())->note;
 
-                return ['status' => false, 'message' => trans('messages.plan_rejected') . '. ' . $note];
-            }
+            //     return ['status' => false, 'message' => trans('messages.plan_rejected') . '. ' . $note];
+            // }
 
             $data = [
                 'plan'        => new PlansResource($plan),
