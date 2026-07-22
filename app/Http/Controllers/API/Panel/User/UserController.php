@@ -11,7 +11,6 @@ class UserController extends Controller
 {
    public function index(Request $request)
     {
-        dd("dddddddd");
         $currentUser = auth()->user();
 
         $query = User::where('id', '!=', $currentUser->id)
