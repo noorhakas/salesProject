@@ -49,15 +49,15 @@ class VisitRepository implements VisitInterface
             return $this->success([]);
         }
 
-        $isRep = auth()->user()->position == self::POSITION_REP;
+        // $isRep = auth()->user()->position == self::POSITION_REP;
 
-        if ($plan->status == 0 && $isRep) {
-            return ['status' => true, 'message' => trans('messages.plan_reviewed'), 'data' => []];
-        }
+        // if ($plan->status == 0 && $isRep) {
+        //     return ['status' => true, 'message' => trans('messages.plan_reviewed'), 'data' => []];
+        // }
 
-        if ($plan->status == 2 && $isRep) {
-            return ['status' => true, 'message' => trans('messages.plan_rejected'), 'data' => []];
-        }
+        // if ($plan->status == 2 && $isRep) {
+        //     return ['status' => true, 'message' => trans('messages.plan_rejected'), 'data' => []];
+        // }
 
         $visits = $this->joinAccountsAndCustomers($plan->visits())
             ->select('visits.*')
