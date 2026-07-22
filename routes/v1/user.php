@@ -53,7 +53,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
             Route::get('badge-reset','NotificationController@notificationBadgeReset');
       });
 
-	  Route::get('position_list', 'PositionController@index');
 
       
 });

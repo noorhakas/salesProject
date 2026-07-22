@@ -32,10 +32,12 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
 	Route::get('current_plan', 'UserController@MycurrentPlan');   
 	
  
+	Route::get('position_list', 'PositionController@index');
+
 	/** specialty && products*/
-	Route::post('add_product_note', 'ProductController@addNotes'); 
+	/*Route::post('add_product_note', 'ProductController@addNotes'); 
 	Route::get('product_notes/{id}','ProductController@getProductNotes');
-    Route::get('product_file/{id}','ProductController@getProductFiles');
+    Route::get('product_file/{id}','ProductController@getProductFiles');*/
 
 });
  
