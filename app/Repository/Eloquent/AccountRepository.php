@@ -77,12 +77,13 @@ class AccountRepository implements AccountInterface
 			return ["status" => false, "message" => trans('messages.data_not_found')];
 		}
 
-		$account->load(['customers.specialty', 'customers.class','accType', 'brick', 'class']);
+		// $account->load(['customers.specialty', 'customers.class','accType', 'brick', 'class']);
+		$account->load(['accType', 'brick', 'class']);
 
 		return [
 			"status"  => true,
 			"message" => trans('messages.success'),
-			'data'    => new AccountDetailResource($account),
+			'data'    => new AccountResource($account),
 		];
 	}
 
