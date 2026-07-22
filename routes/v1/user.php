@@ -32,7 +32,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    Route::get('products/{product}', 'ProductController@show');
    Route::post('add_product_note', 'ProductController@addNotes');
 
-   
+   Route::get('available-colleagues','UserController@index');
+
       Route::prefix('/plans')->group(function () {
          Route::get('/', 'PlansController@index');
          Route::post('/','PlansController@store');
@@ -46,7 +47,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::get("/{id}", 'VisitsController@show');
          Route::post('create_unplanned_visit','VisitsController@createUnplannedVisit');
          Route::post('savevisit','VisitsController@store');
-         Route::get('available-colleagues','UserController@index');
       });
 
 
