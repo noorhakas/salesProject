@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['namespace' => 'Auth'], function(){
 		Route::post('login', 'LoginController@Authenticate');
+		Route::post('admin-login', 'AdminLoginController@Authenticate');
+		
 		Route::post('sendOtpCode','ForgetPasswordController@SendEmail');
 		Route::post('check_otp_code','ForgetPasswordController@checkOtpCode');
 		Route::post('reset_password','ForgetPasswordController@ResetPassword');
