@@ -51,7 +51,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    ###users
    Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
    Route::get('permissions', 'RoleController@allPermissions');
-   Route::resource('users', 'UserController')->except(['edit', 'create']);;
 
    Route::get('fetch_accounts_customers','CustomerController@FetchAccountAndCustomers');
    Route::get('export_user_list/{id}','CustomerController@exportUserAccounts');
