@@ -7,7 +7,7 @@ use App\Http\Requests\API\ProfileRequest;
 use App\Http\Requests\API\UserRequest;
 use App\Http\Imports\UserCustomerImport;
 use App\Http\Resources\API\PlansResource;
-use App\Http\Resources\API\UserResource;
+use App\Http\Resources\API\AdminResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -196,7 +196,7 @@ class UserController extends Controller
         return $this->response_api(
             true,
             trans('messages.success'),
-            new UserResource($request->user())
+            new AdminResource($request->user())
         );
     }
 
@@ -211,7 +211,7 @@ class UserController extends Controller
             return $this->response_api(
                 true,
                 trans('messages.success'),
-                new UserResource($user)
+                new AdminResource($user)
             );
 
         } catch (\Exception $e) {
@@ -228,27 +228,7 @@ class UserController extends Controller
         }
     }
 
-    public function myCurrentPlan()
-    {
-        $currentPlan = User::getCurrentPlan();
-
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            $currentPlan
-                ? new PlansResource($currentPlan)
-                : (object)[]
-        );
-    }
-
-    public function getPositionList()
-    {
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            \App\Enums\UserPositionEnum::toArray()
-        );
-    }
+   
 
     public function importUserList(Request $request)
     {
