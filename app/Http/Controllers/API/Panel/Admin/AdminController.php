@@ -25,14 +25,14 @@ class AdminController extends Controller
             : 20;
 
         $admins = User::filter($request)
-            ->where('is_admin', 1)
+           // ->where('is_admin', 1)
             ->latest()
             ->paginate($limit);
 
         return $this->response_api(
             true,
             trans('messages.success'),
-            UserResource::collection($admins)
+            AdminResource::collection($admins)
         );
     }
 
@@ -69,7 +69,7 @@ class AdminController extends Controller
             return $this->response_api(
                 true,
                 trans('messages.success'),
-                new UserResource($admin)
+                new AdminResource($admin)
             );
 
         } catch (\Exception $e) {
@@ -140,7 +140,7 @@ class AdminController extends Controller
             return $this->response_api(
                 true,
                 trans('messages.success'),
-                new UserResource($user->fresh())
+                new AdminResource($user->fresh())
             );
 
         } catch (\Exception $e) {
