@@ -32,7 +32,11 @@ class AdminResource extends JsonResource
 			'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
-            'position' => optional($this->userposition)->only(['id','ps_key','name',]),
+            'position' => optional($this->userposition)->only(['id','ps_key','name']),
+            'role_id'=>$this->getRoleId(),
+			'role_name'=>$this->getRoleName(),
+
+
             //'branches' => $this->branches->map->only(['id', 'name'])->values(),
             //'departments' => $this->departments->map->only(['id', 'name'])->values(),
 			//'access_all_data'=>$this->access_all_data,

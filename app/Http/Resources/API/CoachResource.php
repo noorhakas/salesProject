@@ -27,7 +27,7 @@ class CoachResource extends JsonResource
             'user_name' => $this->user_name,
             'name' => $this->name,
             'email' => $this->email,
-            'position' => optional($this->userposition)->only(['id','ps_key','name',]),
+            'position' => optional($this->userposition)->only(['id','ps_key','name']),
 
         ];
 

@@ -34,7 +34,7 @@ class UserResource extends JsonResource
 			'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
-            'position' => optional($this->userposition)->only(['id','ps_key','name',]),
+            'position' => optional($this->userposition)->only(['id','ps_key','name']),
             'branches' => $this->branches->map->only(['id', 'name'])->values(),
             'departments' => $this->departments->map->only(['id', 'name'])->values(),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
