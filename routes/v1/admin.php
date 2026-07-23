@@ -21,6 +21,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['auth:sanctum']], function(){
    
+
+   ###users
+    Route::resource('admins', 'AdminController')->except(['edit', 'create']);
+    Route::resource('users', 'UserController')->except(['edit', 'create']);
+
+
+   
    ###setting
    Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
    Route::resource('classes', 'ClassesController')->except(['edit', 'create']);
