@@ -7,11 +7,11 @@ use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use App\Enums\StatusEnum;
-use App\Models\Product;
+use App\Http\Resources\API\DepartmentResource;
 use Carbon\Carbon;
 use App\Http\Resources\API\Concerns\FormatsIdName;
 
-class ProductDetailResource extends JsonResource
+class ProductAdminResource extends JsonResource
 {
     use FormatsIdName;
 
@@ -41,9 +41,6 @@ class ProductDetailResource extends JsonResource
             'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
-            'similar_items' => Product::where('category_id', $this->category_id)
-                ->where('id', '!=', $this->id)
-                ->get(['id', 'name', 'price', 'image']),
 
         ];
 
@@ -51,6 +48,15 @@ class ProductDetailResource extends JsonResource
 		return $base;
 
     }
+
+    public static function collection($resource)
+    {
+        return tap(new GlobalCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
+   }
 
 	
 }

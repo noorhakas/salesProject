@@ -8,7 +8,9 @@ use App\Models\Visit;
 use App\Models\ProductFiles;
 use App\Models\ProductNotes;
 use App\Models\User;
-use App\Http\Resources\API\ProductResource;
+use App\Http\Resources\API\ProductAdminResource;
+
+
 use App\Http\Resources\API\ProductNoteResource;
 use Carbon\Carbon;
 
@@ -30,7 +32,7 @@ class ProductRepository implements ProductInterface
             ->orderBy('created_at', 'DESC')
             ->paginate($limit);
 
-        $data = ProductResource::collection($products);
+        $data = ProductAdminResource::collection($products);
         return ["status" => true, "message" => trans('messages.success'), 'data' => $data];
     }
 
