@@ -27,10 +27,14 @@ class PlanApprovalRequest extends FormRequest
      */
     public function rules()
     {
-		return  [
-            'plan_id' => ['required', 'integer', 'exists:plans,id'],
+
+        return [
+            'plan_id' => 'required|exists:plans,id,deleted_at,NULL',
+            'note'    => 'required_if:status,' . \App\Enums\PlanStatusEnum::Rejected . '|nullable|string|min:3|max:500',
         ];
-    }
+
+  }
+     
 
     protected function failedValidation(Validator $validator)
     {

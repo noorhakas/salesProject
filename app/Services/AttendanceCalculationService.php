@@ -23,7 +23,7 @@ class AttendanceCalculationService
             return null;
         }
 
-        return User::find($userId)?->historyAt($date)?->shift;
+        return User::find($userId)?->shift;
     }
 
     /* =========================

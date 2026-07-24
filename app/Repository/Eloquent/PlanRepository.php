@@ -160,11 +160,12 @@ class PlanRepository implements PlanInterface
     }
 
 
-    protected function reviewPlan($request, int $status): array
+   protected function reviewPlan($request, int $status): array
     {
         $planId = $request->plan_id;
         $reviewer = auth()->user();
         $approvedBy = $reviewer->id ?? 0;
+        $note = $request->note ?? null;
 
         try {
             DB::beginTransaction();
@@ -179,10 +180,11 @@ class PlanRepository implements PlanInterface
 
             PlanStatus::updateOrCreate(
                 ['plan_id' => $planId, 'approved_or_rejected_by' => $approvedBy],
-                array_merge($request->validated(), [
+                [
                     'status'                  => $status,
                     'approved_or_rejected_by' => $approvedBy,
-                ])
+                    'note'                    => $note,
+                ]
             );
 
             DB::commit();
@@ -196,7 +198,7 @@ class PlanRepository implements PlanInterface
             return $this->failure('server_error');
         }
 
-        $this->notifications->sendPlanReviewed($plan, $owner, $status, $reviewer);
+        $this->notifications->sendPlanReviewed($plan, $owner, $status, $reviewer, $note);
 
         if ($status === PlanStatusEnum::Accepted) {
             $this->notifications->sendVisitRequests($plan, $owner);

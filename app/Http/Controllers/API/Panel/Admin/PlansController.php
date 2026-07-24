@@ -44,14 +44,14 @@ class PlansController extends Controller
 
 	public function AcceptPlan(PlanChangeStatusRequest $request)
     {
-		$response = $this->IPlan->AcceptOrRejectPlan($request);
+		$response = $this->IPlan->acceptPlan($request);
 		return $this->SendResponse($response);
     }
 	
 
 	public function RejectPlan(PlanChangeStatusRequest $request)
     {
-		$response = $this->IPlan->AcceptOrRejectPlan($request);
+		$response = $this->IPlan->rejectPlan($request);
 		return $this->SendResponse($response);
     }
 
