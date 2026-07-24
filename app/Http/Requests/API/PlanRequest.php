@@ -27,19 +27,15 @@ class PlanRequest extends FormRequest
      */
     public function rules()
     {
-
-		 return [
-        'visit_list' => 'required|array',
-        'visit_list.*.account_id' => 'required|exists:accounts,id,deleted_at,NULL',
-        'visit_list.*.doctor_id' => 'sometimes|exists:customers,id,deleted_at,NULL',
-        // Validate visit_date >= today
-        'visit_list.*.visit_date' => 'required|date|after_or_equal:' . now()->toDateString(),
-        // Validate start_time > current time
-        'visit_list.*.start_time' => 'required|date_format:h:i:s',
-        'visit_list.*.end_time' => 'required|date_format:h:i:s', // Ensure end_time is after start_time
-        'combine_with.*' => 'sometimes|exists:users,id,deleted_at,NULL'
-    ];
-
+        return [
+            'visit_list' => 'required|array',
+            'visit_list.*.account_id' => 'required|exists:accounts,id,deleted_at,NULL',
+            'visit_list.*.doctor_id' => 'sometimes|exists:customers,id,deleted_at,NULL',
+            'visit_list.*.visit_date' => 'required|date|after_or_equal:' . now()->toDateString(),
+            'visit_list.*.start_time' => 'required|date_format:H:i:s',
+            'visit_list.*.end_time' => 'required|date_format:H:i:s|after:visit_list.*.start_time',
+            'combine_with.*' => 'sometimes|exists:users,id,deleted_at,NULL',
+        ];
     }
 
     protected function failedValidation(Validator $validator)
