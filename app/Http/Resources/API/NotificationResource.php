@@ -2,50 +2,47 @@
 
 namespace App\Http\Resources\API;
 
-use Illuminate\Http\Request;
-use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use JsonSerializable;
-use Carbon\Carbon;
 
 class NotificationResource extends JsonResource
 {
-    public function __construct($resource)
-    {
-        parent::__construct($resource);
-    }
-
-    /**
-     * @param Request $request
-     * @return array
-     */
     public function toArray($request)
     {
+        $extra = $this->resolveExtraData();
+
         return [
-            'id' => $this->id,
-            'title' => __('messages.' . $this->vTitle),
-            'body' => ($this->model_type === "visit_request") 
-                ? __('messages.' . $this->txBody, [
-                    'userName' => $this->user->name,
-                    'doctorName' => optional($this->account)->name . '-' . optional($this->customer)->name,
-                    'dateTime' => Carbon::parse($this->visit_date)->format("Y-M-d") . ' at ' . Carbon::parse($this->start_time)->format("H:i a")
-                ]) 
-                : __('messages.' . $this->txBody, [
-                    'vName' => optional($this->NotifyUser)->name
-                ]),
-            'model' => $this->model_type,
-            'model_id' => $this->model_id,
-            'tiIsRead' => $this->tiIsRead,
-            'created_at' => Carbon::parse($this->created_at)->toDayDateTimeString(),
+            'id'            => $this->id,
+            'Uuid'          => $this->Uuid,
+            'title'         => $this->vTitle,
+            'body'          => $this->txBody,
+            'is_read'       => (bool) $this->tiIsRead,
+            'model_type'    => $this->model_type,
+            'model_id'      => $this->model_id,
+            'account_name'  => $extra['account_name'] ?? '',
+            'customer_name' => $extra['customer_name'] ?? '',
+            'visit_date'    => $extra['visit_date'] ?? '',
+            'visit_time'    => $extra['visit_time'] ?? '',
+            'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
         ];
     }
-    
-	public static function collection($resource)
+
+    protected function resolveExtraData(): array
     {
-        return tap(new GlobalCollection($resource, static::class), function ($collection) {
-            if (property_exists(static::class, 'preserveKeys')) {
-                $collection->preserveKeys = (new static([]))->preserveKeys === true;
-            }
-        });
-   }
+        if (!in_array($this->model_type, ['visit', 'visit_request'])) {
+            return [];
+        }
+
+        $visit = $this->notifiable; // من الـ morphTo relation
+
+        if (!$visit) {
+            return [];
+        }
+
+        return [
+            'account_name'  => optional($visit->account)->name,
+            'customer_name' => optional($visit->customer)->name,
+            'visit_date'    => $visit->visit_date,
+            'visit_time'    => $visit->start_time,
+        ];
+    }
 }

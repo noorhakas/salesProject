@@ -7,8 +7,12 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\Notification;
 
+// 
 class NotificationService
 {
+    /**
+     * Notify all users (device tokens = null/broadcast) that a new plan was created.
+     */
     public function sendNewPlanCreated(Plan $plan, User $creator): void
     {
         $this->send([
@@ -25,6 +29,9 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Notify the plan owner that their plan was accepted or rejected.
+     */
     public function sendPlanReviewed(Plan $plan, User $owner, int $status, User $reviewer): void
     {
         $texts = [
@@ -43,6 +50,7 @@ class NotificationService
         ];
 
         $payload = $texts[$status] ?? null;
+
         if (!$payload) {
             return;
         }
@@ -61,12 +69,16 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Notify every rep who was tagged as "combine_with" on a visit,
+     * once the plan that contains those visits gets accepted.
+     */
     public function sendVisitRequests(Plan $plan, User $planOwner): void
     {
         $combinedVisits = $plan->visits()
             ->join('users', 'users.id', '=', 'visits.combine_with')
             ->leftJoin('accounts', 'accounts.id', '=', 'visits.account_id')
-            ->selectRaw('users.id, users.DeviceToken, visits.id as visit_id, accounts.name as account_name, visits.customer_id, visits.visit_date, visits.start_time')
+            ->selectRaw('users.id, users.DeviceToken, visits.id as visit_id, accounts.name as account_name, accounts.id as account_id, visits.customer_id, visits.visit_date, visits.start_time, visits.end_time')
             ->where('visits.combine_with', '>', 0)
             ->get();
 
@@ -85,11 +97,18 @@ class NotificationService
                 'model_type'    => 'visit_request',
                 'tiDeviceType'  => 1,
                 'notify_type'   => 1,
-                'model_id'      => $visit->visit_id, // هنستخدمه بعدين مع notifiable() علشان نجيب الـ account/customer/date/time
+                'model_id'      => $visit->visit_id,
+                'account_id'    => $visit->account_id ?? 0,
+                'customer_id'   => $visit->customer_id ?? 0,
+                'visit_date'    => $visit->visit_date ?? '',
+                'visit_time'    => $visit->start_time ?? '',
             ]);
         }
     }
 
+    /**
+     * Notify all users (broadcast) that a visit was submitted.
+     */
     public function sendNewVisitCreated(Visit $visit, User $creator): void
     {
         $this->send([
@@ -106,6 +125,7 @@ class NotificationService
         ]);
     }
 
+    
     protected function send(array $data): void
     {
         (new Notification)->sendNotification($data);

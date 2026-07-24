@@ -29,7 +29,6 @@ class VisitRepository implements VisitInterface
     protected const NO_LIMIT_PER_PAGE = 100000;
 
     // User.position values (rep can't see plans/visits that aren't theirs yet).
-    protected const POSITION_REP = 3;
 
     protected NotificationService $notifications;
 
@@ -48,16 +47,6 @@ class VisitRepository implements VisitInterface
         if (!$plan) {
             return $this->success([]);
         }
-
-        // $isRep = auth()->user()->position == self::POSITION_REP;
-
-        // if ($plan->status == 0 && $isRep) {
-        //     return ['status' => true, 'message' => trans('messages.plan_reviewed'), 'data' => []];
-        // }
-
-        // if ($plan->status == 2 && $isRep) {
-        //     return ['status' => true, 'message' => trans('messages.plan_rejected'), 'data' => []];
-        // }
 
         $visits = $this->joinAccountsAndCustomers($plan->visits())
             ->select('visits.*')
