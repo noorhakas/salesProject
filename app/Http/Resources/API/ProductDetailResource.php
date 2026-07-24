@@ -33,13 +33,14 @@ class ProductDetailResource extends JsonResource
             'name' => $this->name,
 			'image'=>$this->image,
 			'category' => $this->idName($this->category),
-             'company' => $this->idName($this->company),
+            'company' => $this->idName($this->company),
+            'departments' => DepartmentResource::collection($this->whenLoaded('departments')),
 			'price'=>(float)$this->price,
 			'description'=>$this->description,
 			'files'=>$this->productfiles()->get(['id','file']),
-                        'status'=>$this->status,
-                        'statusAsString'=>StatusEnum::toString($this->status),
-                        'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+            'status'=>$this->status,
+            'statusAsString'=>StatusEnum::toString($this->status),
+            'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
           'similar_items' => Product::where('category_id', $this->category_id)
                 ->where('id', '!=', $this->id)
                 ->get(['id', 'name', 'price', 'image']),
