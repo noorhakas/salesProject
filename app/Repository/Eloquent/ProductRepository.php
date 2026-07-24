@@ -19,14 +19,10 @@ class ProductRepository implements ProductInterface
         $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 
         $user = request()->get('user_id')
-            ? User::find(request()->get('user_id'))
-            : null;
+				? User::find(request()->get('user_id'))
+				: null;   
 
-        if (request()->get('user_id') && !$user) {
-            return ["status" => false, "message" => trans('messages.data_not_found')];
-        }
-
-        $products = $this->getProductQuery($user);
+        $products = $this->getProductQuery($user);  
 
         $products = (clone $products)
             ->has('category')
@@ -193,14 +189,19 @@ class ProductRepository implements ProductInterface
         return ["status" => true, "message" => trans('messages.success'), "data" => ProductNoteResource::collection($productModel)];
     }
 
-    protected function getProductQuery($user)
-    {
-        $query = ($user && $user->access_all_data)
-            ? Product::select('products.*')
-            : $user->products();
+    protected function getProductQuery($user = null)
+	{
+		if (!$user) {
+			return Product::select('products.*')
+				->with(['category', 'company', 'departments', 'productfiles']);
+		}
 
-        return $query->with(['category', 'company', 'departments', 'productfiles']);
-    }
+		$query = $user->access_all_data
+			? Product::select('products.*')
+			: $user->products();
+
+		return $query->with(['category', 'company', 'departments', 'productfiles']);
+	}
 
     public function getAllProductFiles($id)
     {
