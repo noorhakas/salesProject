@@ -65,7 +65,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    ##customer
     Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
 	Route::resource('accounts', 'AccountController')->except(['edit', 'create']);
-    Route::resource('pharmacygroup', 'PharmacyGroupController')->except(['edit', 'create']);
 
 
 	### products
