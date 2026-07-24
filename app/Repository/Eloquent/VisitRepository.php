@@ -37,10 +37,17 @@ class VisitRepository implements VisitInterface
         $this->notifications = $notifications;
     }
 
-    public function getvisitsByPlan($request)
+    public function getUservisits($request)
     {
         $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
-        $request->plan_id = $request->plan_id ?? User::getCurrentPlan()?->id;
+
+        $request->plan_id = $request->plan_id
+            ?? User::getCurrentPlan()?->id
+            ?? auth()->user()->plans()->latest('id')->first()?->id;
+
+        if (!$request->plan_id) {
+            return $this->success([]);
+        }
 
         $plan = Plan::find($request->plan_id);
 

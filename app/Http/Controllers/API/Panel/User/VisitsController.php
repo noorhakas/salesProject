@@ -22,7 +22,7 @@ class VisitsController extends Controller
 
 	 public function index(Request $request){
 
-		$response = $this->IVisit->getvisitsByPlan($request);
+		$response = $this->IVisit->getUservisits($request);
 		return $this->SendResponse($response);
 	 }
 
