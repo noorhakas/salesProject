@@ -45,7 +45,7 @@ class Visit extends Model
 	
     public function getStatusAttribute($value)
     {
-        return (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $value != 2  ? 5 : $value;
+        return (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $value != 2 ? 5 : $value;
     }
 
     public function scopeFilter($q,$request)
