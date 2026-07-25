@@ -63,6 +63,33 @@ class VisitRepository implements VisitInterface
         return $this->success(VisitsResource::collection($visits));
     }
 
+
+     public function getvisitsByPlan($request)
+    {
+        $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
+
+        $request->plan_id = $request->plan_id;
+        
+        if (!$request->plan_id) {
+            return $this->success([]);
+        }
+
+        $plan = Plan::find($request->plan_id);
+
+        if (!$plan) {
+            return $this->success([]);
+        }
+
+        $visits = $this->joinAccountsAndCustomers($plan->visits())
+            ->select('visits.*')
+            ->filter($request)
+            ->paginate($limit);
+
+        return $this->success(VisitsResource::collection($visits));
+    }
+
+    
+
     public function getvisitDtail($id)
     {
         $visit = Visit::find($id);

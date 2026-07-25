@@ -5,6 +5,8 @@ namespace App\Repository\Interfaces;
 interface VisitInterface
 {
      public function getUservisits($request);
+     public function getvisitsByPlan($request);
+	 
 	 public function submitVisit($request);
 	 public function getvisitDtail($id);
 	  public function getVisitCharts($request);
