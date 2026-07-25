@@ -25,6 +25,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    ###users
     Route::resource('admins', 'AdminController')->except(['edit', 'create']);
     Route::resource('users', 'UserController')->except(['edit', 'create']);
+    Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
+    Route::get('permissions', 'RoleController@allPermissions');
 
 
    
@@ -50,8 +52,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
 
    ###users
-   Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
-   Route::get('permissions', 'RoleController@allPermissions');
+  
 
    Route::get('fetch_accounts_customers','CustomerController@FetchAccountAndCustomers');
    Route::get('export_user_list/{id}','CustomerController@exportUserAccounts');
@@ -59,9 +60,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
    Route::get('myprofile', 'UserController@myProfile')->name('users.profile'); 
    Route::post('update_profile', 'UserController@updateProfile'); 
-
-    Route::resource('setting', 'SettingController')->only(['index', 'store']);
-
 
    ##customer
     Route::resource('customers', 'CustomerController')->except(['edit', 'create']);
@@ -73,6 +71,11 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 	Route::resource('company', 'CompanyController')->except(['edit', 'create']);
 	Route::resource('category', 'CategoryController')->except(['edit', 'create']);
 
+    ##home&settings
+	Route::get('dashboard-stats', 'HomeController@index');
+	Route::get('logs', 'HomeController@getLogs');
+	Route::post('maps', 'MapController@getMaps');
+    Route::resource('setting', 'SettingController')->only(['index', 'store']);
   
 
 
@@ -98,10 +101,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 	Route::get('position_list', 'PositionController@index');
 	Route::get('managers', 'UserController@managers');
 
-	Route::prefix('/manager')->group(function () {
-		Route::get('subordinates', 'ManagerController@subordinates');
-		Route::get('branch-statistics', 'ManagerController@branchStatistics');
-	});
 	
  
 	/** specialty && products*/
@@ -123,7 +122,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
         Route::prefix('/sales')->group(function () {
 		Route::post('save_user_sales', 'SalesController@storeUserSales');
 		Route::get('user_product_sales/{account_id}', 'SalesController@getUserProductSales');
-				Route::get('product_account_sales', 'SalesController@getProductAccountsSales');
+		Route::get('product_account_sales', 'SalesController@getProductAccountsSales');
 
 		
 	});
@@ -138,10 +137,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 	});
 
 
-	Route::get('dashboard-stats', 'HomeController@index');
-	Route::get('logs', 'HomeController@getLogs');
-	Route::post('maps', 'MapController@getMaps');
-    Route::resource('setting', 'SettingController')->only(['index', 'store']);
+	
  
 /*========================export&&import==================================*/
 		Route::prefix('/export')->group(function () {
