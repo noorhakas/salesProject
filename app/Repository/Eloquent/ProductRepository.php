@@ -9,6 +9,7 @@ use App\Models\ProductFiles;
 use App\Models\ProductNotes;
 use App\Models\User;
 use App\Http\Resources\API\ProductAdminResource;
+use App\Http\Resources\API\ProductResource;
 
 
 use App\Http\Resources\API\ProductNoteResource;
