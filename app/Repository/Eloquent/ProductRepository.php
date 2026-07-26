@@ -101,7 +101,6 @@ class ProductRepository implements ProductInterface
                 }
             }
 
-            // مزامنة الأقسام (sync بيحذف القديم ويحط الجديد تلقائي، من غير ما تمسحهم يدوي)
             if ($request->has('department_ids')) {
                 $product->departments()->sync($request->department_ids);
             }

@@ -27,22 +27,22 @@ trait ImageAttributes
      * @param $value
      */
 	public function setImageAttribute($value){
-		$base_url = url('/');
-		
-	   if (!empty($value)){
-				if(!file_exists(realpath(storage_path('app/public/'.$this->imgFolder))))
-						\Storage::makeDirectory('app/public/'.$this->imgFolder, 0755, true, true);
+    $base_url = url('/');
+    
+   if (!empty($value)){
+            if(!file_exists(realpath(storage_path('app/public/'.$this->imgFolder))))
+                    \Storage::makeDirectory('app/public/'.$this->imgFolder, 0755, true, true);
 
-               $old_Image = (isset($this->image) && !empty($this->image)) ? substr(strrchr($this->image, '/'), 1) : '' ; 
-				if(!empty($old_Image) && File::exists(public_path('/storage/' .$this->imgFolder. '/'.$old_Image)) )	
-				        File::delete(public_path('storage/'.$this->imgFolder.'/'.$old_Image));	
+           $old_Image = (isset($this->image) && !empty($this->image)) ? substr(strrchr($this->image, '/'), 1) : '' ; 
+            if(!empty($old_Image) && File::exists(public_path('/storage/' .$this->imgFolder. '/'.$old_Image)) )	
+                    File::delete(public_path('storage/'.$this->imgFolder.'/'.$old_Image));	
 
-			   $values =$this->resizeImage($this->imgFolder,$value,$this->generateImageName($value));// $value->storeAs($this->imgFolder,$this->generateImageName($value),"public");
-			 // dd($values);
-               $arrVal =$values->basename;
-			   $this->attributes['image']=$arrVal;
-	   }
+           $filename = $this->generateImageName($value);
+           $this->resizeImage($this->imgFolder, $value, $filename);
+           
+           $this->attributes['image'] = $filename; // استخدمي الاسم اللي حسبتيه مباشرة
    }
+}
 
     static function getImg($imageFolder,$filename){
         $base_url = url('/');
@@ -59,7 +59,7 @@ trait ImageAttributes
     }
 
 
-    public function resizeImage($path, $photo, $filename)
+     public function resizeImage($path, $photo, $filename)
     {
         $manager = new ImageManager(new Driver());
         
@@ -76,7 +76,7 @@ trait ImageAttributes
 
         $image->save(storage_path('app/public/' . $path . '/' . $filename), quality: 80);
 
-        return $image;
+        return $filename; // رجّعي الاسم بدل الـ object
     }
 
 
