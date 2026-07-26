@@ -30,8 +30,12 @@ trait ImageAttributes
     $base_url = url('/');
     
    if (!empty($value)){
-            if(!file_exists(realpath(storage_path('app/public/'.$this->imgFolder))))
-                    \Storage::makeDirectory('app/public/'.$this->imgFolder, 0755, true, true);
+            // if(!file_exists(realpath(storage_path('app/public/'.$this->imgFolder))))
+            //         \Storage::makeDirectory('app/public/'.$this->imgFolder, 0755, true, true);
+           
+           if (!\Storage::disk('public')->exists($this->imgFolder)) {
+                \Storage::disk('public')->makeDirectory($this->imgFolder);
+            } 
 
            $old_Image = (isset($this->image) && !empty($this->image)) ? substr(strrchr($this->image, '/'), 1) : '' ; 
             if(!empty($old_Image) && File::exists(public_path('/storage/' .$this->imgFolder. '/'.$old_Image)) )	
@@ -62,21 +66,25 @@ trait ImageAttributes
      public function resizeImage($path, $photo, $filename)
     {
         $manager = new ImageManager(new Driver());
-        
-        $width  = $this->imageWidth  ?? 1000;
+
+        $width  = $this->imageWidth ?? 1000;
         $height = $this->imageHeight ?? 1000;
+
+        $directory = storage_path('app/public/'.$path);
+
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
 
         $image = $manager->read($photo);
 
         if ($image->width() >= $width && $image->height() >= $height) {
-            $image->cover($width, $height); 
-        } else {
-            $image->cover(min($image->width(), $width), min($image->height(), $height));
+            $image->cover($width, $height);
         }
 
-        $image->save(storage_path('app/public/' . $path . '/' . $filename), quality: 80);
+        $image->save($directory.'/'.$filename, quality: 80);
 
-        return $filename; // رجّعي الاسم بدل الـ object
+        return $filename;
     }
 
 
