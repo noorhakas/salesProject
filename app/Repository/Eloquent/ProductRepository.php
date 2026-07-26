@@ -88,8 +88,8 @@ class ProductRepository implements ProductInterface
             return ["status" => false, "message" => trans('messages.data_not_found')];
         }
 
-        try {
-            \DB::beginTransaction();
+      //  try {
+        //    \DB::beginTransaction();
 
             $product->update($request->validated());
 
@@ -106,15 +106,15 @@ class ProductRepository implements ProductInterface
                 $product->departments()->sync($request->department_ids);
             }
 
-            \DB::commit();
+         //   \DB::commit();
 
             $product->load(['category', 'company', 'departments', 'productfiles']);
 
             return ["status" => true, "message" => trans('messages.success'), 'data' => new ProductResource($product)];
-        } catch (\Exception $e) {
+     /*   } catch (\Exception $e) {
             \DB::rollback();
             return ["status" => false, "message" => trans('messages.server_error')];
-        }
+        }*/
     }
 
     public function show($product)
