@@ -3,13 +3,10 @@
 namespace App\Http\Resources\API;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use JsonSerializable;
 use Carbon\Carbon;
-
-use App\Models\ProductFiles;
-use App\Models\Product;
-
+use App\Enums\VisitStatusEnum;
 
 class VisitDetailResource extends JsonResource
 {
@@ -24,26 +21,43 @@ class VisitDetailResource extends JsonResource
      */
     public function toArray($request)
     {
+        $statusData = VisitStatusEnum::find($this->status);
 
-		 $base =  [
+        return [
             'id' => $this->id,
-            'item_name' => $this->name,
-			//'file'=> $this->type == 3 && ProductFiles::find($this->id)? ProductFiles::find($this->id)->file : ($this->type == 0 ? Product::find($this->id)->image : '') ,
-            'image'=> $this->type == 0  ? ($this->file != '' ? url('/') . '/storage/products/' . $this->file : url('/') . '/assets/img/medicine_logo.png') : '',
-
-			'count_of_sample'=>$this->count_of_sample ,
-			'checked'=>$this->checked,
-			'type'=>$this->type,
-
+            'customer' => new CustomerResource($this->customer),
+            'account_id' => $this->account ? $this->account->id : 0,
+            'account' => $this->account ? $this->account->name : '',
+            'brick' => $this->account ? optional($this->account->brick)->name : '',
+            'user_name' => optional($this->user)->name,
+            'combine_with' => $this->combine_with ?? 0,
+            'combine_user_name' => optional($this->doubleVisit)->name,
+            'type' => ($this->type == 1) ? 'unplanned' : 'planned',
+            'plan_code' => optional($this->plan)->Uuid,
+            'status' => $this->status,
+            'statusAsString' => $statusData['name'],
+            'statusColor' => $statusData['color'],
+            'visit_date' => Carbon::parse($this->visit_date)->toDateString(),
+            'short_visit_date' => Carbon::parse($this->visit_date)->format('M-d'),
+            'start_time' => Carbon::parse($this->start_time)->format('H:i:s'),
+            'end_time' => Carbon::parse($this->end_time)->format('H:i:s'),
+            'actual_start_time' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('Y-m-d H:i:s') : '',
+            'actual_end_time' => $this->actual_end_date ? Carbon::parse($this->actual_end_date)->format('Y-m-d H:i:s') : '',
+            'actual_visit_date' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('Y-m-d') : '',
+            'actual_start_visit_time' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('H:i:s') : '',
+            'actual_end_visit_time' => $this->actual_end_date ? Carbon::parse($this->actual_end_date)->format('H:i:s') : '',
+            'notes' => (string) $this->notes,
+            'user_location_lat' => (string) $this->user_location_lat,
+            'user_location_lng' => (string) $this->user_location_lng,
         ];
-
-		if($this->type == 0)
-		{
-              $base = array_merge($base,['price' => $this->price]);
-		}
-		return $base;
     }
 
-
-   
+    public static function collection($resource)
+    {
+        return tap(new GlobalCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
+    }
 }

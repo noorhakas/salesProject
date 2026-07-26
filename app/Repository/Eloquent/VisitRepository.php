@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\Gift;
 use App\Models\Setting;
+use App\Http\Resources\API\VisitAccessoryResource;
 use App\Http\Resources\API\VisitDetailResource;
 use App\Http\Resources\API\VisitsResource;
 use App\Http\Resources\API\UserResource;
@@ -165,11 +166,11 @@ class VisitRepository implements VisitInterface
         );
 
         return [
-            'visit'           => new VisitsResource($visit),
-            'products'        => VisitDetailResource::collection($products),
-            'leaveBehind'     => VisitDetailResource::collection($leaveBehind),
-            'Gifts'           => VisitDetailResource::collection($gifts),
-            'AdditionalFiles' => VisitDetailResource::collection($additionalFiles),
+            'visit'           => new VisitDetailResource($visit),
+            'products'        => VisitAccessoryResource::collection($products),
+            'leaveBehind'     => VisitAccessoryResource::collection($leaveBehind),
+            'Gifts'           => VisitAccessoryResource::collection($gifts),
+            'AdditionalFiles' => VisitAccessoryResource::collection($additionalFiles),
         ];
     }
 
