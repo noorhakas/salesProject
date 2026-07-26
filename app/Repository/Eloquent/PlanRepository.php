@@ -75,8 +75,8 @@ class PlanRepository implements PlanInterface
         $userId = auth()->user()->id ?? 0;
         $visitList = collect($request->visit_list);
 
-     //   try {
-        //    DB::beginTransaction();
+        try {
+           DB::beginTransaction();
 
             $plan = $this->createPlan([
                 'min_date' => $visitList->min('visit_date'),
@@ -88,8 +88,8 @@ class PlanRepository implements PlanInterface
                 $this->upsertVisit($plan, $visit, $userId);
             }
 
-//            DB::commit();
-     /*   } catch (\Exception $e) {
+           DB::commit();
+        } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Plan creation failed: ' . $e->getMessage(), [
                 'user_id'   => $userId,
@@ -97,10 +97,10 @@ class PlanRepository implements PlanInterface
             ]);
 
             return $this->failure('server_error');
-        }*/
-     //    $this->notifications->sendNewPlanCreated($plan, auth()->user());
+        }
+        $this->notifications->sendNewPlanCreated($plan, auth()->user());
 
-      //  return ['status' => true, 'message' => trans('messages.plan_reviewed')];
+         return $this->success(new PlansResource($plan));
     }
 
     public function show($plan_id)
