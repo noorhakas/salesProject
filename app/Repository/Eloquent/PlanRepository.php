@@ -75,12 +75,23 @@ class PlanRepository implements PlanInterface
         $userId = auth()->user()->id ?? 0;
         $visitList = collect($request->visit_list);
 
+        $startDate = Carbon::parse($visitList->min('visit_date'))->toDateString();
+        $endDate   = Carbon::parse($visitList->max('visit_date'))->toDateString();
+
+
+        if ($this->hasOverlappingPlan($user, $startDate, $endDate)) {
+
+            return $this->failure(
+                'You already have a plan in this date range'
+            );
+        }
+
         try {
            DB::beginTransaction();
 
             $plan = $this->createPlan([
-                'min_date' => $visitList->min('visit_date'),
-                'max_date' => $visitList->max('visit_date'),
+                'min_date' => $startDate,
+                'max_date' => $endDate,
                 'type'     => 0,
             ]);
 
@@ -101,6 +112,24 @@ class PlanRepository implements PlanInterface
         $this->notifications->sendNewPlanCreated($plan, auth()->user());
 
          return $this->success(new PlansResource($plan));
+    }
+
+    private function hasOverlappingPlan($user, $startDate, $endDate): bool
+    {
+        return $user->plans()
+            ->where(function ($q) use ($startDate, $endDate) {
+
+                $q->whereBetween('min_date', [$startDate, $endDate])
+                ->orWhereBetween('max_date', [$startDate, $endDate])
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+
+                    $q->where('min_date', '<=', $startDate)
+                        ->where('max_date', '>=', $endDate);
+
+                });
+
+            })
+            ->exists();
     }
 
     public function show($plan_id)
