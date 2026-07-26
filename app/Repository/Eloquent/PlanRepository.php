@@ -59,7 +59,7 @@ class PlanRepository implements PlanInterface
     public function getALL($request)
     {
         $limit = $this->resolvePerPage($request);
-        $this->applyDefaultDateRange($request);
+       // $this->applyDefaultDateRange($request);
 
         $plans = Plan::select('plans.*')
             ->join('users', 'users.id', '=', 'plans.user_id')
@@ -242,7 +242,7 @@ class PlanRepository implements PlanInterface
     public function getManagerPlans($request, array $subordinateIds)
     {
         $limit = $this->resolvePerPage($request);
-        $this->applyDefaultDateRange($request);
+       // $this->applyDefaultDateRange($request);
 
        
 
