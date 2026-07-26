@@ -34,6 +34,7 @@ class UserResource extends JsonResource
 			'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
+            'role' => optional($this->userposition)->ps_key,
             'position' => optional($this->userposition)->only(['id','ps_key','name']),
             'branches' => $this->branches->map->only(['id', 'name'])->values(),
             'departments' => $this->departments->map->only(['id', 'name'])->values(),
