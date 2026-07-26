@@ -120,12 +120,12 @@ class PlanRepository implements PlanInterface
         return $user->plans()
             ->where(function ($q) use ($startDate, $endDate) {
 
-                $q->whereBetween('min_date', [$startDate, $endDate])
-                ->orWhereBetween('max_date', [$startDate, $endDate])
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
                 ->orWhere(function ($q) use ($startDate, $endDate) {
 
-                    $q->where('min_date', '<=', $startDate)
-                        ->where('max_date', '>=', $endDate);
+                    $q->where('start_date', '<=', $startDate)
+                        ->where('end_date', '>=', $endDate);
 
                 });
 
