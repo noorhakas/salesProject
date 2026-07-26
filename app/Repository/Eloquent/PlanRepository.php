@@ -72,6 +72,7 @@ class PlanRepository implements PlanInterface
 
     public function createNewPlan($request)
     {
+        $user = auth()->user();
         $userId = auth()->user()->id ?? 0;
         $visitList = collect($request->visit_list);
 
