@@ -4,6 +4,8 @@ namespace App\Http\Traits;
 use Illuminate\Support\Str;
 use Image, File;
 use Carbon\Carbon;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 trait ImageAttributes
 {
@@ -57,30 +59,22 @@ trait ImageAttributes
     }
 
 
-    // public function resizeImage( $path ,$photo, $filename  )
-    // {
-    //     $manager = new \Intervention\Image\ImageManager();
-    //     $image = $manager->make($photo)->save(storage_path('app/public/'.$path.'/' .$filename) ,40);
-    //     return $image;
-
-    // }
-
-   public function resizeImage($path, $photo, $filename)
+    public function resizeImage($path, $photo, $filename)
     {
-        $manager = new \Intervention\Image\ImageManager();
+        $manager = new ImageManager(new Driver());
         
         $width  = $this->imageWidth  ?? 1000;
         $height = $this->imageHeight ?? 1000;
 
-        $image = $manager->make($photo); 
+        $image = $manager->read($photo);
 
         if ($image->width() >= $width && $image->height() >= $height) {
-            $image->fit($width, $height);
+            $image->cover($width, $height); 
         } else {
-            $image->fit(min($image->width(), $width), min($image->height(), $height));
+            $image->cover(min($image->width(), $width), min($image->height(), $height));
         }
 
-        $image->save(storage_path('app/public/' . $path . '/' . $filename), 80);
+        $image->save(storage_path('app/public/' . $path . '/' . $filename), quality: 80);
 
         return $image;
     }
