@@ -48,8 +48,9 @@ class DatabaseSeeder extends Seeder
    //    $this->call(AssignPermissionsToUserSeeder::class);
 
 
-     $this->call(GiftSeeder::class);
-     $this->call(VisitDetailsSeeder::class);
+   //  $this->call(GiftSeeder::class);
+    // $this->call(VisitDetailsSeeder::class);
+     $this->call(UpdateAccountCoordinatesSeeder::class);
        
         
     }
