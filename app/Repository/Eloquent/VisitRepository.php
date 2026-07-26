@@ -200,12 +200,22 @@ class VisitRepository implements VisitInterface
 
     protected function getVisitItemList(Visit $visit, $type = 0)
     {
+        if ($type == 0) {
+            return VisitDetails::where('visit_id', $visit->id)
+                ->where('item_type', 0)
+                ->selectRaw('item_id as id, count_of_sample, 1 as checked')
+                ->get()
+                ->keyBy('id');
+        }
+
         return VisitDetails::with('gift')
-                ->where('visit_id', $visit->id)
-                ->where('item_type', 1)
-                ->whereHas('gift', function ($q) {
-                    $q->where('type', GiftTypeEnum::LeaveBehind);
-                })->get()
+            ->where('visit_id', $visit->id)
+            ->where('item_type', 1)
+            ->whereHas('gift', function ($q) use ($type) {
+                $q->where('type', $type);
+            })
+            ->selectRaw('item_id as id, count_of_sample, 1 as checked')
+            ->get()
             ->keyBy('id');
     }
 
