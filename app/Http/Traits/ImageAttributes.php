@@ -57,12 +57,32 @@ trait ImageAttributes
     }
 
 
-    public function resizeImage( $path ,$photo, $filename  )
+    // public function resizeImage( $path ,$photo, $filename  )
+    // {
+    //     $manager = new \Intervention\Image\ImageManager();
+    //     $image = $manager->make($photo)->save(storage_path('app/public/'.$path.'/' .$filename) ,40);
+    //     return $image;
+
+    // }
+
+   public function resizeImage($path, $photo, $filename)
     {
         $manager = new \Intervention\Image\ImageManager();
-        $image = $manager->make($photo)->save(storage_path('app/public/'.$path.'/' .$filename) ,40);
-        return $image;
+        
+        $width  = $this->imageWidth  ?? 1000;
+        $height = $this->imageHeight ?? 1000;
 
+        $image = $manager->make($photo); 
+
+        if ($image->width() >= $width && $image->height() >= $height) {
+            $image->fit($width, $height);
+        } else {
+            $image->fit(min($image->width(), $width), min($image->height(), $height));
+        }
+
+        $image->save(storage_path('app/public/' . $path . '/' . $filename), 80);
+
+        return $image;
     }
 
 
