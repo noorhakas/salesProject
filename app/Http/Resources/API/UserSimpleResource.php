@@ -34,6 +34,8 @@ class UserSimpleResource extends JsonResource
 			'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
 			'position' => optional($this->userposition)->only(['id','ps_key','name']),
+             'branches' => $this->branches->map->only(['id', 'name'])->values(),
+            'departments' => $this->departments->map->only(['id', 'name'])->values(),
              'attendance_status'=>[
                 'value'=>$attendance_status['status']->value,
                 'label'=>$attendance_status['status']->label(),
