@@ -17,5 +17,15 @@ class VisitDetails extends Model
 		else
 		 return $this->belongsTo(Gift::class ,'item_id','id');
     }
+
+	public function gift()
+{
+    return $this->belongsTo(Gift::class, 'item_id');
+}
+
+public function product()
+{
+    return $this->belongsTo(Product::class, 'item_id');
+}
 	
 }
