@@ -195,7 +195,7 @@ class VisitRepository implements VisitInterface
     {
         return Gift::selectRaw('id , name ,0 as count_of_sample , 0 as checked ,type')
             ->where('type', $type)
-            ->get();
+            ->get()->keyBy('id');
     }
 
     protected function getVisitItemList(Visit $visit, $type = 0)
@@ -208,8 +208,7 @@ class VisitRepository implements VisitInterface
                 ->keyBy('id');
         }
 
-        return VisitDetails::with('gift')
-            ->where('visit_id', $visit->id)
+        return VisitDetails::where('visit_id', $visit->id)
             ->where('item_type', 1)
             ->whereHas('gift', function ($q) use ($type) {
                 $q->where('type', $type);
