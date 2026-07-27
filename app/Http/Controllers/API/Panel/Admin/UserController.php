@@ -18,11 +18,13 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $limit = $request->filled('per_page') && is_numeric($request->per_page)
-            ? $request->per_page
+        $perPageInput = $request->get('per_page');
+
+        $limit = is_numeric($perPageInput)
+            ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
             : 20;
 
-        $users = User::filter($request)->where('is_admin',0)
+        $users = User::filter($request)->where('is_admin', 0)
             ->latest()
             ->paginate($limit);
 
