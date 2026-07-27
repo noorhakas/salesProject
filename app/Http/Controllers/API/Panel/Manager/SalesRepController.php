@@ -35,7 +35,8 @@ class SalesRepController extends Controller
 
         $limit = max((int) $request->input('per_page', 20), 1);
 
-        $reps = User::with('userposition')
+        $reps = User::with('userposition', 'branches:id,name',
+            'departments:id,name')
             ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', PositionKey::SALES_REP->value);
