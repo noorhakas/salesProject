@@ -22,7 +22,7 @@ class UserController extends Controller
             ? $request->per_page
             : 20;
 
-        $users = User::filter($request)
+        $users = User::filter($request)->where('is_admin',0)
             ->latest()
             ->paginate($limit);
 

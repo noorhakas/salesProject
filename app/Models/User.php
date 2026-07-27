@@ -163,18 +163,19 @@ class User extends Authenticatable
 	}
 
 
-	public function scopeFilter($q,$request)
-    { 
-		$q =$q->when($request->position_id,fn($q, $v) =>
-		       	$q->where('position', $v)) 
-		          ->when($request->search,fn($q, $v) => 
-                $q->where(function ($query) use ($v) {
-                    $query->orWhere('name', 'like', "%{$v}%")
-                        ->orWhere('email', 'like', "%{$v}%")
-                        ->orWhere('user_name', 'like', "%{$v}%");
-                }));
-
-        return $q;
+	public function scopeFilter($q, $request)
+    {
+        return $q
+            ->when($request->filled('position_id'), function ($q) use ($request) {
+                $q->where('position', $request->position_id);
+            })
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where(function ($query) use ($request) {
+                    $query->where('name', 'like', "%{$request->search}%")
+                        ->orWhere('email', 'like', "%{$request->search}%")
+                        ->orWhere('user_name', 'like', "%{$request->search}%");
+                });
+            });
     }
 
 }
