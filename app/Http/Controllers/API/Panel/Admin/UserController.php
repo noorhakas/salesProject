@@ -18,11 +18,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $perPageInput = $request->get('per_page');
-
-        $limit = is_numeric($perPageInput)
-            ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
-            : 20;
+        $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
 
         $users = User::filter($request)->where('is_admin', 0)
             ->latest()
