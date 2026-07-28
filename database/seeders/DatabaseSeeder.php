@@ -50,7 +50,8 @@ class DatabaseSeeder extends Seeder
 
    //  $this->call(GiftSeeder::class);
     // $this->call(VisitDetailsSeeder::class);
-     $this->call(UpdateAccountCoordinatesSeeder::class);
+    // $this->call(UpdateAccountCoordinatesSeeder::class);
+     $this->call(UserDepartmentSeeder::class);
        
         
     }
