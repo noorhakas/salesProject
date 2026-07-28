@@ -31,20 +31,23 @@ class UserController extends Controller
         );
     }
 
-    public function managers()
+    public function managers(Request $request)
     {
-        $managers = User::whereHas('userposition', function ($q) {
-            $q->where('parent_id', '!=', 0);
-        })
-        ->select('id', 'name')
-        ->get();
+        $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+
+        $users = User::filter($request)->where('is_admin', 0)
+                ->whereHas('userposition', function ($q) {
+                    $q->where('ps_key','!=', 'sales_rep');
+            })->latest()
+            ->paginate($limit);
 
         return $this->response_api(
             true,
             trans('messages.success'),
-            $managers
+            UserResource::collection($users)
         );
     }
+
 
     public function store(UserRequest $request)
     {

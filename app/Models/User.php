@@ -168,8 +168,11 @@ class User extends Authenticatable
         return $q
             ->when($request->filled('position_id'), function ($q) use ($request) {
                 $q->where('position', $request->position_id);
-            })
-            ->when($request->filled('search'), function ($q) use ($request) {
+            }) ->when($request->filled('position'), function ($q) use ($request) {
+                $q->whereHas('userposition', function ($q) use ($request) {
+                    $q->where('ps_key', $request->position);
+              });
+            })->when($request->filled('search'), function ($q) use ($request) {
                 $q->where(function ($query) use ($request) {
                     $query->where('name', 'like', "%{$request->search}%")
                         ->orWhere('email', 'like', "%{$request->search}%")
