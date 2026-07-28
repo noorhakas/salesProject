@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Panel\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\SupervisorSimpleResource;
+use App\Http\Resources\API\ManagerResource;
 use App\Http\Resources\API\SupervisorResource;
 use App\Http\Resources\API\UserDetailResource;
 use App\Models\User;
@@ -22,7 +22,7 @@ class ManagerController extends Controller
         return $this->response_api(
             true,
             trans('messages.success'),
-            SupervisorSimpleResource::collection(
+            ManagerResource::collection(
                 $this->managerRepository->managers($request)
             )
         );
@@ -37,7 +37,7 @@ class ManagerController extends Controller
             true,
             trans('messages.success'),
             [
-                'manager' => new SupervisorResource($result['manager']),
+                'manager' => new ManagerResource($result['manager']),
                 'sales_reps' => UserDetailResource::collection($result['sales_reps']),
             ]
         );
