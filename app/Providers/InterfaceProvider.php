@@ -31,7 +31,7 @@ class InterfaceProvider extends ServiceProvider
 		$this->app->bind(\App\Repository\Interfaces\CategoryInterface::class,\App\Repository\Eloquent\CategoryRepository::class);
 		$this->app->bind(\App\Repository\Interfaces\SalesInterface::class,\App\Repository\Eloquent\SalesRepository::class);
         $this->app->bind(\App\Repository\Interfaces\AttendanceInterface::class,\App\Repository\Eloquent\AttendanceRepository::class);
-
+        $this->app->bind(\App\Repository\Interfaces\SupervisorInterface::class,\App\Repository\Eloquent\SupervisorRepository::class);
     }
 
     /**

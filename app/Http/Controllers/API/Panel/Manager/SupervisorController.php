@@ -11,82 +11,50 @@ use App\Enums\PositionKey;
 use Illuminate\Http\Request;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
+use App\Repository\Interfaces\SupervisorInterface;
 
 class SupervisorController extends Controller
 {
-    public function statistics(){
-
-        $manager = $request->user();
- 
-        $statistics = app(AttendanceStatusService::class)->statistics(
-            User::query()
-                ->where('manager_id', $manager->id)
-                ->whereHas('userposition', fn ($q) => $q->where('ps_key', PositionKey::SUPERVISOR->value)),
-            Carbon::parse($request->date ?? today())
-        );
-
-        return $this->response_api(true,trans('messages.success'), $statistics);
+    public function __construct(
+        protected SupervisorInterface $supervisorRepository
+    ) {
     }
-    
+
+    public function statistics(Request $request)
+    {
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $this->supervisorRepository->statistics($request)
+        );
+    }
+
     public function supervisors(Request $request)
     {
-        $manager = $request->user();
-
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        $supervisors = User::with('userposition','branches:id,name',
-            'departments:id,name')
-            ->where('manager_id', $manager->id)
-            ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', PositionKey::SUPERVISOR->value);
-            })
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->search . '%');
-            })
-            ->filter($request)
-            ->latest()
-            ->paginate($limit);
-
-        return $this->response_api(true,trans('messages.success'),
-            SupervisorSimpleResource::collection($supervisors)
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            SupervisorSimpleResource::collection(
+                $this->supervisorRepository->supervisors($request)
+            )
         );
     }
 
     public function supervisorProfile(Request $request, User $supervisor)
     {
-        $manager = $request->user();
+        $result = $this->supervisorRepository
+            ->supervisorProfile($request, $supervisor);
 
-        if (
-            $supervisor->id !== $manager->id &&
-            ! in_array($supervisor->id, $manager->getAllSubordinateIds())
-        ) {
-            return $this->response_api(
-                false,
-                trans('messages.permission_denied')
-            );
+        if (! $result['status']) {
+            return $this->response_api(false, $result['message']);
         }
-
-        $supervisor->load('userposition','branches:id,name',
-            'departments:id,name');
-
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        $reps = User::with('userposition','branches:id,name',
-            'departments:id,name')
-            ->whereIn('id', $supervisor->getAllSubordinateIds())
-            ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', PositionKey::SALES_REP->value);
-            })
-            ->filter($request)
-            ->latest()
-            ->paginate($limit);
 
         return $this->response_api(
             true,
             trans('messages.success'),
             [
-                'supervisor' => new SupervisorResource($supervisor),
-                'sales_reps' => UserDetailResource::collection($reps),
+                'supervisor' => new SupervisorResource($result['supervisor']),
+                'sales_reps' => UserDetailResource::collection($result['sales_reps']),
             ]
         );
     }
