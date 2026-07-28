@@ -27,7 +27,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::resource('users', 'UserController')->except(['edit', 'create']);
     Route::resource('roles', 'RoleController')->except(['edit', 'create']);;
     Route::get('permissions', 'RoleController@allPermissions');
-	Route::get('managers', 'UserController@managers');
+	Route::get('managers', 'ManagerController@index');
 
 
 

@@ -8,6 +8,8 @@ use App\Http\Requests\API\UserRequest;
 use App\Http\Imports\UserCustomerImport;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\AdminResource;
+use App\Http\Resources\API\ManagerResource;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,22 +33,6 @@ class UserController extends Controller
         );
     }
 
-    public function managers(Request $request)
-    {
-        $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
-
-        $users = User::filter($request)->where('is_admin', 0)
-                ->whereHas('userposition', function ($q) {
-                    $q->where('ps_key','!=', 'sales_rep');
-            })->latest()
-            ->paginate($limit);
-
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            UserResource::collection($users)
-        );
-    }
 
 
     public function store(UserRequest $request)
