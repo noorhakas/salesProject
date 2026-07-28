@@ -3,41 +3,43 @@
 namespace App\Http\Controllers\API\Panel\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\ManagerResource;
-
+use App\Http\Resources\API\SupervisorSimpleResource;
+use App\Http\Resources\API\SupervisorResource;
+use App\Http\Resources\API\UserDetailResource;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Repository\Interfaces\ManagerInterface;
 
 class ManagerController extends Controller
 {
-   
+    public function __construct(
+        protected ManagerInterface $managerRepository
+    ) {
+    }
 
     public function index(Request $request)
     {
-        $limit = max((int) $request->input('per_page', 20), 1);
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            SupervisorSimpleResource::collection(
+                $this->managerRepository->managers($request)
+            )
+        );
+    }
 
-        $managers = User::with([
-                'userposition:id,id,ps_key,name',
-                'branches:id,name',
-                'departments:id,name',
-            ])
-            ->where('is_admin', 0)
-            ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', '!=', 'sales_rep');
-            })
-            ->filter($request)
-            ->latest()
-            ->paginate($limit);
+    
+    public function show(Request $request, User $manager)
+    {
+        $result = $this->managerRepository->managerProfile($request, $manager);
 
         return $this->response_api(
             true,
             trans('messages.success'),
-            ManagerResource::collection($managers)
+            [
+                'manager' => new SupervisorResource($result['manager']),
+                'sales_reps' => UserDetailResource::collection($result['sales_reps']),
+            ]
         );
     }
-
-
 }
