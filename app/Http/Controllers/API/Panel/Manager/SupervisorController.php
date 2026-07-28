@@ -34,7 +34,8 @@ class SupervisorController extends Controller
 
         $limit = max((int) $request->input('per_page', 20), 1);
 
-        $supervisors = User::with('userposition')
+        $supervisors = User::with('userposition','branches:id,name',
+            'departments:id,name')
             ->where('manager_id', $manager->id)
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', PositionKey::SUPERVISOR->value);

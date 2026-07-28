@@ -25,8 +25,8 @@ class SupervisorResource extends JsonResource
             'whatsapp' => $this->whatsapp ?? '',
             'status'        => $this->status,
             'position' => optional($this->userposition)->only(['id','ps_key','name',]),
-            'branches' => $this->branches->map->only(['id', 'name'])->values(),
-            'departments' => $this->departments->map->only(['id', 'name'])->values(),
+           'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
+           'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
             'attendance_status'=>[
                 'value'=>$attendance_status['status']->value,
                 'label'=>$attendance_status['status']->label(),
