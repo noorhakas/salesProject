@@ -11,9 +11,6 @@ class ManagerRepository implements ManagerInterface
 {
     public function managers(Request $request)
     {
-        // Same per_page=-1 => "fetch (almost) everything" pattern used elsewhere
-        // in the admin panel, fixed to avoid the "limit missing / offset only"
-        // SQL syntax error you hit before.
         $perPageInput = $request->get('per_page');
         $limit = is_numeric($perPageInput)
             ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
@@ -26,8 +23,6 @@ class ManagerRepository implements ManagerInterface
             ])
             ->where('is_admin', 0)
             ->whereHas('userposition', fn ($q) =>
-                // TODO: swap for PositionKey::MANAGER if "Manager" is its own
-                // enum case distinct from SUPERVISOR in your app.
                 $q->where('ps_key', PositionKey::SUPERVISOR->value)
             )
             ->when($request->filled('search'), fn ($q) =>
