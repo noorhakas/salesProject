@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Enums\PositionKey;
 use Illuminate\Http\Request;
 
-class ManagerRepository implements ManagerInterface
+class ManagersRepository implements ManagerInterface
 {
     public function managers(Request $request)
     {

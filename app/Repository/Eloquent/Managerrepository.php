@@ -40,7 +40,7 @@ class ManagerRepository implements ManagerInterface
             'branches:id,name',
             'departments:id,name',
         ]);
-
+sssssssss
         $perPageInput = $request->get('per_page');
         $limit = is_numeric($perPageInput)
             ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
