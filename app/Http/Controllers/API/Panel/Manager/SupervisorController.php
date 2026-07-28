@@ -66,6 +66,9 @@ class SupervisorController extends Controller
             );
         }
 
+        $supervisor->load('userposition','branches:id,name',
+            'departments:id,name');
+
         $limit = max((int) $request->input('per_page', 20), 1);
 
         $reps = User::with('userposition','branches:id,name',
