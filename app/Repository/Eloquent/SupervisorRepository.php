@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Enums\PositionKey;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class SupervisorRepository implements SupervisorInterface
 {
