@@ -4,6 +4,7 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Services\AttendanceStatusService;
+use App\Http\Resources\GlobalCollection;
 
 class SupervisorSimpleResource extends JsonResource
 {
@@ -34,4 +35,13 @@ class SupervisorSimpleResource extends JsonResource
             'total_users'   => count($this->getAllSubordinateIds()),
         ];
     }
+
+    public static function collection($resource)
+    {
+        return tap(new GlobalCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
+   }
 }
