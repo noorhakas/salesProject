@@ -39,8 +39,8 @@ class UserResource extends JsonResource
            'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
            'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
-			'access_all_data'=>$this->access_all_data,
-			'DeviceToken'=>$this->DeviceToken,
+			// 'access_all_data'=>$this->access_all_data,
+			// 'DeviceToken'=>$this->DeviceToken,
 
         ];
 

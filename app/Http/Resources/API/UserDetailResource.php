@@ -40,8 +40,8 @@ class UserDetailResource extends JsonResource
             'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
             'position' => optional($this->userposition)->only(['id', 'ps_key', 'name']),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
-			'access_all_data'=>$this->access_all_data,
-			'DeviceToken'=>$this->DeviceToken,
+			// 'access_all_data'=>$this->access_all_data,
+			// 'DeviceToken'=>$this->DeviceToken,
 
         ];
 
