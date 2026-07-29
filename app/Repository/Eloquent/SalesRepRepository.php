@@ -65,13 +65,6 @@ class SalesRepRepository implements SalesRepInterface
             ];
         }
 
-        if (optional($salesRep->userposition)->ps_key !== PositionKey::SALES_REP->value) {
-            return [
-                'status' => false,
-                'message' => trans('messages.permission_denied'),
-            ];
-        }
-
         $salesRep->load([
             'userposition',
             'branches:id,name',
