@@ -53,11 +53,6 @@ class SalesRepository implements SalesInterface
         }
 
 
-    /* Product::select('products.id', 'products.name','products.price',
-            \DB::raw('COALESCE(sales.unit, 0) as unit'),
-             \DB::raw('COALESCE(sales.price, products.price) as sale_price'),
-              \DB::raw('COALESCE(sales.total_price, 0) as total_price')) 
-              */
     public function getUserProductsWithSales($accountId)
     {
         $userId = auth()->id();

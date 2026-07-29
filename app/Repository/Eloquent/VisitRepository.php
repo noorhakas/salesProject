@@ -261,11 +261,14 @@ class VisitRepository implements VisitInterface
 
     public function createUnplannedVisit($request)
     {
-        $currentPlanId = User::getCurrentPlan()?->id;
+         $currentPlan = User::getCurrentPlan();
+          if (!$currentPlan) {
+                return $this->failure(__('messages.no_active_plan'));
+            }
         $visitDate = Carbon::now()->toDateString();
 
         $attributes = [
-            'plan_id'     => $currentPlanId,
+            'plan_id'     => $currentPlan->id,
             'user_id'     => auth()->user()->id,
             'account_id'  => $request->account_id,
             'customer_id' => $request->doctor_id ?? 0,

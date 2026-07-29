@@ -5,13 +5,10 @@ namespace App\Http\Controllers\API\Panel\Manager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Sale;
 use App\Models\Visit;
-use App\Models\Branch;
-use App\Models\Department;
 use App\Models\Plan;
 use App\Enums\StatusEnum;
-use App\Enums\UserPositionEnum;
+use App\Enums\PositionKey;
 use App\Enums\PlanStatusEnum;
 use App\Http\Controllers\Controller;
 
@@ -20,24 +17,12 @@ class ManagerController extends Controller
     public function statisctics(Request $request)
     {
         $manager = $request->user();
-        $today   = Carbon::today()->toDateString();
+        $today = Carbon::today()->toDateString();
 
         $subordinateIds = $this->getFilteredSubordinateIds($manager, $request);
 
-        $branches = Branch::whereHas('users', function ($q) use ($subordinateIds) {
-                $q->whereIn('users.id', $subordinateIds);
-            })
-            ->get(['id', 'name']);
-
-        $departments = Department::whereHas('users', function ($q) use ($subordinateIds) {
-                $q->whereIn('users.id', $subordinateIds);
-            })
-            ->when($request->filled('branch_id'), function ($q) use ($request) {
-                $q->whereHas('branches', function ($branch) use ($request) {
-                    $branch->where('branches.id', $request->branch_id);
-                });
-            })
-            ->get(['id', 'name']);
+        $branches = $manager->branches()->count();
+        $departments = $manager->departments()->count();
 
         $teamOverview = $this->buildTeamOverview($subordinateIds, $branches, $departments);
 
@@ -51,16 +36,23 @@ class ManagerController extends Controller
         );
     }
 
-    private function buildTeamOverview(array $subordinateIds, $branches, $departments): array
+    private function buildTeamOverview(array $subordinateIds, int $branches, int $departments): array
     {
         $totalSalesReps = User::whereIn('id', $subordinateIds)
-            ->where('position', UserPositionEnum::MedicalRep)
-            ->count();
+            ->whereHas('userposition', fn($q) =>
+                    $q->where('ps_key', PositionKey::SALES_REP->value)
+                )->count();
+
+        $totalSupervisor = User::whereIn('id', $subordinateIds)
+            ->whereHas('userposition', fn($q) =>
+                    $q->where('ps_key', PositionKey::SUPERVISOR->value)
+                )->count();        
 
         $activeReps = User::whereIn('id', $subordinateIds)
             ->where('status', StatusEnum::Active)
-            ->where('position', UserPositionEnum::MedicalRep)
-            ->count();
+             ->whereHas('userposition', fn($q) =>
+                    $q->where('ps_key', PositionKey::SALES_REP->value)
+                )->count();
 
         $absentReps = max(0, $totalSalesReps - $activeReps);
 
@@ -71,12 +63,11 @@ class ManagerController extends Controller
         return [
             'pending_plans'    => $pendingPlans,
             'total_sales_reps' => $totalSalesReps,
+            'total_supervisor'  => $totalSupervisor,
             'active_reps'      => $activeReps,
             'absent_reps'      => $absentReps,
-            'total_branch'     => $branches->count(),
-            'total_department' => $departments->count(),
-            'branches'         => $branches,
-            'departments'      => $departments,
+            'total_branch'     => $branches,
+            'total_department' => $departments,
         ];
     }
 
