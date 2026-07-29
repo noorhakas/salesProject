@@ -12,4 +12,8 @@ interface SupervisorInterface
     public function supervisors(Request $request);
 
     public function supervisorProfile(Request $request, User $supervisor);
+    
+    public function supervisorSalesRep(Request $request, User $supervisor);
+
+    
 }

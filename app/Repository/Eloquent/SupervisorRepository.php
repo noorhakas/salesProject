@@ -52,6 +52,22 @@ class SupervisorRepository implements SupervisorInterface
     {
         $manager = $request->user();
 
+        $supervisor->load([
+            'userposition',
+            'branches:id,name',
+            'departments:id,name',
+        ]);
+
+        return [
+            'status' => true,
+            'supervisor' => $supervisor,
+        ];
+    }
+
+    public function supervisorSalesRep(Request $request, User $supervisor)
+    {
+        $manager = $request->user();
+
         if (
             $supervisor->id !== $manager->id &&
             ! in_array($supervisor->id, $manager->getAllSubordinateIds())
@@ -61,12 +77,6 @@ class SupervisorRepository implements SupervisorInterface
                 'message' => trans('messages.permission_denied'),
             ];
         }
-
-        $supervisor->load([
-            'userposition',
-            'branches:id,name',
-            'departments:id,name',
-        ]);
 
         $limit = max((int) $request->input('per_page', 20), 1);
 
@@ -85,7 +95,6 @@ class SupervisorRepository implements SupervisorInterface
 
         return [
             'status' => true,
-            'supervisor' => $supervisor,
             'sales_reps' => $reps,
         ];
     }

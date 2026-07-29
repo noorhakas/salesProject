@@ -54,6 +54,24 @@ class SupervisorController extends Controller
             trans('messages.success'),
             [
                 'supervisor' => new SupervisorResource($result['supervisor']),
+            ]
+        );
+    }
+
+
+    public function supervisorSalesPeo(Request $request, User $supervisor)
+    {
+        $result = $this->supervisorRepository
+            ->supervisorSalesRep($request, $supervisor);
+
+        if (! $result['status']) {
+            return $this->response_api(false, $result['message']);
+        }
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            [
                 'sales_reps' => UserDetailResource::collection($result['sales_reps']),
             ]
         );

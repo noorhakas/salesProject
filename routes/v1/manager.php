@@ -24,6 +24,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
       
        Route::get('supervisors', 'SupervisorController@supervisors');
        Route::get('supervisors/{supervisor}/profile', 'SupervisorController@supervisorProfile');
+       Route::get('supervisors/{supervisor}/salesrep', 'SupervisorController@supervisorSalesPeo');
+       
        Route::get('supervisor_attendance_statistics', 'SupervisorController@statistics');
 
        Route::get('sales_reps', 'SalesRepController@getReps');
