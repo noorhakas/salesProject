@@ -93,8 +93,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
         Route::post('all_user_visit','VisitsController@UserVisits');
 		Route::post('whole_user_visits','VisitsController@getAllUserVisits');
 		Route::get("/{id}", 'VisitsController@show');
-		Route::post('create_unplanned_visit','VisitsController@createUnplannedVisit');
-		Route::post('savevisit','VisitsController@store');
 		Route::post('visit-charts', 'VisitsController@visitCharts');
 		Route::post('user-visit-statictics', 'VisitsController@userVisitStatictics');
         Route::post('user-visit-sales-statictics', 'VisitsController@userVisitSalesStatictics');
@@ -116,8 +114,10 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 	Route::resource('gifts', 'GiftController')->except(['edit', 'create']);
        
 
-
-	
+     Route::prefix('/notifications')->group(function () {
+		Route::get('/','NotificationController@notificationListing');
+		Route::get('badge-reset','NotificationController@notificationBadgeReset');
+	});
 	
 
         Route::prefix('/sales')->group(function () {
