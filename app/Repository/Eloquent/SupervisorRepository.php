@@ -82,8 +82,8 @@ class SupervisorRepository implements SupervisorInterface
 
         $reps = User::with([
                 'userposition',
-                'branches:id,name',
-                'departments:id,name',
+              //  'branches:id,name',
+              //  'departments:id,name',
             ])
             ->whereIn('id', $supervisor->getAllSubordinateIds())
             ->whereHas('userposition', fn($q) =>
