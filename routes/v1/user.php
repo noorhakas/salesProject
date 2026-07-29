@@ -50,14 +50,14 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
       });
 
 
-
-
-
-      
-
       Route::prefix('/notifications')->group(function () {
             Route::get('/','NotificationController@notificationListing');
             Route::get('badge-reset','NotificationController@notificationBadgeReset');
+      });
+
+      Route::prefix('/sales')->group(function () {
+         Route::post('save_user_sales', 'SalesController@storeUserSales');
+         
       });
 
 
