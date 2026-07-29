@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API\Panel\Manager;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\API\SupervisorSimpleResource;
 use App\Http\Resources\API\SupervisorResource;
-use App\Http\Resources\API\UserDetailResource;
+use App\Http\Resources\API\SalesRepProfileResource;
 use App\Models\User;
 use App\Enums\PositionKey;
 use Illuminate\Http\Request;
@@ -72,7 +72,7 @@ class SupervisorController extends Controller
             true,
             trans('messages.success'),
             [
-                'sales_reps' => UserDetailResource::collection($result['sales_reps']),
+                'sales_reps' => SalesRepProfileResource::collection($result['sales_reps']),
             ]
         );
     }
