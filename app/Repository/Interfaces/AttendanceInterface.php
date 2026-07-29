@@ -2,13 +2,19 @@
 
 namespace App\Repository\Interfaces;
 
+use App\Models\User;
+use Illuminate\Http\Request;
+
 interface AttendanceInterface
 {
-    public function checkIn(int $userId, array $data): array;
+   
+    public function storeAttendance(User $user, Request $request);
 
-    public function checkOut(int $userId, array $data): array;
+    public function getTodayAttendanceStatus(User $user): array;
 
-    public function getUserAttendance($request, ?int $userId = null): array;
+    public function attendanceLog(User $user, Request $request);
 
     public function show(int $attendanceId): array;
+
+    
 }

@@ -79,7 +79,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::resource('setting', 'SettingController')->only(['index', 'store']);
   
 
-
+   ###attendance
+	Route::get('attendance/daily-summary', 'AttendanceController@dailySummary');
    
 
 
