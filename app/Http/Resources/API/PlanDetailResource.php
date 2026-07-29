@@ -26,7 +26,7 @@ class PlanDetailResource extends JsonResource
         return [
             'id'             => $this->id,
             'plan_code'      => '#' . $this->Uuid,
-            'user' => new UserSimpleResource($this->user),
+            'user' => new SalesRepProfileResource($this->user),
             'type'           => $this->type == 1 ? 'monthly' : 'weekly',
             'start_date'     => Carbon::parse($this->start_date)->toDateString(),
             'end_date'       => Carbon::parse($this->end_date)->toDateString(),

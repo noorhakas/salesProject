@@ -288,7 +288,7 @@ class PlanRepository implements PlanInterface
     public function showForManager($plan_id, array $subordinateIds)
     {
         try {
-            $plan = $plan = Plan::with(['user.branches','user.departments',
+            $plan = $plan = Plan::with(['user.branches:id,name','user.departments:id,name','user.manager:id,name',
                                 'user.userposition'])->whereIn('user_id', $subordinateIds)->find($plan_id);
 
             if (!$plan) {
