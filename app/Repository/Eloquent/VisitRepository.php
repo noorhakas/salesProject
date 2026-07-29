@@ -113,6 +113,9 @@ class VisitRepository implements VisitInterface
 
         $visits = $this->joinAccountsAndCustomers(
                 Visit::select('visits.*')->whereIn('visits.user_id', $subordinateIds)
+                 ->when($request->filled('user_id'), function ($query) use ($request) {
+                    $query->where('visits.user_id', $request->user_id);
+                })
             )
             ->filter($request)
             ->orderBy('visits.created_at', 'DESC')
