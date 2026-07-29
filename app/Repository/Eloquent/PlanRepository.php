@@ -288,7 +288,8 @@ class PlanRepository implements PlanInterface
     public function showForManager($plan_id, array $subordinateIds)
     {
         try {
-            $plan = Plan::whereIn('user_id', $subordinateIds)->find($plan_id);
+            $plan = $plan = Plan::with(['user.branches','user.departments',
+                                'user.userposition'])->whereIn('user_id', $subordinateIds)->find($plan_id);
 
             if (!$plan) {
                 return $this->failure('data_not_found');
