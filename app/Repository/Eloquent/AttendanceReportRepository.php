@@ -22,22 +22,12 @@ class AttendanceReportRepository implements AttendanceReportInterface
             ? (int) $request->per_page
             : 10;
 
-        // Base set of employees this report covers.
         $employeesQuery = User::query()->where('is_admin', 0);
-
-        // TODO: wire up the real relation once you confirm it, e.g.:
-        // ->when($request->filled('project_id'), fn ($q) =>
-        //     $q->whereHas('assignments', fn ($q2) =>
-        //         $q2->where('project_id', $request->project_id)
-        //     )
-        // )
 
         $totalEmployees = (clone $employeesQuery)->count();
 
         $employeeIds = (clone $employeesQuery)->pluck('id');
 
-        // One query for every attendance record on that date, keyed by user
-        // so we don't hit the DB per employee.
         $attendancesByUser = Attendance::whereDate('attendance_date', $date)
             ->whereIn('user_id', $employeeIds)
             ->get()
@@ -51,8 +41,6 @@ class AttendanceReportRepository implements AttendanceReportInterface
             ->map(function (User $user) use ($attendancesByUser) {
                 $attendance = $attendancesByUser->get($user->id);
 
-                // No attendance record for the day => treated as Absent,
-                // same as the reference report.
                 $status = $attendance?->status ?? AttendanceStatusEnum::ABSENT;
 
                 return [
