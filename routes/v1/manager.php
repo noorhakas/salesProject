@@ -29,7 +29,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
        Route::get('supervisor_attendance_statistics', 'SupervisorController@statistics');
 
        Route::get('sales_reps', 'SalesRepController@getReps');
-       Route::get('sales_reps/{rep}/profile', 'SalesRepController@getReps');
+       Route::get('sales_reps/{rep}/profile', 'SalesRepController@profile');
        Route::get('salesrep_attendance_statistics', 'SalesRepController@statistics');
        
        Route::get('attendances', 'AttendanceController@index');
