@@ -58,9 +58,6 @@ class SalesRepRepository implements SalesRepInterface
 
         $subordinateIds = $manager->getAllSubordinateIds();
 
-        print_r($subordinateIds);
-        print_r($salesRep->id);
-        dd('');
         if (! in_array($salesRep->id, $subordinateIds)) {
             return [
                 'status' => false,
