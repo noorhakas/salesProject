@@ -45,4 +45,18 @@ enum AttendanceStatusEnum: int
             self::HOLDON                     => '#EAB308', // Yellow
         };
     }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::PRESENT                    => "\u{2705}", // ?
+            self::HOLIDAY                    => "\u{1F389}", // ??
+            self::ABSENT                      => "\u{1F6AB}", // ??
+            self::LEAVE_EARLY                 => "\u{21A9}\u{FE0F}", // ??
+            self::LATE_ARRIVAL                => "\u{23F0}", // ?
+            self::LATE_ARRIVAL_LEAVE_EARLY    => "\u{26A0}\u{FE0F}", // ??
+            self::WEEKEND                      => "\u{1F3E0}", // ??
+            self::LEAVE                       => "\u{26A0}\u{FE0F}", // ??
+        };
+    }
 }
