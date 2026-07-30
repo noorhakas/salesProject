@@ -19,7 +19,6 @@ class CustomerSimpleResource extends JsonResource
             'id'                 => $this->id,
             'name'               => $this->name,
             'image'              => $this->image,
-            'created_at'         => Carbon::parse($this->created_at)->toDateTimeString(),
         ];
     }
 
