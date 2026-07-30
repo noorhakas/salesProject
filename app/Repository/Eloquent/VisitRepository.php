@@ -124,13 +124,12 @@ class VisitRepository implements VisitInterface
         return $this->success(VisitsResource::collection($visits));
     }
 
-    /**
-     * Manager equivalent of getvisitDtail: only returns the visit if it
-     * belongs to one of the manager's subordinates.
-     */
+   
     public function showVisitForManager($id, array $subordinateIds)
     {
-        $visit = Visit::whereIn('user_id', $subordinateIds)->find($id);
+        $visit = Visit::whereIn('user_id', $subordinateIds)
+            ->with('user:id,name', 'doubleVisit:id,name', 'account:id,name', 'customer:id,name,image')
+            ->find($id);
 
         if (!$visit) {
             return $this->failure('data_not_found');
@@ -139,11 +138,7 @@ class VisitRepository implements VisitInterface
         return $this->success($this->buildVisitDetailData($visit));
     }
 
-    /**
-     * Builds the "visit detail" payload (visit + products / leave-behind /
-     * gifts / additional files) shared by both the rep-facing and
-     * manager-facing detail endpoints.
-     */
+   
     protected function buildVisitDetailData(Visit $visit): array
     {
         $visit->load('user:id,name','doubleVisit:id,name','account:id,name','customer:id,name,image');
