@@ -146,6 +146,7 @@ class VisitRepository implements VisitInterface
      */
     protected function buildVisitDetailData(Visit $visit): array
     {
+        $visit->load('user:id,name','doubleVisit:id,name','account:id,name','customer:id,name,image');
         $user = User::find($visit->user_id);
 
         $products = $this->mergeDataById(

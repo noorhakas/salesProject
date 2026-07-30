@@ -33,9 +33,8 @@ class VisitsResource extends JsonResource
             'account_id' => $this->account ? $this->account->id : 0,
             'account' => $this->account ? $this->account->name : '',
             'brick' => $this->account ? optional($this->account->brick)->name : '',
-            'user_name' => optional($this->user)->name,
-            'combine_with' => $this->combine_with ?? 0,
-            'combine_user_name' => optional($this->doubleVisit)->name,
+            'user' => new UserShortDetailResource($this->whenLoaded('user')),
+            'combine_with_user' => new UserShortDetailResource($this->whenLoaded('doubleVisit')),
             'type' => ($this->type == 1) ? 'unplanned' : 'planned',
             'plan_code' => optional($this->plan)->Uuid,
             'status' => $this->status,
@@ -50,9 +49,7 @@ class VisitsResource extends JsonResource
             'actual_visit_date' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('Y-m-d') : '',
             'actual_start_visit_time' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('H:i:s') : '',
             'actual_end_visit_time' => $this->actual_end_date ? Carbon::parse($this->actual_end_date)->format('H:i:s') : '',
-            'notes' => (string) $this->notes,
-            'user_location_lat' => (string) $this->user_location_lat,
-            'user_location_lng' => (string) $this->user_location_lng,
+           
         ];
     }
 

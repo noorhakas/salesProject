@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Enums\VisitStatusEnum;
 
-class VisitDetailResource extends JsonResource
+class VisitsResource extends JsonResource
 {
     public function __construct($resource)
     {
@@ -25,13 +25,16 @@ class VisitDetailResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'customer' => new CustomerResource($this->customer),
+            'customer' => $this->customer ? [
+                'id' => $this->customer->id,
+                'name' => $this->customer->name,
+                'image' => $this->customer->image,
+            ] : null,
             'account_id' => $this->account ? $this->account->id : 0,
             'account' => $this->account ? $this->account->name : '',
             'brick' => $this->account ? optional($this->account->brick)->name : '',
-            'user' => new UserSimpleResource($this->whenLoaded('user')),
-            'combine_with_user' => new UserSimpleResource($this->whenLoaded('doubleVisit')),
-            'combine_with' => $this->combine_with ?? 0,
+            'user' => new UserShortDetailResource($this->whenLoaded('user')),
+            'combine_with_user' => new UserShortDetailResource($this->whenLoaded('doubleVisit')),
             'type' => ($this->type == 1) ? 'unplanned' : 'planned',
             'plan_code' => optional($this->plan)->Uuid,
             'status' => $this->status,
