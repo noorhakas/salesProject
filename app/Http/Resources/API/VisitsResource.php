@@ -25,14 +25,10 @@ class VisitsResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'customer' => $this->customer ? [
-                'id' => $this->customer->id,
-                'name' => $this->customer->name,
-                'image' => $this->customer->image,
-            ] : null,
+            'customer' => new CustomerSimpleResource($this->whenLoaded('customer')),
             'account_id' => $this->account ? $this->account->id : 0,
             'account' => $this->account ? $this->account->name : '',
-            'brick' => $this->account ? optional($this->account->brick)->name : '',
+           // 'brick' => $this->account ? optional($this->account->brick)->name : '',
             'user' => new UserShortDetailResource($this->whenLoaded('user')),
             'combine_with_user' => new UserShortDetailResource($this->whenLoaded('doubleVisit')),
             'type' => ($this->type == 1) ? 'unplanned' : 'planned',
