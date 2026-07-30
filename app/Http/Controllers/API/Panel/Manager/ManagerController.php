@@ -104,7 +104,7 @@ class ManagerController extends Controller
             ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date = ? THEN 1 ELSE 0 END) as active', [$today])
             ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date > ? THEN 1 ELSE 0 END) as remaining', [$today])
             ->selectRaw('SUM(CASE WHEN status = 5 OR (status = 0 AND visit_date < ?) THEN 1 ELSE 0 END) as missed', [$today])
-            ->selectRaw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as completed')
+            ->selectRaw('SUM(CASE WHEN status = 2 AND visit_date = ? THEN 1 ELSE 0 END) as completed', [$today])
             ->first();
 
         return [

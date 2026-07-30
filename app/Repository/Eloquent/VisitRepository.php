@@ -403,7 +403,7 @@ class VisitRepository implements VisitInterface
             ->where('visits.status', VisitStatusEnum::Visited)
             ->groupBy('users.id', 'users.name')
             ->orderByDesc('visit_count')
-            ->limit(3)
+            ->limit(10)
             ->get();
 
         return $this->success($charts);
