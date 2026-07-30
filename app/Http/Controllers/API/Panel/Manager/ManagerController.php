@@ -89,21 +89,46 @@ class ManagerController extends Controller
             ->toArray();
     }
 
+
+     private function visitsOverview(array $userIds, string $today): array
+    {
+        if (empty($userIds)) {
+            return [
+                'all'     => 0,
+                'pending' => 0,
+                'visited' => 0,
+            ];
+        }
+ 
+        $row = Visit::whereIn('user_id', $userIds)
+            ->selectRaw('SUM(CASE WHEN visit_date = ? THEN 1 ELSE 0 END) as all_count', [$today])
+            ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date = ? THEN 1 ELSE 0 END) as pending_count', [$today])
+            ->selectRaw('SUM(CASE WHEN status = 2 AND visit_date = ? THEN 1 ELSE 0 END) as visited_count', [$today])
+            ->first();
+ 
+        return [
+            'all'     => (int) $row->all_count,
+            'pending' => (int) $row->pending_count,
+            'visited' => (int) $row->visited_count,
+        ];
+    }
+    /*
     private function visitsOverview(array $userIds, string $today): array
     {
         if (empty($userIds)) {
             return [
-                'active_visit'     => 0,
-                'remaing_vists'    => 0,
-                'missed_visits'    => 0,
+                'all_visit'     => 0,
+                'pending_vists'    => 0,
+              //  'missed_visits'    => 0,
                 'completed_visits' => 0,
             ];
         }
 
         $row = Visit::whereIn('user_id', $userIds)
             ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date = ? THEN 1 ELSE 0 END) as active', [$today])
-            ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date > ? THEN 1 ELSE 0 END) as remaining', [$today])
-            ->selectRaw('SUM(CASE WHEN status = 5 OR (status = 0 AND visit_date < ?) THEN 1 ELSE 0 END) as missed', [$today])
+            ->selectRaw('SUM(CASE WHEN  visit_date = ? THEN 1 ELSE 0 END) as total', [$today])
+           // ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date > ? THEN 1 ELSE 0 END) as remaining', [$today])
+          //  ->selectRaw('SUM(CASE WHEN status = 5 OR (status = 0 AND visit_date < ?) THEN 1 ELSE 0 END) as missed', [$today])
             ->selectRaw('SUM(CASE WHEN status = 2 AND visit_date = ? THEN 1 ELSE 0 END) as completed', [$today])
             ->first();
 
@@ -113,5 +138,5 @@ class ManagerController extends Controller
             'missed_visits'    => (int) $row->missed,
             'completed_visits' => (int) $row->completed,
         ];
-    }
+    }*/
 }
