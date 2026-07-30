@@ -40,6 +40,11 @@ class VisitsResource extends JsonResource
             'short_visit_date' => Carbon::parse($this->visit_date)->format('M-d'),
             'start_time' => Carbon::parse($this->start_time)->format('H:i:s'),
             'end_time' => Carbon::parse($this->end_time)->format('H:i:s'),
+            'actual_start_time' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('Y-m-d H:i:s') : '',
+            'actual_end_time' => $this->actual_end_date ? Carbon::parse($this->actual_end_date)->format('Y-m-d H:i:s') : '',
+            'actual_visit_date' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('Y-m-d') : '',
+            'actual_start_visit_time' => $this->actual_start_date ? Carbon::parse($this->actual_start_date)->format('H:i:s') : '',
+            'actual_end_visit_time' => $this->actual_end_date ? Carbon::parse($this->actual_end_date)->format('H:i:s') : '',
            
         ];
     }
