@@ -67,7 +67,7 @@ class UserSeeder extends Seeder
                 'position'        => $areaManager->id,
                 'access_all_data' => 1,
                 'manager_id'      => null,
-                'is_admin'        =>1,
+                'is_admin'        => 1,
             ]
         );
 
@@ -79,7 +79,7 @@ class UserSeeder extends Seeder
         |--------------------------------------------------------------------------
         | Regional Area Managers - split branches into 2 regions.
         | Each manager's departments = union of departments in their region.
-        | Emails are simple sequential numbers: manager1@gmail.com, manager2@gmail.com...
+        | First manager: manager@gmail.com (no number). Rest: manager2, manager3...
         |--------------------------------------------------------------------------
         */
 
@@ -89,8 +89,6 @@ class UserSeeder extends Seeder
 
         foreach ($branchChunks as $regionIndex => $regionBranches) {
             $n = $regionIndex + 1;
-            // first manager: no number suffix (manager@gmail.com),
-            // subsequent ones: manager2@gmail.com, manager3@gmail.com...
             $suffix = $n === 1 ? '' : (string) $n;
 
             $regionBranchNames = $regionBranches->pluck('name')->implode(', ');
@@ -120,14 +118,16 @@ class UserSeeder extends Seeder
         /*
         |--------------------------------------------------------------------------
         | Supervisors + Sales Reps - one supervisor per (branch, department)
-        | pair, plus a few sales reps under each. This guarantees every branch
-        | AND every department-in-that-branch actually has users, nothing is
-        | left empty.
+        | pair, plus 3 sales reps under each. This guarantees every branch AND
+        | every department-in-that-branch actually has users, nothing empty.
+        | Each supervisor reports to their region's manager; each sales rep
+        | reports to their own supervisor.
         |
-        | Emails are simple sequential numbers (supervisor1@gmail.com,
-        | sales1@gmail.com, sales2@gmail.com...) - the branch/department
-        | detail lives in `name`/`user_name` instead, since there are many
-        | branch/department combinations and long emails aren't needed.
+        | IMPORTANT: the "first one has no number" rule is driven by the
+        | GLOBAL counters ($supervisorCounter / $salesCounter), not by the
+        | department's position inside its branch - otherwise every branch's
+        | first department would collide on the same email
+        | (supervisor@gmail.com) and overwrite each other via updateOrCreate.
         |--------------------------------------------------------------------------
         */
 
@@ -139,16 +139,15 @@ class UserSeeder extends Seeder
             $manager = $region['manager'];
 
             foreach ($region['branches'] as $branch) {
-                foreach ($branch->departments as $deptIndex => $department) {
+                foreach ($branch->departments as $department) {
                     $supervisorCounter++;
-                     $y = $deptIndex + 1;
-                     $sup_suffix = $y === 1 ? '' : (string) $y;
+                    $supSuffix = $supervisorCounter === 1 ? '' : (string) $supervisorCounter;
 
                     $supervisorUser = User::updateOrCreate(
-                        ['email' => "supervisor{$sup_suffix}@gmail.com"],
+                        ['email' => "supervisor{$supSuffix}@gmail.com"],
                         [
                             'name'            => "Supervisor - {$department->name} ({$branch->name})",
-                            'user_name'       => "supervisor{$supervisorCounter}",
+                            'user_name'       => "supervisor{$supSuffix}",
                             'password'        => $this->password,
                             'phone'           => $this->fakePhone('0103', $supervisorCounter),
                             'whatsapp'        => $this->fakePhone('0103', $supervisorCounter),
@@ -165,11 +164,13 @@ class UserSeeder extends Seeder
                     // 3 sales reps under this supervisor, same branch + department
                     for ($i = 1; $i <= 3; $i++) {
                         $salesCounter++;
+                        $salesSuffix = $salesCounter === 1 ? '' : (string) $salesCounter;
+
                         $rep = User::updateOrCreate(
-                            ['email' => "sales{$salesCounter}@gmail.com"],
+                            ['email' => "sales{$salesSuffix}@gmail.com"],
                             [
                                 'name'            => "Sales Rep - {$department->name} ({$branch->name})",
-                                'user_name'       => "sales{$salesCounter}",
+                                'user_name'       => "sales{$salesSuffix}",
                                 'password'        => $this->password,
                                 'phone'           => $this->fakePhone('0104', $salesCounter),
                                 'whatsapp'        => $this->fakePhone('0104', $salesCounter),
