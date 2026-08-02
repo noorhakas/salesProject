@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\API\UserSimpleResource;
 use App\Http\Resources\API\ProductResource;
 use App\Http\Resources\API\SupervisorSimpleResource;
+use App\Http\Resources\API\DepartmentSimpleResource;
 use App\Models\Branch;
 use App\Models\Department;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class DepartmentController extends Controller
             trans('messages.success'),
             [
                 'department_name'  => $department->name,
-                'branch_name'      => $branch->name,
+                'branch'      => new DepartmentSimpleResource($branch),
                 'product_count'    => $department->products_count,
                 'sales_rep_count'  => (int) ($counts->sales_rep_count ?? 0),
                 'supervisor_count' => (int) ($counts->supervisor_count ?? 0),
