@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\API\Panel\User\AttendanceController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -59,6 +59,10 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::post('save_user_sales', 'SalesController@storeUserSales');
          
       });
+
+       Route::post('attendance',[AttendanceController::class,'storeAttendance'])->name('users.attendance');
+       Route::get('attendance-today-status',[AttendanceController::class,'todayAttendanceStatus'])->name('users.attendance-today-status');
+        
 
 
       
