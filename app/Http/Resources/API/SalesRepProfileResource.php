@@ -40,7 +40,7 @@ class SalesRepProfileResource extends JsonResource
             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
             'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
             'position' => optional($this->userposition)->only(['id','ps_key','name']),
-            'supervisor_name'=> UserShortDetailResource::collection($this->whenLoaded('manager')), //optional($this->manager)->name,
+            'supervisor' => new UserShortDetailResource($this->whenLoaded('manager')),
              'attendance_status'=>[
                 'value'=>$attendance_status['status']->value,
                 'label'=>$attendance_status['status']->label(),
@@ -54,12 +54,12 @@ class SalesRepProfileResource extends JsonResource
 		return $base;
     }
 
-// 	public static function collection($resource)
-//     {
-//         return tap(new GlobalCollection($resource, static::class), function ($collection) {
-//             if (property_exists(static::class, 'preserveKeys')) {
-//                 $collection->preserveKeys = (new static([]))->preserveKeys === true;
-//             }
-//         });
-//    }
+	public static function collection($resource)
+    {
+        return tap(new GlobalCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
+   }
 }
