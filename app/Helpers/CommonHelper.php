@@ -96,19 +96,7 @@ function pushCurlCall($registrationId, $fields)
         return data_get($settings, $key, $default);
     }
 
-    function is_weekly_off_day(Carbon $date): bool
-    {
-        $offDays = setting('weekly_off_days', []);
-
-        if (empty($offDays)) {
-            return false;
-        }
-
-        $currentDay = DayOffEnum::fromCarbon($date->dayOfWeek)->value;
-
-        return in_array($currentDay, array_map('intval', $offDays), true);
-    }
-
+  
 
 
 ?>

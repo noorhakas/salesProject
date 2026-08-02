@@ -2,7 +2,7 @@
 
 namespace App\Repository\Eloquent;
 
-use App\Repository\Interfaces\V1\AttendanceInterface;
+use App\Repository\Interfaces\AttendanceInterface;
 use App\Models\Attendance;
 use App\Models\AttendanceDetail;
 use App\Models\User;
@@ -155,15 +155,13 @@ class AttendanceRepository implements AttendanceInterface
             ->whereDate('attendance_date', Carbon::today())
             ->first();
 
-        $shift = $user->shift ?? null;
-
         return [
             'checked_in'      => !is_null($attendance?->clock_in),
             'checked_out'     => !is_null($attendance?->clock_out),
             'clock_in'        => $attendance?->clock_in,
             'clock_out'       => $attendance?->clock_out,
-            'shift_clock_in'  => $shift?->time_from,
-            'shift_clock_out' => $shift?->time_to,
+            'shift_clock_in'  => setting('shift_time_from'),
+            'shift_clock_out' => setting('shift_time_to'),
         ];
     }
 
