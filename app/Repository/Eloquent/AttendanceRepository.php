@@ -73,9 +73,9 @@ class AttendanceRepository implements AttendanceInterface
             Cache::put($cacheKey, $attempts + 1, now()->addMinutes($lockMinutes));
         }
 
-        DB::beginTransaction();
+       /* DB::beginTransaction();
 
-        try {
+        try {*/
             $today = Carbon::today()->toDateString();
 
             $attendance = Attendance::where('user_id', $user->id)
@@ -133,7 +133,7 @@ class AttendanceRepository implements AttendanceInterface
                 Cache::forget("biometric_attempts:user:{$user->id}:device:{$request->device_id}");
             }
 
-            DB::commit();
+        /*    DB::commit();
 
             return 'success';
         } catch (\Throwable $e) {
@@ -145,7 +145,7 @@ class AttendanceRepository implements AttendanceInterface
             ]);
 
             return 'failed';
-        }
+        }*/
     }
 
  
