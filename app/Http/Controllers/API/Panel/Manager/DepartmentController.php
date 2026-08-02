@@ -58,7 +58,7 @@ class DepartmentController extends Controller
                 'product_count'    => $department->products_count,
                 'sales_rep_count'  => (int) ($counts->sales_rep_count ?? 0),
                 'supervisor_count' => (int) ($counts->supervisor_count ?? 0),
-                'supervisors'      => new SupervisorSimpleResource($supervisor),
+                'supervisor'      => new SupervisorSimpleResource($supervisor),
             ]
         );
     }
