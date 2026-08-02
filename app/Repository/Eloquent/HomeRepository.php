@@ -66,10 +66,10 @@ class HomeRepository implements HomeInterface
 
 			'total_customers' => Customer::count(),
 
-			'total_visits' => Visit::has('plan')->whereDate('actual_start_date', $currentDate)
+			'total_current_visits' => Visit::has('plan')->whereDate('actual_start_date', $currentDate)
 				->where('status', 2)->count(),
 
-			'total_plans' => Plan::has('user')->whereDate('start_date', '<=', $currentDate)
+			'total_current_plans' => Plan::has('user')->whereDate('start_date', '<=', $currentDate)
 				->where('end_date', '>=', $currentDate)->where('status', 1)->count(),
 		];
 	}
