@@ -21,8 +21,8 @@ class ManagerController extends Controller
 
         $subordinateIds = $this->getFilteredSubordinateIds($manager, $request);
 
-        $branches = $manager->branches()->count();
-        $departments = $manager->departments()->count();
+        $branches = $this->countFilteredBranches($manager, $request);
+        $departments = $this->countFilteredDepartments($manager, $request);
 
         $teamOverview = $this->buildTeamOverview($subordinateIds, $branches, $departments);
 
@@ -34,6 +34,37 @@ class ManagerController extends Controller
                 'visits_overview' => $this->visitsOverview($subordinateIds, $today),
             ]
         );
+    }
+
+    private function countFilteredBranches(User $manager, Request $request): int
+    {
+        if ($request->filled('branch_id')) {
+            return $manager->branches()->whereKey($request->branch_id)->exists() ? 1 : 0;
+        }
+
+        if ($request->filled('department_id')) {
+            return $manager->branches()
+                ->whereHas('departments', function ($q) use ($request) {
+                    $q->where('departments.id', $request->department_id);
+                })
+                ->count();
+        }
+
+        return $manager->branches()->count();
+    }
+
+    private function countFilteredDepartments(User $manager, Request $request): int
+    {
+        return $manager->departments()
+            ->when($request->filled('branch_id'), function ($q) use ($request) {
+                $q->whereHas('branches', function ($b) use ($request) {
+                    $b->where('branches.id', $request->branch_id);
+                });
+            })
+            ->when($request->filled('department_id'), function ($q) use ($request) {
+                $q->whereKey($request->department_id);
+            })
+            ->count();
     }
 
     private function buildTeamOverview(array $subordinateIds, int $branches, int $departments): array
