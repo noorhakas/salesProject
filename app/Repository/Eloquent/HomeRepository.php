@@ -12,7 +12,7 @@ use App\Models\SiteLog;
 use App\Http\Resources\API\PlansResource;
 use App\Http\Resources\API\VisitsResource;
 use App\Http\Resources\API\LogsResource;
-use App\Enums\UserPositionEnum;
+use App\Enums\PositionKey;
 use Carbon\Carbon;
 
 class HomeRepository implements HomeInterface
@@ -45,11 +45,11 @@ class HomeRepository implements HomeInterface
 		   $currentDate = Carbon::today();
 
 			return [
-				 "total_users"=> User::selectRaw('count(*) as user_count')->where('position','!=',UserPositionEnum::MedicalRep)->where('status',1)->first()?->user_count,
-                                  "total_medicalrep"=> User::selectRaw('count(*) as medicalrep_count')->where('position',UserPositionEnum::MedicalRep)->where('status',1)->first()?->medicalrep_count,
+				 "total_users"=> User::selectRaw('count(*) as user_count')->where('position','!=',PositionKey::SALES_REP)->where('status',1)->first()?->user_count,
+                  "total_medicalrep"=> User::selectRaw('count(*) as medicalrep_count')->where('position',PositionKey::SALES_REP)->where('status',1)->first()?->medicalrep_count,
 				 "total_products"=> Product::selectRaw('count(*) as product_count')->first()?->product_count,
 				 "total_current_plans"=> Plan::has('user')->selectRaw('count(*) as plan_count')->whereDate('plans.start_date', '<=', $currentDate)->where('plans.end_date','>=',$currentDate)->where('plans.status',1)->first()?->plan_count,
-			          "total_current_visits"=> Visit::has('plan')->selectRaw('count(*) as visit_count')->whereDate('visits.actual_start_date',$currentDate)->where('visits.status',2)->first()?->visit_count,
+			     "total_current_visits"=> Visit::has('plan')->selectRaw('count(*) as visit_count')->whereDate('visits.actual_start_date',$currentDate)->where('visits.status',2)->first()?->visit_count,
 				];
 	  }
 
