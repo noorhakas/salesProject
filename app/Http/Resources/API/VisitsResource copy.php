@@ -32,7 +32,6 @@ class VisitsResource extends JsonResource
             ] : null,
             'account_id' => $this->account ? $this->account->id : 0,
             'account' => $this->account ? $this->account->name : '',
-            'brick' => $this->account ? optional($this->account->brick)->name : '',
             'user' => new UserShortDetailResource($this->whenLoaded('user')),
             'combine_with_user' => new UserShortDetailResource($this->whenLoaded('doubleVisit')),
             'type' => ($this->type == 1) ? 'unplanned' : 'planned',
