@@ -16,7 +16,7 @@ class AssignPermissionsToUserSeeder extends Seeder
     public function run()
     {
         // user رقم 1
-        $user = User::find(1);
+        $user = User::find(93);
 
         if (!$user) {
             $this->command->error('User not found!');
