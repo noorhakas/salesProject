@@ -57,7 +57,7 @@ class VisitRepository implements VisitInterface
         }
 
         $visits = $this->joinAccountsAndCustomers($plan->visits())
-            ->select('visits.*')
+            ->select('visits.*')->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->filter($request)
             ->paginate($limit);
 
@@ -82,7 +82,7 @@ class VisitRepository implements VisitInterface
         }
 
         $visits = $this->joinAccountsAndCustomers($plan->visits())
-            ->select('visits.*')
+            ->select('visits.*')->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->filter($request)
             ->paginate($limit);
 
