@@ -50,12 +50,6 @@ class Plan extends Model
         return $number;
     }
 
-    /**
-     * Total number of days the plan spans, counting both start_date and
-     * end_date (e.g. Mon -> Mon = 1 day, Mon -> Tue = 2 days).
-     * +1 over diffInDays() because diffInDays() only counts the gap
-     * between the two dates, not the dates themselves.
-     */
     public function getTotalDaysAttribute(): int
     {
         $startDate = Carbon::parse($this->start_date);
@@ -64,11 +58,7 @@ class Plan extends Model
         return $startDate->diffInDays($endDate) + 1;
     }
 
-    /**
-     * Count of this plan's visits that were actually completed
-     * (VisitStatusEnum::Visited). Triggers a query — see the note on
-     * $appends above before adding this to $appends.
-     */
+   
     public function getTotalVisitsAttribute(): int
     {
         return (int) $this->visits()
@@ -96,33 +86,23 @@ class Plan extends Model
         return $this->hasMany(PlanStatus::class);
     }
 
-    /**
-     * Filters plans by search term / date range / owner / status.
-     *
-     * The `status` param accepts both real DB statuses (Pending, Accepted,
-     * Rejected) and the computed, date-derived ones used by PlansResource
-     * (Completed, Upcoming, In Progress) — see PlanStatusEnum for the
-     * full mapping. Keeping both sides on the same enum constants means
-     * a filter value here always means the same thing as the badge the
-     * user sees on a plan in PlansResource.
-     */
+   
     public function scopeFilter($q, $request)
-    {
-        // status=0 ("Pending") is also PHP's falsy default, so an explicit
-        // "-1" sentinel is used to distinguish "filter by Pending" from
-        // "no status filter was sent".
-        $status = isset($request->status) && $request->status == "0" ? "-1" : $request->status;
+{
+    $q = $q
+        ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
+        ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+        ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
+        ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+        ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
+        ->when(
+            isset($request->status) && $request->status !== '',
+            function ($q) use ($request) {
+                $status = (int) $request->status;
 
-        $q = $q
-            ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
-            ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-            ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
-            ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-            ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
-            ->when($status, function ($q) use ($status) {
-                switch ((int) $status) {
+                switch ($status) {
                     case PlanStatusEnum::Completed:
-                        // Explicitly marked completed, OR its window has
+                       
                         // simply passed regardless of stored status.
                         $q->where(function ($q) {
                             $q->where('plans.status', PlanStatusEnum::Completed)
@@ -149,8 +129,9 @@ class Plan extends Model
                         $q->where('plans.status', $status);
                         break;
                 }
-            });
+            }
+        );
 
-        return $q;
-    }
+    return $q;
+}
 }
