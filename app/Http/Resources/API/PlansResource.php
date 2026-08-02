@@ -32,42 +32,13 @@ class PlansResource extends JsonResource
             'end_date'       => Carbon::parse($this->end_date)->toDateString(),
             'total_days'     => $this->total_days,
             'Is_recent'      => Carbon::parse($this->end_date) >= Carbon::today(),
-            'status'         => $status,
-            'statusAsString' => $statusAsString,
+            'status'         => $this->display_status,
+            'statusAsString' => $this->display_status_as_string,
             'total_visit'    => $this->total_visits,
         ];
     }
 
-    /**
-     * The stored `status` (Pending / Accepted / Rejected) isn't always
-    */
-    protected function resolveDisplayStatus(): array
-    {
-        $today = Carbon::now()->toDateString();
-        $startDate = Carbon::parse($this->start_date)->toDateString();
-        $endDate = Carbon::parse($this->end_date)->toDateString();
-
-        if ((int) $this->status === PlanStatusEnum::Accepted) {
-            if ($startDate <= $today && $endDate >= $today) {
-                return [PlanStatusEnum::InProgress, PlanStatusEnum::toString(PlanStatusEnum::InProgress)];
-            }
-
-            if ($endDate < $today) {
-                return [PlanStatusEnum::Completed, PlanStatusEnum::toString(PlanStatusEnum::Completed)];
-            }
-
-            if ($startDate > $today) {
-                return [PlanStatusEnum::Upcoming, PlanStatusEnum::toString(PlanStatusEnum::Upcoming)];
-            }
-        }
-
-        // Pending or Rejected: still shown as "Completed" once the plan's
-        if ($endDate < $today && (int) $this->status !== PlanStatusEnum::Rejected) {
-            return [PlanStatusEnum::Completed, PlanStatusEnum::toString(PlanStatusEnum::Completed)];
-        }
-
-        return [$this->status, PlanStatusEnum::toString($this->status)];
-    }
+  
 
     public static function collection($resource)
     {
