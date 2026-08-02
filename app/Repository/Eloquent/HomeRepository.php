@@ -8,12 +8,15 @@ use App\Models\Plan;
 use App\Models\Visit;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Account;
+use App\Models\Customer;
 use App\Models\SiteLog;
 use App\Http\Resources\API\PlansResource;
 use App\Http\Resources\API\VisitsResource;
 use App\Http\Resources\API\LogsResource;
 use App\Enums\PositionKey;
 use Carbon\Carbon;
+
 
 class HomeRepository implements HomeInterface
 {
@@ -40,18 +43,38 @@ class HomeRepository implements HomeInterface
 		return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
 	  }
 
+	  protected function statistics()
+	{
+		$currentDate = Carbon::today();
 
-	  protected function statistics(){
-		   $currentDate = Carbon::today();
+		return [
+			'total_admin' => User::where('is_admin', 1)->where('status', 1)->count(),
 
-			return [
-				 "total_users"=> User::selectRaw('count(*) as user_count')->where('position','!=',PositionKey::SALES_REP)->where('status',1)->first()?->user_count,
-                  "total_medicalrep"=> User::selectRaw('count(*) as medicalrep_count')->where('position',PositionKey::SALES_REP)->where('status',1)->first()?->medicalrep_count,
-				 "total_products"=> Product::selectRaw('count(*) as product_count')->first()?->product_count,
-				 "total_current_plans"=> Plan::has('user')->selectRaw('count(*) as plan_count')->whereDate('plans.start_date', '<=', $currentDate)->where('plans.end_date','>=',$currentDate)->where('plans.status',1)->first()?->plan_count,
-			     "total_current_visits"=> Visit::has('plan')->selectRaw('count(*) as visit_count')->whereDate('visits.actual_start_date',$currentDate)->where('visits.status',2)->first()?->visit_count,
-				];
-	  }
+			'total_managers' => User::where('is_admin', '!=', 1)
+				->whereHas('userposition', fn ($q) =>
+					$q->where('ps_key','!=', PositionKey::SALES_REP->value)
+				)->where('status', 1)->count(),
+
+			'total_salesrep' => User::where('is_admin', '!=', 1)
+				->whereHas('userposition', fn ($q) =>
+					$q->where('ps_key', PositionKey::SALES_REP->value)
+				)->where('status', 1)->count(),
+
+			'total_products' => Product::count(),
+
+			'total_accounts' => Account::count(),
+
+			'total_customers' => Customer::count(),
+
+			'total_visits' => Visit::has('plan')->whereDate('actual_start_date', $currentDate)
+				->where('status', 2)->count(),
+
+			'total_plans' => Plan::has('user')->whereDate('start_date', '<=', $currentDate)
+				->where('end_date', '>=', $currentDate)->where('status', 1)->count(),
+		];
+	}
+
+	 
 
 	  public function getAllLogs(){
 
