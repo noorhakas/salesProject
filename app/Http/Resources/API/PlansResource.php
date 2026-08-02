@@ -21,7 +21,6 @@ class PlansResource extends JsonResource
      */
     public function toArray($request)
     {
-        [$status, $statusAsString] = $this->resolveDisplayStatus();
 
         return [
             'id'             => $this->id,
