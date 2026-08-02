@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\API\DepartmentResource;
 use App\Http\Resources\API\UserSimpleResource;
 use App\Http\Resources\API\SupervisorSimpleResource;
+use App\Http\Resources\API\BranchResource;
 use App\Http\Resources\API\ProductResource;
 use App\Models\Branch;
 use App\Models\Department;
@@ -65,41 +66,46 @@ class BranchController extends Controller
         $manager = $request->user();
 
         if (! $manager->branches()->whereKey($branch->id)->exists()) {
-            return $this->response_api(false,trans('messages.permission_denied') );
+            return $this->response_api(false, trans('messages.permission_denied'));
         }
 
         $subordinateIds = $manager->getAllSubordinateIds();
 
         $branch->loadCount('departments');
 
-        $branchManager = $branch->users()->with('userposition')
+        $branchManager = $branch->users()
+            ->with('userposition')
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', 'area_manager');
-            })->first();
+            })
+            ->first();
 
-        $supervisors = $branch->users()->with('userposition')->whereIn('users.id', $subordinateIds)
+        $supervisors = $branch->users()
+            ->with('userposition')
+            ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', 'supervisor');
-            })->get();
+            })
+            ->get();
 
-        $salesRepCount = $branch->users()->whereIn('users.id', $subordinateIds)
+        $salesRepCount = $branch->users()
+            ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', 'sales_rep');
-            })->count();
+            })
+            ->count();
 
-        return $this->response_api(true,trans('messages.success'),
+        return $this->response_api(
+            true,
+            trans('messages.success'),
             [
-                'branch' => [
-                    'id'   => $branch->id,
-                    'name' => $branch->name,
-                ],
-
+                'branch'           => new BranchResource($branch),
                 'supervisor_count' => $supervisors->count(),
-                'sales_rep_count' => $salesRepCount,
+                'sales_rep_count'  => $salesRepCount,
                 'department_count' => $branch->departments_count,
 
                 'area_manager' => $branchManager ? new UserSimpleResource($branchManager) : null,
-                'supervisors' => SupervisorSimpleResource::collection($supervisors),
+                'supervisors'  => SupervisorSimpleResource::collection($supervisors),
             ]
         );
     }
