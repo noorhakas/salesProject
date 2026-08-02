@@ -557,7 +557,7 @@ class VisitRepository implements VisitInterface
             ->when($startDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '>=', $v))
             ->when($endDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '<=', $v))
             ->when($request->get('user_id'), fn ($q, $v) => $q->where('visits.user_id', $v))
-            ->where('visits.status', 2)
+            ->where('visits.status', 2)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->orderBy('visits.created_at', 'DESC')
             ->paginate($limit);
 
