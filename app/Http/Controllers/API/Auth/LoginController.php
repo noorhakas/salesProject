@@ -30,7 +30,7 @@ class LoginController extends Controller
 			if(isset($request->DeviceToken) && !empty($request->DeviceToken))
 			    $user->update(['DeviceToken'=>$request->DeviceToken ,'DeviceType'=>$request->DeviceType]);
 
-	    $user->load(['departments:id,name','departments.branches:id,name']);
+	    $user->load(['departments:id,name','branches:id,name']);
 
 			return $this->response_api(true,trans('messages.success'),['accessToken' => $user->createToken('accessToken')->plainTextToken ,'user' =>new UserResource($user)]);
         }
