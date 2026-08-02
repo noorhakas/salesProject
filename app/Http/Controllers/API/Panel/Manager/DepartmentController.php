@@ -14,57 +14,53 @@ class DepartmentController extends Controller
 {
     
 
-    public function show(Request $request, Branch $branch, Department $department)
-{
-    $manager = $request->user();
+   public function show(Request $request, Branch $branch, Department $department)
+    {
+        $manager = $request->user();
 
-    if (! $manager->branches()->whereKey($branch->id)->exists()) {
-        return $this->response_api(false, trans('messages.permission_denied'));
+        if (! $manager->branches()->whereKey($branch->id)->exists()) {
+            return $this->response_api(false, trans('messages.permission_denied'));
+        }
+
+        if (! $branch->departments()->whereKey($department->id)->exists()) {
+            return $this->response_api(false, trans('messages.permission_denied'));
+        }
+
+        $subordinateIds = $manager->getAllSubordinateIds();
+
+        $department->loadCount('products');
+
+        $counts = $department->users()
+            ->whereIn('users.id', $subordinateIds)
+            ->join('positions', 'users.position', '=', 'positions.id')
+            ->whereIn('positions.ps_key', ['supervisor', 'sales_rep'])
+            ->selectRaw("
+                SUM(CASE WHEN positions.ps_key = 'supervisor' THEN 1 ELSE 0 END) as supervisor_count,
+                SUM(CASE WHEN positions.ps_key = 'sales_rep' THEN 1 ELSE 0 END) as sales_rep_count
+            ")
+            ->first();
+
+        $supervisors = $department->users()
+            ->with('userposition')
+            ->whereIn('users.id', $subordinateIds)
+            ->whereHas('userposition', function ($q) {
+                $q->where('ps_key', 'supervisor');
+            })
+            ->get();
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            [
+                'department_name'  => $department->name,
+                'branch_name'      => $branch->name,
+                'product_count'    => $department->products_count,
+                'sales_rep_count'  => (int) ($counts->sales_rep_count ?? 0),
+                'supervisor_count' => (int) ($counts->supervisor_count ?? 0),
+                'supervisors'      => SupervisorSimpleResource::collection($supervisors),
+            ]
+        );
     }
-
-    if (! $branch->departments()->whereKey($department->id)->exists()) {
-        return $this->response_api(false, trans('messages.permission_denied'));
-    }
-
-    $subordinateIds = $manager->getAllSubordinateIds();
-
-    $department->loadCount('products');
-
-    $supervisors = $department->users()
-        ->with('userposition')
-        ->whereIn('users.id', $subordinateIds)
-        ->whereHas('userposition', function ($q) {
-            $q->where('ps_key', 'supervisor');
-        })
-        ->get();
-
-    $salesRepCount = $department->users()
-        ->whereIn('users.id', $subordinateIds)
-        ->whereHas('userposition', function ($q) {
-            $q->where('ps_key', 'sales_rep');
-        })
-        ->count();
-
-    return $this->response_api(
-        true,
-        trans('messages.success'),
-        [
-            'department' => [
-                'id' => $department->id,
-                'name' => $department->name,
-                'branch_name'=>$branch->name
-            ],
-
-            'supervisor_count' => $supervisors->count(),
-
-            'sales_rep_count' => $salesRepCount,
-
-            'product_count' => $department->products_count,
-
-            'supervisors' => SupervisorSimpleResource::collection($supervisors),
-        ]
-    );
-}
 
     public function departmentSalesReps(Request $request, Branch $branch, Department $department)
     {
