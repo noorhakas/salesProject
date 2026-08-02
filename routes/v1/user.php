@@ -62,7 +62,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
        Route::post('attendance',[AttendanceController::class,'storeAttendance'])->name('users.attendance');
        Route::get('attendance-today-status',[AttendanceController::class,'todayAttendanceStatus'])->name('users.attendance-today-status');
-        
+       Route::get('attendance_log',[AttendanceController::class,'getAttendanceLog'])->name('users.attendance_log');
+ 
 
 
       

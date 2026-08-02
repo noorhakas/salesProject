@@ -5,22 +5,23 @@ namespace App\Http\Controllers\API\Panel\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\AttendanceRequest;
 use Illuminate\Http\Request;
+use App\Http\Resources\API\AttendanceResource;
 use App\Repository\Interfaces\AttendanceInterface;
 
 class AttendanceController extends Controller
 {
-    protected AttendanceInterface $attendance;
+    protected AttendanceInterface $attendanceRepo;
 
-    public function __construct(AttendanceInterface $attendance)
+    public function __construct(AttendanceInterface $attendanceRepo)
     {
-        $this->attendance = $attendance;
+        $this->attendanceRepo = $attendanceRepo;
     }
 //AttendanceRequest
       public function storeAttendance(Request $request)
     {
         $user = $request->user();
 
-        $result = $this->attendance->storeAttendance($user, $request);
+        $result = $this->attendanceRepo->storeAttendance($user, $request);
 
         return match ($result) {
             'already_checked_in'   => $this->response_api(false, __('attendance.already_checked_in')),
@@ -39,13 +40,19 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
 
-        $result = $this->attendance->getTodayAttendanceStatus($user);
+        $result = $this->attendanceRepo->getTodayAttendanceStatus($user);
 
         return $this->response_api(true, 'Attendance status', $result);
     }
-    public function index(\Illuminate\Http\Request $request)
+
+    public function getAttendanceLog(Request $request)
     {
-        $response = $this->attendance->getUserAttendance($request, auth()->id());
-        return $this->SendResponse($response);
+        $user = $request->user();
+
+        $attendance = $this->attendanceRepo->attendanceLog($user, $request);
+
+        $data = AttendanceResource::collection($attendance);
+
+        return $this->response_api(true, trans('messages.success'), $data);
     }
 }

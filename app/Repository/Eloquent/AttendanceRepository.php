@@ -126,12 +126,6 @@ class AttendanceRepository implements AttendanceInterface
                 return 'must_check_in_first';
             }
 
-
-            if ($attendance->clock_out) {
-                return 'already_checked_out';
-            }
-
-
             $status = $this->calculationService->getStatus(
                 $user->id,
                 $today,
