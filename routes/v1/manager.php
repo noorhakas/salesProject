@@ -33,7 +33,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
        Route::get('salesrep_attendance_statistics', 'SalesRepController@statistics');
        
        Route::get('attendances', 'AttendanceController@index');
-
+      
+      Route::get('/departments', 'DepartmentController@myDepartments');
 
 
     Route::prefix('branches')->group(function () {

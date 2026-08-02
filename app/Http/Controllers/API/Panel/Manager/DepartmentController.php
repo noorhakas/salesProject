@@ -14,6 +14,32 @@ use Illuminate\Http\Request;
 class DepartmentController extends Controller
 {
     
+    public function myDepartments(Request $request)
+    {
+        $user = $request->user();
+
+        $userBranchIds = $user->branches()->pluck('branches.id');
+
+        $departments = $user->departments()
+            ->with(['branches' => function ($q) use ($userBranchIds) {
+                $q->whereIn('branches.id', $userBranchIds);
+            }])
+            ->get()
+            ->map(function ($department) {
+                $branch = $department->branches->first();
+
+                return [
+                    'id'     => $department->id,
+                    'name'   => $department->name,
+                    'branch' => $branch ? [
+                        'id'   => $branch->id,
+                        'name' => $branch->name,
+                    ] : null,
+                ];
+            });
+
+        return $this->response_api(true, trans('messages.success'), $departments);
+    }
 
    public function show(Request $request, Branch $branch, Department $department)
     {
