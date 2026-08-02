@@ -71,9 +71,8 @@ class SupervisorController extends Controller
         return $this->response_api(
             true,
             trans('messages.success'),
-            [
-                'sales_reps' => SalesRepProfileResource::collection($result['sales_reps']),
-            ]
+            SalesRepProfileResource::collection($result['sales_reps']),
+            
         );
     }
 }
