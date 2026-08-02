@@ -40,7 +40,7 @@ class SalesRepProfileResource extends JsonResource
             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
             'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
             'position' => optional($this->userposition)->only(['id','ps_key','name']),
-            'supervisor_name'=>optional($this->manager)->name,
+            'supervisor_name'=> UserShortDetailResource::collection($this->whenLoaded('manager')), //optional($this->manager)->name,
              'attendance_status'=>[
                 'value'=>$attendance_status['status']->value,
                 'label'=>$attendance_status['status']->label(),
