@@ -59,8 +59,8 @@ class DatabaseSeeder extends Seeder
 
     $this->call(PlanSeeder::class);
      $this->call(VisitSeeder::class);
-     $this->call(UserAccountSeeder::class);
-     $this->call(UserProductSeeder::class);
+   //  $this->call(UserAccountSeeder::class);
+    // $this->call(UserProductSeeder::class);
         
     }
 }

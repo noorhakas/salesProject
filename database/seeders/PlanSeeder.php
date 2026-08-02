@@ -6,86 +6,92 @@ use Illuminate\Database\Seeder;
 use App\Models\Plan;
 use App\Models\User;
 use App\Enums\PlanStatusEnum;
+use App\Enums\PositionKey;
 use Carbon\Carbon;
 
 class PlanSeeder extends Seeder
 {
     public function run(): void
     {
-        $manager    = User::where('email', 'manager@gmail.com')->first();
-        $supervisor = User::where('email', 'supervisor@gmail.com')->first();
-        $sales1     = User::where('email', 'sales1@gmail.com')->first();
-        $sales2     = User::where('email', 'sales2@gmail.com')->first();
+        $salesReps = User::whereHas('userposition', function ($q) {
+            $q->where('ps_key', PositionKey::SALES_REP->value);
+        })->get();
 
-        if (!$sales1 || !$sales2) {
-            $this->command->warn('Sales users not found. Run UserSeeder first.');
+        if ($salesReps->isEmpty()) {
+            $this->command->warn('No sales reps found. Run UserSeeder first.');
             return;
         }
 
-        $plansData = [
-            // خطة Pending لسه منتظرة موافقة السوبرفايزر
-     /*       [
-                'user_id'     => $sales1->id,
-                'type'        => 0,
-                'start_date'  => Carbon::now()->addDays(3),
-                'end_date'    => Carbon::now()->addDays(7),
-                'status'      => PlanStatusEnum::Pending,
-                'approved_or_rejected_by' => 0,
-            ],
+        /*
+        |--------------------------------------------------------------------------
+        | For each sales rep, create a mixed set of plans (pending, in progress,
+        | completed, rejected, upcoming) so the dashboard/statistics have real
+        | variety to show. The approver is always the rep's ACTUAL supervisor
+        | (manager_id), never a hardcoded user - so it stays consistent even if
+        | UserSeeder changes how many reps/supervisors exist.
+        |--------------------------------------------------------------------------
+        */
 
-            // خطة Accepted، شغالة دلوقتي (In Progress)
-            [
-                'user_id'     => $sales1->id,
-                'type'        => 0,
-                'start_date'  => Carbon::now()->subDays(2),
-                'end_date'    => Carbon::now()->addDays(2),
-                'status'      => PlanStatusEnum::Accepted,
-                'approved_or_rejected_by' => $supervisor?->id,
-            ],
+        foreach ($salesReps as $index => $rep) {
+            $supervisor = $rep->manager; // belongsTo User via manager_id
 
-            // خطة Accepted وخلصت (Completed)
-            [
-                'user_id'     => $sales1->id,
-                'type'        => 0,
-                'start_date'  => Carbon::now()->subDays(15),
-                'end_date'    => Carbon::now()->subDays(10),
-                'status'      => PlanStatusEnum::Accepted,
-                'approved_or_rejected_by' => $supervisor?->id,
-            ],
+            $type = $index % 2; // alternate weekly/monthly
 
-            // خطة Rejected
-            [
-                'user_id'     => $sales2->id,
-                'type'        => 1,
-                'start_date'  => Carbon::now()->addDays(1),
-                'end_date'    => Carbon::now()->addDays(5),
-                'status'      => PlanStatusEnum::Rejected,
-                'approved_or_rejected_by' => $supervisor?->id,
-            ],*/
+            $plansData = [
+                // Pending - waiting for supervisor approval
+                [
+                    'user_id'    => $rep->id,
+                    'type'       => $type,
+                    'start_date' => Carbon::now()->addDays(3),
+                    'end_date'   => Carbon::now()->addDays(7),
+                    'status'     => PlanStatusEnum::Pending,
+                    'approved_or_rejected_by' => 0,
+                ],
 
-            // خطة Pending لسيلز 2
-            [
-                'user_id'     => $sales2->id,
-                'type'        => 0,
-                'start_date'  => Carbon::now()->addDays(4),
-                'end_date'    => Carbon::now()->addDays(10),
-                'status'      => PlanStatusEnum::Pending,
-                'approved_or_rejected_by' => 0,
-            ],
+                // Accepted, currently running (In Progress)
+                [
+                    'user_id'    => $rep->id,
+                    'type'       => $type,
+                    'start_date' => Carbon::now()->subDays(2),
+                    'end_date'   => Carbon::now()->addDays(2),
+                    'status'     => PlanStatusEnum::Accepted,
+                    'approved_or_rejected_by' => $supervisor?->id ?? 0,
+                ],
 
-            // خطة Upcoming (مقبولة بس لسه ماجتش)
-            [
-                'user_id'     => $sales2->id,
-                'type'        => 0,
-                'start_date'  => Carbon::now()->addDays(20),
-                'end_date'    => Carbon::now()->addDays(25),
-                'status'      => PlanStatusEnum::Accepted,
-                'approved_or_rejected_by' => $manager?->id,
-            ],
-        ];
+                // Accepted, window already passed (Completed)
+                [
+                    'user_id'    => $rep->id,
+                    'type'       => $type,
+                    'start_date' => Carbon::now()->subDays(15),
+                    'end_date'   => Carbon::now()->subDays(10),
+                    'status'     => PlanStatusEnum::Accepted,
+                    'approved_or_rejected_by' => $supervisor?->id ?? 0,
+                ],
 
-        foreach ($plansData as $data) {
-            Plan::create($data);
+                // Rejected
+                [
+                    'user_id'    => $rep->id,
+                    'type'       => 1 - $type,
+                    'start_date' => Carbon::now()->addDays(1),
+                    'end_date'   => Carbon::now()->addDays(5),
+                    'status'     => PlanStatusEnum::Rejected,
+                    'approved_or_rejected_by' => $supervisor?->id ?? 0,
+                ],
+
+                // Accepted, not started yet (Upcoming)
+                [
+                    'user_id'    => $rep->id,
+                    'type'       => $type,
+                    'start_date' => Carbon::now()->addDays(20),
+                    'end_date'   => Carbon::now()->addDays(25),
+                    'status'     => PlanStatusEnum::Accepted,
+                    'approved_or_rejected_by' => $supervisor?->id ?? 0,
+                ],
+            ];
+
+            foreach ($plansData as $data) {
+                Plan::create($data);
+            }
         }
     }
 }
