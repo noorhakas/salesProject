@@ -48,7 +48,11 @@ class BranchController extends Controller
             $count = $usersCount->get($branch->id);
 
             return [
-                'branch'           => new BranchResource($branch),
+                'id' => $branch->id,
+                'name' => $branch->name,
+                'address' => $branch->address,
+                'phone' => $branch->phone ?? '',
+                'whatsapp' => $branch->whatsapp ?? '',
                 'supervisor_count' => $count->supervisor_count ?? 0,
                 'sales_rep_count' => $count->sales_rep_count ?? 0,
                 'department_count' => $branch->departments_count,
