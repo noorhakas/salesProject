@@ -103,6 +103,13 @@ class UserController extends Controller
 
     public function show(User $user)
     {
+
+        $user->load([
+                'userposition',
+                'branches:id,name',
+                'branchDepartments.branch:id,name',
+                'branchDepartments.department:id,name',
+            ]);
         return $this->response_api(
             true,
             trans('messages.success'),
