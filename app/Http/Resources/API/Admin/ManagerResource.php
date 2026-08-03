@@ -3,7 +3,8 @@
 namespace App\Http\Resources\API\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Services\AttendanceStatusService;
+use App\Http\Resources\API\BranchSimpleResource;
+use App\Http\Resources\API\UserBranchDepartmentResource;
 use App\Http\Resources\GlobalCollection;
 
 
@@ -43,8 +44,8 @@ class ManagerResource extends JsonResource
                 $this->whenLoaded('branches')
             ),
 
-            'departments' => DepartmentSimpleResource::collection(
-                $this->whenLoaded('departments')
+            'departments' => UserBranchDepartmentResource::collection(
+                $this->whenLoaded('branchDepartments')
             ),
 
             'supervisors_count' => $supervisorCount,
