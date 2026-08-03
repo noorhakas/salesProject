@@ -8,9 +8,12 @@ use App\Repository\Interfaces\SalesRepInterface;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Traits\PaginatesResults;
 
 class SalesRepRepository implements SalesRepInterface
 {
+
+    use PaginatesResults;
     public function statistics(Request $request)
     {
         $manager = $request->user();
@@ -32,10 +35,8 @@ class SalesRepRepository implements SalesRepInterface
         $manager = $request->user();
 
         $subordinateIds = $manager->getAllSubordinateIds();
-
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        return User::with([
+        
+        $query =User::with([
                 'userposition',
                 'branches:id,name',
                 'branchDepartments.branch:id,name',
@@ -49,8 +50,9 @@ class SalesRepRepository implements SalesRepInterface
                 $q->where('users.name', 'like', '%' . $request->search . '%')
             )
             ->filter($request)
-            ->latest('users.created_at')
-            ->paginate($limit);
+            ->latest('users.created_at');
+
+        return $this->paginateOrAll($query, $request);
     }
 
     public function profile(Request $request, User $salesRep)

@@ -16,10 +16,11 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Traits\PaginatesResults;
 
 class PlanRepository implements PlanInterface
 {
-    // User.position values.
+    use PaginatesResults;
 
     protected const DEFAULT_PER_PAGE = 20;
 
@@ -32,7 +33,6 @@ class PlanRepository implements PlanInterface
 
     public function getMyPlans($request)
     {
-        $limit = $this->resolvePerPage($request);
         $this->applyDefaultDateRange($request);
 
         $recentPlan = User::getCurrentPlan();
@@ -41,12 +41,11 @@ class PlanRepository implements PlanInterface
         $previousPlansQuery = auth()->user()->plans()
             ->filter($request)->orderBy('plans.created_at', 'DESC');
 
-        // Exclude the "recent" plan from the previous-plans list so it
         if ($recentPlan) {
             $previousPlansQuery->where('id', '!=', $recentPlan->id);
         }
 
-        $previousPlans = $previousPlansQuery->paginate($limit);
+        $previousPlans = $this->paginateOrAll($previousPlansQuery, $request);
 
         $data = [
             'recent_plans'   => $recentPlanResource,
@@ -58,14 +57,13 @@ class PlanRepository implements PlanInterface
 
     public function getALL($request)
     {
-        $limit = $this->resolvePerPage($request);
-       // $this->applyDefaultDateRange($request);
 
-        $plans = Plan::select('plans.*')
+        $query = Plan::select('plans.*')
             ->join('users', 'users.id', '=', 'plans.user_id')
             ->filter($request)
-            ->orderBy('plans.created_at', 'DESC')
-            ->paginate($limit);
+            ->orderBy('plans.created_at', 'DESC');
+
+        $plans = $this->paginateOrAll($query, $request);    
 
         return $this->success(PlansResource::collection($plans));
     }
@@ -271,16 +269,12 @@ class PlanRepository implements PlanInterface
 
     public function getManagerPlans($request, array $subordinateIds)
     {
-        $limit = $this->resolvePerPage($request);
-       // $this->applyDefaultDateRange($request);
-
-       
-
-        $plans = Plan::select('plans.*')->whereHas('user')
+        $query = Plan::select('plans.*')->whereHas('user')
                 ->whereIn('plans.user_id', $subordinateIds)
                 ->filter($request)
-                ->orderBy('plans.created_at', 'DESC')
-                ->paginate($limit);
+                ->orderBy('plans.created_at', 'DESC');
+
+        $plans = $this->paginateOrAll($query, $request);        
 
         return $this->success(PlansResource::collection($plans));
     }
@@ -288,7 +282,7 @@ class PlanRepository implements PlanInterface
     public function showForManager($plan_id, array $subordinateIds)
     {
         try {
-            $plan = $plan = Plan::with(['user.branches:id,name','user.departments:id,name','user.manager:id,name',
+             $plan = Plan::with(['user.branches:id,name','user.branchDepartments.branch:id,name','user.branchDepartments.department:id,name','user.manager:id,name',
                                 'user.userposition'])->whereIn('user_id', $subordinateIds)->find($plan_id);
 
             if (!$plan) {
@@ -371,13 +365,6 @@ class PlanRepository implements PlanInterface
         Visit::updateOrCreate($attributes, $values);
     }
 
-    protected function resolvePerPage($request): int
-    {
-        return (is_numeric($request->per_page) && $request->per_page > 0)
-            ? (int) $request->per_page
-            : self::DEFAULT_PER_PAGE;
-    }
-
     
     protected function applyDefaultDateRange($request): void
     {
@@ -389,13 +376,5 @@ class PlanRepository implements PlanInterface
         }
     }
 
-    protected function success($data): array
-    {
-        return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
-    }
-
-    protected function failure(string $messageKey): array
-    {
-        return ['status' => false, 'message' => trans("messages.{$messageKey}")];
-    }
+   
 }

@@ -8,9 +8,12 @@ use App\Enums\PositionKey;
 use App\Services\AttendanceStatusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Traits\PaginatesResults;
+
 
 class SupervisorRepository implements SupervisorInterface
 {
+    use PaginatesResults;
     public function statistics(Request $request)
     {
         $manager = $request->user();
@@ -29,10 +32,10 @@ class SupervisorRepository implements SupervisorInterface
     {
         $manager = $request->user();
 
-        $limit = max((int) $request->input('per_page', 20), 1);
 
-        return User::with([
+        $query = User::with([
                 'userposition',
+                'branches:id,name',
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
             ])
@@ -44,8 +47,9 @@ class SupervisorRepository implements SupervisorInterface
                 $q->where('name', 'like', '%' . $request->search . '%')
             )
             ->filter($request)
-            ->latest()
-            ->paginate($limit);
+            ->latest();
+
+       return  $this->paginateOrAll($query, $request);
     }
 
     public function supervisorProfile(Request $request, User $supervisor)
@@ -54,6 +58,7 @@ class SupervisorRepository implements SupervisorInterface
 
         $supervisor->load([
             'userposition',
+            'branches:id,name',
             'branchDepartments.branch:id,name',
             'branchDepartments.department:id,name',
         ]);
@@ -68,20 +73,16 @@ class SupervisorRepository implements SupervisorInterface
     {
         $manager = $request->user();
 
-        if (
-            $supervisor->id !== $manager->id &&
-            ! in_array($supervisor->id, $manager->getAllSubordinateIds())
-        ) {
+        if ($supervisor->id !== $manager->id &&! in_array($supervisor->id, $manager->getAllSubordinateIds())) {
             return [
                 'status' => false,
                 'message' => trans('messages.permission_denied'),
             ];
         }
 
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        $reps = User::with([
+        $query = User::with([
                 'userposition',
+                 'branches:id,name',
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
             ])
@@ -90,8 +91,9 @@ class SupervisorRepository implements SupervisorInterface
                 $q->where('ps_key', PositionKey::SALES_REP->value)
             )
             ->filter($request)
-            ->latest()
-            ->paginate($limit);
+            ->latest();
+
+        $reps =  $this->paginateOrAll($query, $request);    
 
         return [
             'status' => true,
