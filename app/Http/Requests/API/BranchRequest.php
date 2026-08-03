@@ -31,10 +31,14 @@ class BranchRequest extends FormRequest
 		return match(request()->method()){
             "POST" => [
 				'name'=>'required|string|max:100|unique:branches,name,NULL,id,deleted_at,NULL',
+                'address'=>'required',
+                'phone'=>'required',
+                'whatsapp'=>'required'
+
 
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:branches,name,' . $this->department . ',id,deleted_at,NULL',
+                'name' => 'sometimes|required|string|max:255|unique:branches,name,' . $this->branch . ',id,deleted_at,NULL',
 			],
         };
     }
