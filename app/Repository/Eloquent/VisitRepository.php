@@ -681,39 +681,25 @@ class VisitRepository implements VisitInterface
         return !empty($value) ? Carbon::parse($value)->format($format) : $default();
     }
 
-    /**
-     * Paginates $query using the request's `per_page`, honoring a special
-     * value of -1 (self::ALL_RESULTS) - either passed explicitly by the
-     * client, or as this call's own $default - to mean "return every
-     * matching row as a single page" instead of a fixed huge page size.
-     *
-     * When "all" is requested, the total is computed via a throwaway
-     * paginate(1) call rather than a raw ->count(), because ->count() on
-     * a GROUP BY query (like DrawVisitStatistics()) returns the wrong
-     * number - paginate()'s internal counting logic already handles
-     * GROUP BY / joins correctly, so we reuse it instead of duplicating
-     * that logic.
-     */
+  
     protected function paginateOrAll($query, $request, int $default = self::DEFAULT_PER_PAGE)
     {
         $requested = $request->input('per_page');
 
-        $perPage = is_numeric($requested)
-            ? (int) $requested
-            : $default;
-
-        // per_page = -1 => return all rows while keeping pagination response
-        if ($perPage === self::ALL_RESULTS) {
+        if (is_numeric($requested) && (int) $requested === self::ALL_RESULTS) {
             $total = (clone $query)->toBase()->getCountForPagination();
 
             return $query->paginate(max($total, 1));
         }
 
+        $perPage = is_numeric($requested)
+            ? (int) $requested
+            : $default;
+
         return $query->paginate(
             $perPage > 0 ? $perPage : self::DEFAULT_PER_PAGE
         );
     }
-
     protected function success($data): array
     {
         return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
