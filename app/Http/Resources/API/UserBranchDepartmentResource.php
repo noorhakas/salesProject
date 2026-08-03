@@ -4,9 +4,6 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use JsonSerializable;
-use Carbon\Carbon;
-
 
 class UserBranchDepartmentResource extends JsonResource
 {
@@ -21,11 +18,12 @@ class UserBranchDepartmentResource extends JsonResource
      */
     public function toArray($request)
     {
-         
-       return  [
-            'id' => $this->id,
-            'name' => $this->name,
-            'branch'=>new BranchSimpleResource($this->whenLoaded('branch')),
+        return [
+            'department' => [
+                'id'   => $this->department->id,
+                'name' => $this->department->name,
+            ],
+            'branch' => new BranchSimpleResource($this->whenLoaded('branch')),
         ];
     }
 }
