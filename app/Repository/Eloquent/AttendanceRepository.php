@@ -10,9 +10,11 @@ use App\Services\AttendanceCalculationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Traits\PaginatesResults;
 
 class AttendanceRepository implements AttendanceInterface
 {
+    use PaginatesResults;
     protected AttendanceCalculationService $calculationService;
 
 
@@ -21,15 +23,9 @@ class AttendanceRepository implements AttendanceInterface
         $this->calculationService = $calculationService;
     }
 
-
-    /**
-     * Store a check-in / check-out attendance action.
-     */
     public function storeAttendance(User $user, Request $request)
     {
         $authMethod = $request->auth_method ?? 'manual';
-
-
         /*
         |--------------------------------------------------------------------------
         | Biometric Attempts Protection
@@ -41,23 +37,14 @@ class AttendanceRepository implements AttendanceInterface
             && !$request->biometric_verified
         ) {
 
-            $cacheKey =
-                "biometric_attempts:user:{$user->id}:device:{$request->device_id}";
-
-
+            $cacheKey ="biometric_attempts:user:{$user->id}:device:{$request->device_id}";
             $attempts = Cache::get($cacheKey, 0);
-
 
             if ($attempts >= 3) {
                 return 'biometric_locked';
             }
 
-
-            Cache::put(
-                $cacheKey,
-                $attempts + 1,
-                now()->addMinutes(2)
-            );
+            Cache::put($cacheKey,$attempts + 1,now()->addMinutes(2));
         }
 
 
@@ -146,9 +133,7 @@ class AttendanceRepository implements AttendanceInterface
 
 
 
-        if (
-            in_array($authMethod, ['fingerprint', 'face', 'biometric'])
-        ) {
+        if (in_array($authMethod, ['fingerprint', 'face', 'biometric'])) {
 
             Cache::forget(
                 "biometric_attempts:user:{$user->id}:device:{$request->device_id}"
@@ -194,32 +179,19 @@ class AttendanceRepository implements AttendanceInterface
      */
     public function attendanceLog(User $user, Request $request)
     {
-        $limit = (is_numeric($request->per_page ?? null)
-            && $request->per_page > 0)
-            ? (int) $request->per_page
-            : 20;
-
-
         $targetUserId = $request->user_id ?? $user->id;
 
-
-        return Attendance::where('user_id', $targetUserId)
-            ->when(
-                $request->start_date,
-                fn ($q, $v) =>
+        $query = Attendance::where('user_id', $targetUserId)
+            ->when($request->start_date,fn ($q, $v) =>
                 $q->whereDate('attendance_date', '>=', $v)
-            )
-            ->when(
-                $request->end_date,
+            )->when($request->end_date,
                 fn ($q, $v) =>
                 $q->whereDate('attendance_date', '<=', $v)
-            )
-            ->orderBy('attendance_date', 'desc')
-            ->paginate($limit);
+            )->orderBy('attendance_date', 'desc');
+
+       return $this->paginateOrAll($query, $request);
+
     }
-
-
-
 
     /**
      * Show attendance
@@ -228,15 +200,12 @@ class AttendanceRepository implements AttendanceInterface
     {
         $attendance = Attendance::find($attendanceId);
 
-
         if (!$attendance) {
-
             return [
                 'status'  => false,
                 'message' => trans('messages.data_not_found')
             ];
         }
-
 
         return [
             'status'  => true,

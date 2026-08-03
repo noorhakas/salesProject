@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+
 class AttendanceReportRepository implements AttendanceReportInterface
 {
     public function dailySummary(Request $request): array
@@ -46,7 +47,6 @@ class AttendanceReportRepository implements AttendanceReportInterface
                 return [
                     // ASSUMPTION: replace `employee_number` below with the
                     // real column name on your `users` table if different.
-                    'emp_no'      => $user->employee_number ?? $user->id,
                     'id'          => $user->id,
                     'name'        => $user->name,
                     'status'      => $status->value,

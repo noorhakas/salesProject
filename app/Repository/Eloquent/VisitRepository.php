@@ -55,7 +55,7 @@ class VisitRepository implements VisitInterface
             ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->filter($request);
 
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
+        $visits = $this->paginateOrAll($query, $request);
 
         return $this->success(VisitsResource::collection($visits));
     }
