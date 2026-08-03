@@ -19,11 +19,9 @@ class UserBranchDepartmentResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'department' => [
                 'id'   => $this->department->id,
                 'name' => $this->department->name,
-            ],
-            'branch' => new BranchSimpleResource($this->whenLoaded('branch')),
+                'branch' => new BranchSimpleResource($this->whenLoaded('branch')),
         ];
     }
 }
