@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\API\Panel\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\ManagerResource;
-use App\Http\Resources\API\SupervisorResource;
-use App\Http\Resources\API\UserDetailResource;
+use App\Http\Resources\API\Admin\UserDetailResource;
+use App\Http\Resources\API\Admin\ManagerResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Repository\Interfaces\ManagerInterface;

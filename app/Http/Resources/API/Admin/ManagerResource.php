@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\API;
+namespace App\Http\Resources\API\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Services\AttendanceStatusService;
@@ -11,9 +11,6 @@ class ManagerResource extends JsonResource
 {
     public function toArray($request)
     {
-        $attendance = app(AttendanceStatusService::class)
-            ->resolve($this->resource, today());
-
         $subordinateIds = $this->getAllSubordinateIds();
 
         $salesRepCount = \App\Models\User::whereIn('id', $subordinateIds)
@@ -54,11 +51,6 @@ class ManagerResource extends JsonResource
 
             'sales_reps_count' => $salesRepCount,
 
-            'attendance_status' => [
-                'value' => $attendance['status']->value,
-                'label' => $attendance['status']->label(),
-                'color' => $attendance['status']->color(),
-            ],
         ];
     }
 
