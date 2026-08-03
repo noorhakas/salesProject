@@ -37,8 +37,8 @@ class SalesRepRepository implements SalesRepInterface
 
         return User::with([
                 'userposition',
-                'branchDepartments.branch:id,name',
-                'branchDepartments.department:id,name',
+                'branches:id,name',
+                'departments:id,name',
             ])
             ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', fn($q) =>
@@ -67,8 +67,8 @@ class SalesRepRepository implements SalesRepInterface
 
         $salesRep->load([
             'userposition',
-            'branchDepartments.branch:id,name',
-            'branchDepartments.department:id,name',
+            'branches:id,name',
+            'departments:id,name',
             'manager',
         ]);
 
