@@ -4,7 +4,6 @@ namespace App\Enums;
 
 abstract class PlanStatusEnum
 {
-    // Stored in plans.status (this is what actually lives in the DB).
     const Pending  = 0;
     const Accepted = 1;
     const Rejected = 2;

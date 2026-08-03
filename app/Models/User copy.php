@@ -118,12 +118,6 @@ class User extends Authenticatable
         return $this->belongsToMany(Branch::class,'user_branches','user_id','branch_id');
     }
 
- 
-    public function branchDepartments()
-    {
-        return $this->hasMany(UserBranchDepartment::class);
-    }
-
     public function products()
     {
         return $this->belongsToMany(Product::class, 'user_products','user_id','product_id');

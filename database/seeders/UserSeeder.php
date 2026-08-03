@@ -74,6 +74,7 @@ class UserSeeder extends Seeder
         $allBranchIds = $branches->pluck('id')->all();
         $admin->branches()->sync($allBranchIds);
         $admin->departments()->sync($this->departmentIdsForBranches($branches, $allBranchIds));
+        $this->syncBranchDepartments($admin, $branches->whereIn('id', $allBranchIds));
 
         /*
         |--------------------------------------------------------------------------
@@ -111,6 +112,7 @@ class UserSeeder extends Seeder
             $regionBranchIds = $regionBranches->pluck('id')->all();
             $manager->branches()->sync($regionBranchIds);
             $manager->departments()->sync($this->departmentIdsForBranches($branches, $regionBranchIds));
+            $this->syncBranchDepartments($manager, $regionBranches);
 
             $regionManagers[] = ['manager' => $manager, 'branches' => $regionBranches];
         }
@@ -160,6 +162,10 @@ class UserSeeder extends Seeder
 
                     $supervisorUser->branches()->sync([$branch->id]);
                     $supervisorUser->departments()->sync([$department->id]);
+                    $supervisorUser->branchDepartments()->updateOrCreate([
+                        'branch_id'     => $branch->id,
+                        'department_id' => $department->id,
+                    ]);
 
                     // 3 sales reps under this supervisor, same branch + department
                     for ($i = 1; $i <= 3; $i++) {
@@ -183,6 +189,10 @@ class UserSeeder extends Seeder
 
                         $rep->branches()->sync([$branch->id]);
                         $rep->departments()->sync([$department->id]);
+                        $rep->branchDepartments()->updateOrCreate([
+                            'branch_id'     => $branch->id,
+                            'department_id' => $department->id,
+                        ]);
                     }
                 }
             }
@@ -205,6 +215,23 @@ class UserSeeder extends Seeder
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * Populates user_branch_departments for a user that covers MULTIPLE
+     * branches (admin / area managers): one row per (branch, department)
+     * pair that genuinely exists for each branch in $branchesCollection.
+     */
+    protected function syncBranchDepartments(User $user, $branchesCollection): void
+    {
+        foreach ($branchesCollection as $branch) {
+            foreach ($branch->departments as $department) {
+                $user->branchDepartments()->updateOrCreate([
+                    'branch_id'     => $branch->id,
+                    'department_id' => $department->id,
+                ]);
+            }
+        }
     }
 
     /**

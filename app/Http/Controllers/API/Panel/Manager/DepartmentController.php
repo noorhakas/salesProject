@@ -8,6 +8,7 @@ use App\Http\Resources\API\ProductResource;
 use App\Http\Resources\API\SupervisorSimpleResource;
 use App\Http\Resources\API\DepartmentSimpleResource;
 use App\Models\Branch;
+use App\Http\Resources\API\UserBranchDepartmentResource;
 use App\Models\Department;
 use Illuminate\Http\Request;
 
@@ -18,29 +19,17 @@ class DepartmentController extends Controller
     {
         $user = $request->user();
 
-        $userBranchIds = $user->branches()->pluck('branches.id');
+        $data = $user->branchDepartments()
+            ->with(['branch:id,name', 'department:id,name'])
+            ->get();
 
-        $departments = $user->departments()
-            ->with(['branches' => function ($q) use ($userBranchIds) {
-                $q->whereIn('branches.id', $userBranchIds);
-            }])
-            ->get()
-            ->map(function ($department) {
-                $branch = $department->branches->first();
-
-                return [
-                    'id'     => $department->id,
-                    'name'   => $department->name,
-                    'branch' => $branch ? [
-                        'id'   => $branch->id,
-                        'name' => $branch->name,
-                    ] : null,
-                ];
-            });
-
-        return $this->response_api(true, trans('messages.success'), $departments);
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            UserBranchDepartmentResource::collection($data)
+        );
     }
-
+    
    public function show(Request $request, Branch $branch, Department $department)
     {
         $manager = $request->user();
