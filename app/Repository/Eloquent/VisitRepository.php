@@ -21,17 +21,11 @@ use App\Models\VisitDetails;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Traits\PaginatesResults;
 
 class VisitRepository implements VisitInterface
 {
-    protected const DEFAULT_PER_PAGE = 20;
-
-    // Explicit sentinel: per_page = -1 (or a $default of -1) means
-    // "return every matching row as one page", instead of hardcoding a
-    // large page size like 100000 - which silently truncates once a
-    // table grows past it, and always over-fetches even when the real
-    // result set is small.
-    protected const ALL_RESULTS = -1;
+    use PaginatesResults;
 
     protected NotificationService $notifications;
 
@@ -681,34 +675,8 @@ class VisitRepository implements VisitInterface
         return !empty($value) ? Carbon::parse($value)->format($format) : $default();
     }
 
-  
-    protected function paginateOrAll($query, $request, int $default = self::DEFAULT_PER_PAGE)
-    {
-        $requested = $request->input('per_page');
 
-        if (is_numeric($requested) && (int) $requested === self::ALL_RESULTS) {
-            $total = (clone $query)->toBase()->getCountForPagination();
-
-            return $query->paginate(max($total, 1));
-        }
-
-        $perPage = is_numeric($requested)
-            ? (int) $requested
-            : $default;
-
-        return $query->paginate(
-            $perPage > 0 ? $perPage : self::DEFAULT_PER_PAGE
-        );
-    }
-    protected function success($data): array
-    {
-        return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
-    }
-
-    protected function failure(string $messageKey): array
-    {
-        return ['status' => false, 'message' => trans("messages.{$messageKey}")];
-    }
+    
 }
 
 class ReportData extends Collection
