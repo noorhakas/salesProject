@@ -9,13 +9,14 @@ use App\Http\Resources\API\SupervisorSimpleResource;
 use App\Http\Resources\API\BranchResource;
 use App\Http\Resources\API\ProductResource;
 use App\Models\Branch;
-use App\Models\Department;
+use App\Http\Traits\PaginatesResults;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BranchController extends Controller
 {
+    use PaginatesResults;
 
     public function index(Request $request)
     {
@@ -120,9 +121,7 @@ class BranchController extends Controller
             return $this->response_api(false, trans('messages.permission_denied'));
         }
 
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        $products = Product::with(['company', 'category'])
+        $productQuery = Product::with(['company', 'category'])
             ->whereHas('departments.branches', function ($q) use ($branch) {
                 $q->where('branches.id', $branch->id);
             })
@@ -130,8 +129,9 @@ class BranchController extends Controller
                 $query->where('name', 'like', '%' . $request->search . '%');
             })
             ->distinct()
-            ->latest()
-            ->paginate($limit);
+            ->latest();
+
+        $products = $this->paginateOrAll($productQuery, $request);
 
         return $this->response_api(
             true,
@@ -151,16 +151,17 @@ class BranchController extends Controller
 
         $limit = max((int) $request->input('per_page', 20), 1);
 
-        $departments = $branch->departments()
+        $departmentQuery = $branch->departments()
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%');
             })
             ->withCount([
                 'users',
                 'products',
-            ])
-            ->paginate($limit);
+            ]);
 
+        $departments = $this->paginateOrAll($departmentQuery, $request);
+    
         return $this->response_api(
             true,
             trans('messages.success'),

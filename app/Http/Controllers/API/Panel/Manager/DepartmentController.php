@@ -10,10 +10,12 @@ use App\Http\Resources\API\DepartmentSimpleResource;
 use App\Models\Branch;
 use App\Http\Resources\API\UserBranchDepartmentResource;
 use App\Models\Department;
+use App\Http\Traits\PaginatesResults;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
+    use PaginatesResults;
     
     public function myDepartments(Request $request)
     {
@@ -92,9 +94,7 @@ class DepartmentController extends Controller
 
         $subordinateIds = $manager->getAllSubordinateIds();
 
-        $limit = max((int) $request->input('per_page', 20), 1);
-
-        $sales = $department->users()
+        $saleQuery = $department->users()
             ->with('userposition')
             ->whereIn('users.id', $subordinateIds)
             ->whereHas('userposition', function ($q) {
@@ -103,8 +103,10 @@ class DepartmentController extends Controller
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('users.name', 'like', '%' . $request->search . '%');
             })
-            ->latest('users.created_at')
-            ->paginate($limit);
+            ->latest('users.created_at');
+            
+        $sales = $this->paginateOrAll($saleQuery, $request);
+    
 
         return $this->response_api(
             true,
@@ -126,16 +128,16 @@ class DepartmentController extends Controller
             return $this->response_api(false, trans('messages.permission_denied'));
         }
 
-        $limit = max((int) $request->input('per_page', 20), 1);
 
-        $products = $department->products()
+        $productQuery = $department->products()
             ->with(['company', 'category'])
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%');
             })
-            ->latest()
-            ->paginate($limit);
-
+            ->latest();
+               
+        $products = $this->paginateOrAll($productQuery, $request);
+    
         return $this->response_api(
             true,
             trans('messages.success'),
