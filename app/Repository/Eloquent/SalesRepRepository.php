@@ -37,6 +37,7 @@ class SalesRepRepository implements SalesRepInterface
 
         return User::with([
                 'userposition',
+                'branches:id,name',
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
             ])
@@ -67,6 +68,7 @@ class SalesRepRepository implements SalesRepInterface
 
         $salesRep->load([
             'userposition',
+            'branches:id,name',
             'branchDepartments.branch:id,name',
             'branchDepartments.department:id,name',
             'manager',

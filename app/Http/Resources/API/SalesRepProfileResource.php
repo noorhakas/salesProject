@@ -38,7 +38,7 @@ class SalesRepProfileResource extends JsonResource
             'statusAsString'=>StatusEnum::toString($this->status),
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
-            'departments' => UserBranchDepartmentResource::collection($this->whenLoaded('departments')),
+            'departments' => UserBranchDepartmentResource::collection($this->whenLoaded('branchDepartments')),
             'position' => optional($this->userposition)->only(['id','ps_key','name']),
             'supervisor' => new UserShortDetailResource($this->whenLoaded('manager')),
              'attendance_status'=>[
