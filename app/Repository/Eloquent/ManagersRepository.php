@@ -18,7 +18,8 @@ class ManagersRepository implements ManagerInterface
         $managerQuey = User::with([
                 'userposition',
                 'branches:id,name',
-                'departments:id,name',
+                'branchDepartments.branch:id,name',
+                'branchDepartments.department:id,name',
             ])
             ->where('is_admin', 0)
             ->whereHas('userposition', fn ($q) =>
