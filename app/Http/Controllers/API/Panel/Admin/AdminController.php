@@ -11,23 +11,19 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Traits\PaginatesResults;
 
 class AdminController extends Controller
 {
-    /**
-     * All queries/writes in this controller are scoped to admin
-     * accounts only (users.is_admin = 1).
-     */
+    use PaginatesResults;
+
     public function index(Request $request)
     {
-        $limit = $request->filled('per_page') && is_numeric($request->per_page)
-            ? $request->per_page
-            : 20;
+        $adminsQuey = User::filter($request)
+            ->where('is_admin', 1)
+            ->latest();
 
-        $admins = User::filter($request)
-           // ->where('is_admin', 1)
-            ->latest()
-            ->paginate($limit);
+        $admins = $this->paginateOrAll($adminsQuey, $request);    
 
         return $this->response_api(
             true,
