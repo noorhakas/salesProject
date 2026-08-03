@@ -6,31 +6,30 @@ use App\Repository\Interfaces\ManagerInterface;
 use App\Models\User;
 use App\Enums\PositionKey;
 use Illuminate\Http\Request;
+use App\Http\Traits\PaginatesResults;
 
 class ManagersRepository implements ManagerInterface
 {
+    use PaginatesResults;
+
     public function managers(Request $request)
     {
-        $perPageInput = $request->get('per_page');
-        $limit = is_numeric($perPageInput)
-            ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
-            : 20;
 
-        return User::with([
+        $managerQuey = User::with([
                 'userposition',
                 'branches:id,name',
                 'departments:id,name',
             ])
             ->where('is_admin', 0)
             ->whereHas('userposition', fn ($q) =>
-                $q->where('ps_key', PositionKey::SUPERVISOR->value)
+                $q->where('ps_key','!=',PositionKey::SALES_REP->value)
             )
             ->when($request->filled('search'), fn ($q) =>
                 $q->where('name', 'like', '%' . $request->search . '%')
             )
             ->filter($request)
-            ->latest()
-            ->paginate($limit);
+            ->latest();
+        return  $this->paginateOrAll($managerQuey, $request); 
     }
 
     public function managerProfile(Request $request, User $manager)
@@ -38,26 +37,25 @@ class ManagersRepository implements ManagerInterface
         $manager->load([
             'userposition',
             'branches:id,name',
-            'departments:id,name',
+            'branchDepartments.branch:id,name',
+            'branchDepartments.department:id,name',
         ]);
 
-        $perPageInput = $request->get('per_page');
-        $limit = is_numeric($perPageInput)
-            ? ($perPageInput > 0 ? (int) $perPageInput : 100000)
-            : 20;
 
-        $reps = User::with([
+        $repQuey = User::with([
                 'userposition',
                 'branches:id,name',
-                'departments:id,name',
+                'branchDepartments.branch:id,name',
+                'branchDepartments.department:id,name',
             ])
             ->whereIn('id', $manager->getAllSubordinateIds())
             ->whereHas('userposition', fn ($q) =>
                 $q->where('ps_key', PositionKey::SALES_REP->value)
             )
             ->filter($request)
-            ->latest()
-            ->paginate($limit);
+            ->latest();
+
+        $reps = $this->paginateOrAll($repQuey, $request);    
 
         return [
             'manager' => $manager,

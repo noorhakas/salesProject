@@ -8,33 +8,25 @@ use App\Http\Requests\API\UserRequest;
 use App\Http\Imports\UserCustomerImport;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\AdminResource;
-use App\Http\Resources\API\ManagerResource;
-
+use App\Enums\PositionKey;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Traits\PaginatesResults;
 
 class UserController extends Controller
 {
-     public function index(Request $request)
-    {
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            ManagerResource::collection(
-                $this->managerRepository->managers($request)
-            )
-        );
-    }
+    use PaginatesResults;
+     
     public function index(Request $request)
     {
-        $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
+        $userQuery = User::filter($request)->where('is_admin', 0)->whereHas('userposition', fn ($q) =>
+					$q->where('ps_key', PositionKey::SALES_REP->value)
+				)->latest();
 
-        $users = User::filter($request)->where('is_admin', 0)
-            ->latest()
-            ->paginate($limit);
+        $users = $this->paginateOrAll($userQuery, $request);    
 
         return $this->response_api(
             true,
