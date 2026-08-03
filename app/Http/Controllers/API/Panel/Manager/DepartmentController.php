@@ -62,7 +62,7 @@ class DepartmentController extends Controller
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', 'supervisor');
             })
-            ->first();
+            ->get();
 
         return $this->response_api(
             true,
@@ -73,7 +73,7 @@ class DepartmentController extends Controller
                 'product_count'    => $department->products_count,
                 'sales_rep_count'  => (int) ($counts->sales_rep_count ?? 0),
                 'supervisor_count' => (int) ($counts->supervisor_count ?? 0),
-                'supervisor'      => new SupervisorSimpleResource($supervisor),
+                'supervisors'      => SupervisorSimpleResource::collection($supervisor),
             ]
         );
     }
