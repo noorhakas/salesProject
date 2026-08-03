@@ -33,8 +33,8 @@ class SupervisorRepository implements SupervisorInterface
 
         return User::with([
                 'userposition',
-                'branches:id,name',
-                'departments:id,name',
+                'branchDepartments.branch:id,name',
+                'branchDepartments.department:id,name',
             ])
             ->where('manager_id', $manager->id)
             ->whereHas('userposition', fn($q) =>
@@ -54,8 +54,8 @@ class SupervisorRepository implements SupervisorInterface
 
         $supervisor->load([
             'userposition',
-            'branches:id,name',
-            'departments:id,name',
+            'branchDepartments.branch:id,name',
+            'branchDepartments.department:id,name',
         ]);
 
         return [
@@ -82,8 +82,8 @@ class SupervisorRepository implements SupervisorInterface
 
         $reps = User::with([
                 'userposition',
-              //  'branches:id,name',
-              //  'departments:id,name',
+                'branchDepartments.branch:id,name',
+                'branchDepartments.department:id,name',
             ])
             ->whereIn('id', $supervisor->getAllSubordinateIds())
             ->whereHas('userposition', fn($q) =>

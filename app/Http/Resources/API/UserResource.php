@@ -37,10 +37,8 @@ class UserResource extends JsonResource
             'role' => optional($this->userposition)->ps_key,
             'position' => optional($this->userposition)->only(['id','ps_key','name']),
             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
-            'departments' => DepartmentSimpleResource::collection($this->whenLoaded('departments')),
+            'departments' => DepartmentSimpleResource::collection($this->whenLoaded('branchDepartments')),
 			'current_plan'=>!empty(self::getCurrentPlan())? new PlansResource(self::getCurrentPlan()) : (object)[],
-			// 'access_all_data'=>$this->access_all_data,
-			// 'DeviceToken'=>$this->DeviceToken,
 
         ];
 

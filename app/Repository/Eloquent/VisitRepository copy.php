@@ -26,12 +26,10 @@ class VisitRepository implements VisitInterface
 {
     protected const DEFAULT_PER_PAGE = 20;
 
-    // Explicit sentinel: per_page = -1 (or a $default of -1) means
-    // "return every matching row as one page", instead of hardcoding a
-    // large page size like 100000 - which silently truncates once a
-    // table grows past it, and always over-fetches even when the real
-    // result set is small.
-    protected const ALL_RESULTS = -1;
+    // Used by getvisitsByPlan when no per_page is given: effectively "all".
+    protected const NO_LIMIT_PER_PAGE = 100000;
+
+    // User.position values (rep can't see plans/visits that aren't theirs yet).
 
     protected NotificationService $notifications;
 
@@ -42,6 +40,8 @@ class VisitRepository implements VisitInterface
 
     public function getUservisits($request)
     {
+        $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
+
         $request->plan_id = $request->plan_id
             ?? User::getCurrentPlan()?->id
             ?? auth()->user()->plans()->latest('id')->first()?->id;
@@ -56,21 +56,21 @@ class VisitRepository implements VisitInterface
             return $this->success([]);
         }
 
-        $query = $this->joinAccountsAndCustomers($plan->visits())
-            ->select('visits.*')
-            ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->filter($request);
-
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
+        $visits = $this->joinAccountsAndCustomers($plan->visits())
+            ->select('visits.*')->with('user:id,name', 'account:id,name', 'customer:id,name,image')
+            ->filter($request)
+            ->paginate($limit);
 
         return $this->success(VisitsResource::collection($visits));
     }
 
 
-    public function getvisitsByPlan($request)
+     public function getvisitsByPlan($request)
     {
-        $request->plan_id = $request->plan_id;
+        $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
 
+        $request->plan_id = $request->plan_id;
+        
         if (!$request->plan_id) {
             return $this->success([]);
         }
@@ -81,17 +81,15 @@ class VisitRepository implements VisitInterface
             return $this->success([]);
         }
 
-        $query = $this->joinAccountsAndCustomers($plan->visits())
-            ->select('visits.*')
-            ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->filter($request);
-
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
+        $visits = $this->joinAccountsAndCustomers($plan->visits())
+            ->select('visits.*')->with('user:id,name', 'account:id,name', 'customer:id,name,image')
+            ->filter($request)
+            ->paginate($limit);
 
         return $this->success(VisitsResource::collection($visits));
     }
 
-
+    
 
     public function getvisitDtail($id)
     {
@@ -110,21 +108,24 @@ class VisitRepository implements VisitInterface
      */
     public function getVisitsForManager($request, array $subordinateIds)
     {
-        $query = $this->joinAccountsAndCustomers(
+         $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
+         $request->plan_id = $request->plan_id ?? '';
+
+        $visits = $this->joinAccountsAndCustomers(
                 Visit::select('visits.*')->whereIn('visits.user_id', $subordinateIds)
                  ->when($request->filled('user_id'), function ($query) use ($request) {
                     $query->where('visits.user_id', $request->user_id);
                 })
             )
             ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->orderBy('visits.created_at', 'DESC');
 
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
+            ->orderBy('visits.created_at', 'DESC')
+            ->paginate($limit);
 
         return $this->success(VisitsResource::collection($visits));
     }
 
-
+   
     public function showVisitForManager($id, array $subordinateIds)
     {
         $visit = Visit::whereIn('user_id', $subordinateIds)
@@ -138,7 +139,7 @@ class VisitRepository implements VisitInterface
         return $this->success($this->buildVisitDetailData($visit));
     }
 
-
+   
     protected function buildVisitDetailData(Visit $visit): array
     {
         $visit->load('user:id,name','doubleVisit:id,name','account:id,name','customer:id,name,image');
@@ -451,12 +452,13 @@ class VisitRepository implements VisitInterface
             $endDate = now()->endOfMonth()->toDateString();
         }
 
-        $query = $this->DrawVisitStatistics()
+        $limit = $this->resolvePerPage($request);
+
+        $visits = $this->DrawVisitStatistics()
             ->whereBetween('visits.visit_date', [$startDate, $endDate])
             ->groupBy('users.id', 'users.name')
-            ->orderByDesc('visit_count');
-
-        $visits = $this->paginateOrAll($query, $request, self::DEFAULT_PER_PAGE);
+            ->orderByDesc('visit_count')
+            ->paginate($limit);
 
         return $this->success(VisitStatisticsResource::collection($visits));
     }
@@ -496,13 +498,14 @@ class VisitRepository implements VisitInterface
             return $this->failure('data_not_found');
         }
 
-        $query = $this->joinAccountsAndCustomers(
+        $limit = $this->resolvePerPage($request);
+
+        $visits = $this->joinAccountsAndCustomers(
                 $user->visits()->join('plans', 'plans.id', '=', 'visits.plan_id')
             )
             ->selectRaw('visits.*')
-            ->filter($request);
-
-        $visits = $this->paginateOrAll($query, $request, self::DEFAULT_PER_PAGE);
+            ->filter($request)
+            ->paginate($limit);
 
         $visitStatistics = (clone $this->DrawVisitStatistics())
             ->whereDate('visits.visit_date', '>=', $startDate)
@@ -530,11 +533,12 @@ class VisitRepository implements VisitInterface
             return $this->failure('data_not_found');
         }
 
-        $query = $user->visits()
-            ->join('plans', 'plans.id', '=', 'visits.plan_id')
-            ->filter($request);
+        $limit = $this->resolvePerPage($request);
 
-        $visits = $this->paginateOrAll($query, $request, self::DEFAULT_PER_PAGE);
+        $visits = $user->visits()
+            ->join('plans', 'plans.id', '=', 'visits.plan_id')
+            ->filter($request)
+            ->paginate($limit);
 
         return $this->success(['data' => VisitsResource::collection($visits)]);
     }
@@ -542,20 +546,20 @@ class VisitRepository implements VisitInterface
     public function getCurrentVisits()
     {
         $request = request();
+        $limit = $this->resolvePerPage($request, self::NO_LIMIT_PER_PAGE);
 
         $startDate = $request->get('start_date') ?: Carbon::today();
         $endDate = $request->get('end_date') ?: '';
 
-        $query = Visit::select('visits.*')
+        $visits = Visit::select('visits.*')
             ->join('plans', 'plans.id', '=', 'visits.plan_id')
             ->whereHas('user', fn ($q) => $q->where('users.status', 1))
             ->when($startDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '>=', $v))
             ->when($endDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '<=', $v))
             ->when($request->get('user_id'), fn ($q, $v) => $q->where('visits.user_id', $v))
             ->where('visits.status', 2)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->orderBy('visits.created_at', 'DESC');
-
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
+            ->orderBy('visits.created_at', 'DESC')
+            ->paginate($limit);
 
         return $this->success(['data' => VisitsResource::collection($visits)]);
     }
@@ -681,35 +685,11 @@ class VisitRepository implements VisitInterface
         return !empty($value) ? Carbon::parse($value)->format($format) : $default();
     }
 
-    /**
-     * Paginates $query using the request's `per_page`, honoring a special
-     * value of -1 (self::ALL_RESULTS) - either passed explicitly by the
-     * client, or as this call's own $default - to mean "return every
-     * matching row as a single page" instead of a fixed huge page size.
-     *
-     * When "all" is requested, the total is computed via a throwaway
-     * paginate(1) call rather than a raw ->count(), because ->count() on
-     * a GROUP BY query (like DrawVisitStatistics()) returns the wrong
-     * number - paginate()'s internal counting logic already handles
-     * GROUP BY / joins correctly, so we reuse it instead of duplicating
-     * that logic.
-     */
-    protected function paginateOrAll($query, $request, int $default = self::DEFAULT_PER_PAGE)
+    protected function resolvePerPage($request, int $default = self::DEFAULT_PER_PAGE): int
     {
-        $requested = $request->per_page ?? request()->get('per_page');
-        $perPage = is_numeric($requested) ? (int) $requested : null;
+        $perPage = $request->per_page ?? request()->get('per_page');
 
-        $effective = $perPage ?? $default;
-
-        if ($effective === self::ALL_RESULTS) {
-            $total = max((clone $query)->paginate(1)->total(), 1);
-
-            return $query->paginate($total);
-        }
-
-        $limit = $effective > 0 ? $effective : self::DEFAULT_PER_PAGE;
-
-        return $query->paginate($limit);
+        return (is_numeric($perPage) && $perPage > 0) ? (int) $perPage : $default;
     }
 
     protected function success($data): array

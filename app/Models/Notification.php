@@ -60,12 +60,12 @@ class Notification extends Model
     {
         $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
 
-        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
-            ->where(function ($q) {
+        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id');
+           /* ->where(function ($q) {
                 $q->where('notifications.user_id', auth()->user()->id)
                     ->when(auth()->user()->position != 3, fn ($q, $v) =>
                         $q->orWhere('notifications.tiNotificationType', 1));
-            });
+            });*/
 
         $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])
             ->orderBy('notifications.created_at', 'desc')
@@ -78,7 +78,6 @@ class Notification extends Model
 
         $countOfUnRead = $UnReadNotify ? $UnReadNotify->notify_count : 0;
 
-        // نحمّل العلاقة الـ polymorphic مع البيانات، مش استعلام إضافي لكل إشعار
         $notificationList->load('notifiable');
 
         $data = ['data' => NotificationResource::collection($notificationList), 'countOfUnRead' => $countOfUnRead];
