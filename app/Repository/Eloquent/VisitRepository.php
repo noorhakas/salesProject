@@ -696,20 +696,22 @@ class VisitRepository implements VisitInterface
      */
     protected function paginateOrAll($query, $request, int $default = self::DEFAULT_PER_PAGE)
     {
-        $requested = $request->per_page ?? request()->get('per_page');
-        $perPage = is_numeric($requested) ? (int) $requested : null;
+        $requested = $request->input('per_page');
 
-        $effective = $perPage ?? $default;
+        $perPage = is_numeric($requested)
+            ? (int) $requested
+            : $default;
 
-        if ($effective === self::ALL_RESULTS) {
-            $total = max((clone $query)->paginate(1)->total(), 1);
+        // per_page = -1 => return all rows while keeping pagination response
+        if ($perPage === self::ALL_RESULTS) {
+            $total = (clone $query)->toBase()->getCountForPagination();
 
-            return $query->paginate($total);
+            return $query->paginate(max($total, 1));
         }
 
-        $limit = $effective > 0 ? $effective : self::DEFAULT_PER_PAGE;
-
-        return $query->paginate($limit);
+        return $query->paginate(
+            $perPage > 0 ? $perPage : self::DEFAULT_PER_PAGE
+        );
     }
 
     protected function success($data): array
