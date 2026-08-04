@@ -190,9 +190,10 @@ class VisitRepository implements VisitInterface
     {
         return $user->products()
             ->join('product_files', 'products.id', '=', 'product_files.product_id')
-              ->whereNull('product_files.deleted_at')
-            ->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,product_files.file as file,0 as count_of_sample , 0 as checked , 3 as type')
-            ->get();
+            ->whereNull('product_files.deleted_at')
+            ->selectRaw('products.id, SUBSTRING(products.name, 1, 20) as name, product_files.file as file, 0 as count_of_sample, 0 as checked, 3 as type')
+            ->get()
+            ->keyBy('id'); 
     }
 
     protected function getGifts($type = GiftTypeEnum::Gift)
