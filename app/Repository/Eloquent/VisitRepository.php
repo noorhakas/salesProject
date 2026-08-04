@@ -110,7 +110,7 @@ class VisitRepository implements VisitInterface
                     $query->where('visits.user_id', $request->user_id);
                 })
             )
-            ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image,specialty_id')
+            ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->orderBy('visits.created_at', 'DESC');
 
         $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
@@ -121,9 +121,20 @@ class VisitRepository implements VisitInterface
 
     public function showVisitForManager($id, array $subordinateIds)
     {
-        $visit = Visit::whereIn('user_id', $subordinateIds)
-            ->with('user:id,name', 'doubleVisit:id,name', 'account:id,name', 'customer:id,name,image')
-            ->find($id);
+       $visit = Visit::whereIn('user_id', $subordinateIds)
+                ->with([
+                    'user:id,name',
+                    'doubleVisit:id,name',
+                    'account:id,name',
+                    'customer' => function ($q) {
+                        $q->select('id', 'name', 'image', 'specialty_id', 'account_id')
+                        ->with([
+                            'account:id,address,lat,lng',
+                            'specialty:id,name',
+                        ]);
+                    },
+                ])
+                ->find($id);
 
         if (!$visit) {
             return $this->failure('data_not_found');

@@ -7,7 +7,7 @@ use App\Http\Resources\GlobalCollection;
 use App\Http\Resources\API\Concerns\FormatsIdName;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CustomerSimpleResource extends JsonResource
+class CustomerShortResource extends JsonResource
 {
     use FormatsIdName;
 
@@ -17,10 +17,6 @@ class CustomerSimpleResource extends JsonResource
             'id'                 => $this->id,
             'name'               => $this->name,
             'image'              => $this->image,
-            'address'     => $this->account->address,
-            'lat'         => $this->account->lat !== null ? (float) $this->account->lat : null,
-            'lng'         => $this->account->lng !== null ? (float) $this->account->lng : null,
-            'specialty'          => $this->idName($this->specialty),
 
         ];
     }
