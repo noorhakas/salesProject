@@ -135,7 +135,7 @@ class VisitRepository implements VisitInterface
                     },
                 ])
                 ->find($id);
-
+dd($visit->customer->toArray());
         if (!$visit) {
             return $this->failure('data_not_found');
         }
