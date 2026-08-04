@@ -16,12 +16,12 @@ class ProductFilesSeeder extends Seeder
 
             ProductFiles::create([
                 'product_id' => $product->id,
-                'file' => 'product_files/sample1.pdf',
+                'file' => 'sample1.pdf',
             ]);
 
             ProductFiles::create([
                 'product_id' => $product->id,
-                'file' => 'product_files/sample2.jpg',
+                'file' => 'sample2.jpg',
             ]);
 
         }
