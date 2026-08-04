@@ -17,11 +17,16 @@ class Notification extends Model
     ];
 
     protected $casts = [
-        // الأوبجكت كامل (title_key, body_key, type, data) بيتخزن ويترجع كـ array تلقائي
         'payload' => 'array',
     ];
 
     public function NotifyUser()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
+
+
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
@@ -31,8 +36,6 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    // العلاقة الـ polymorphic: بترجع الموديل الأصلي (Plan أو Visit)
-    // حسب model_type و model_id بدون ما نخزن بياناته مكررة
     public function notifiable()
     {
         return $this->morphTo(__FUNCTION__, 'model_type', 'model_id');

@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Http\Traits\ObservantTrait;
 use Carbon\Carbon;
+use App\Repository\Interfaces\HasNotificationData;
 
-class Visit extends Model
+class Visit extends Model implements HasNotificationData
 {
 	use SoftDeletes, ObservantTrait;
     protected $table = 'visits';
@@ -84,5 +85,20 @@ class Visit extends Model
         return $q;
     }
 
-	
+    public function getNotificationData(): array
+    {
+        return [
+            'type'          => 'visit',
+            'id'            => $this->id,
+            'plan_id'       => $this->plan_id,
+            'user_name'     => $this->user?->name,
+            'account_name'  => $this->account?->name,
+            'customer_name' => $this->customer?->name,
+            'visit_date'    => $this->visit_date,
+            'start_time'    => $this->start_time,
+            'end_time'      => $this->end_time,
+            'status'        => $this->status,
+        ];
+    }
+
 }
