@@ -23,13 +23,10 @@ class NotificationResource extends JsonResource
             'title' => __('messages.' . $this->vTitle, $params),
             'body'  => __('messages.' . $this->txBody, $params),
 
-            'employee' => $this->creator?->full_info,
-
             'is_read'    => (bool) $this->tiIsRead,
-            'is_request' => $this->is_request,
 
-            'model_type' => $this->model_type,
-            'model_id'   => $this->model_id,
+         //   'model_type' => $this->model_type,
+           // 'model_id'   => $this->model_id,
 
             // 'account_name'  => $extra['account_name'] ?? '',
             // 'customer_name' => $extra['customer_name'] ?? '',
