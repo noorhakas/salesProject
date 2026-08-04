@@ -121,21 +121,8 @@ class VisitRepository implements VisitInterface
 
     public function showVisitForManager($id, array $subordinateIds)
     {
-       $visit = Visit::whereIn('user_id', $subordinateIds)
-                ->with([
-                    'user:id,name',
-                    'doubleVisit:id,name',
-                    'account:id,name',
-                    'customer' => function ($q) {
-                        $q->select('id', 'name', 'image', 'specialty_id', 'account_id')
-                        ->with([
-                            'account:id,address,lat,lng',
-                            'specialty:id,name',
-                        ]);
-                    },
-                ])
-                ->find($id);
-dd($visit->customer->toArray());
+       $visit = Visit::whereIn('user_id', $subordinateIds)->find($id);
+
         if (!$visit) {
             return $this->failure('data_not_found');
         }
@@ -144,14 +131,26 @@ dd($visit->customer->toArray());
     }
 
 
-    protected function buildVisitDetailData(Visit $visit): array
+   protected function buildVisitDetailData(Visit $visit): array
     {
-        $visit->load('user:id,name','doubleVisit:id,name','account:id,name','customer:id,name,image');
+        $visit->load([
+            'user:id,name',
+            'doubleVisit:id,name',
+            'account:id,name',
+            'customer' => function ($q) {
+                $q->select('id', 'name', 'image', 'specialty_id', 'account_id')
+                    ->with([
+                        'account:id,address,lat,lng',
+                        'specialty:id,name',
+                    ]);
+            },
+        ]);
+
         $user = User::find($visit->user_id);
 
         $products = $this->mergeDataById(
             $this->getUserProducts($user),
-            $this->getVisitItemList($visit, 0) // type -- products
+            $this->getVisitItemList($visit, 0)
         );
 
         $leaveBehind = $this->mergeDataById(
