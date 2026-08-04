@@ -189,10 +189,9 @@ class VisitRepository implements VisitInterface
     protected function getUserProductFiles(User $user)
     {
         return $user->products()
-            ->whereHas('productfiles', function ($q) {
-                $q->whereNull('product_files.deleted_at');
-            })
-            ->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,1 as file,0 as count_of_sample , 0 as checked , 3 as type')
+            ->join('product_files', 'products.id', '=', 'product_files.product_id')
+              ->whereNull('product_files.deleted_at')
+            ->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,product_files.file as file,0 as count_of_sample , 0 as checked , 3 as type')
             ->get();
     }
 
