@@ -45,7 +45,11 @@ class SupervisorRepository implements SupervisorInterface
             )
             ->when($request->filled('search'), fn($q) =>
                 $q->where('name', 'like', '%' . $request->search . '%')
-            )
+            )->when($request->filled('branch_id'), function ($q) use ($request) {
+                    $q->whereHas('branches', function ($branchQuery) use ($request) {
+                        $branchQuery->where('branches.id', $request->branch_id);
+                    });
+            })
             ->filter($request)
             ->latest();
 
