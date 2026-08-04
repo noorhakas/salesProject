@@ -147,23 +147,18 @@ class ManagerController extends Controller
 
             if (!empty($request->branch_departments)) {
 
-                // استخراج البرانشات من الأقسام
                 $branchIds = collect($request->branch_departments)
                     ->pluck('branch_id')
                     ->unique()
                     ->values()
                     ->toArray();
 
-
-                // تحديث علاقة البرانشات
                 $manager->branches()->sync($branchIds);
 
 
-                // حذف الأقسام القديمة
                 $manager->branchDepartments()->delete();
 
 
-                // إضافة الأقسام الجديدة
                 foreach ($request->branch_departments as $item) {
 
                     $manager->branchDepartments()->create([
@@ -175,7 +170,6 @@ class ManagerController extends Controller
 
             } else {
 
-                // لو شال كل البرانشات من الواجهة
                 $manager->branches()->detach();
 
                 $manager->branchDepartments()->delete();
