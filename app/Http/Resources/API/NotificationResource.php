@@ -4,6 +4,7 @@ namespace App\Http\Resources\API;
 
 use App\Models\Visit;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\GlobalCollection;
 
 class NotificationResource extends JsonResource
 {
@@ -45,5 +46,14 @@ class NotificationResource extends JsonResource
             'visit_date'    => $visit->visit_date,
             'visit_time'    => $visit->start_time,
         ];
+    }
+
+    public static function collection($resource)
+    {
+        return tap(new GlobalCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
     }
 }
