@@ -311,7 +311,6 @@ class VisitRepository implements VisitInterface
             ];
 
             // Unplanned visits don't already have a date/time, so they're
-            // filled in from the submission itself.
             if ($visit->type == 1) {
                 $data = array_merge($data, [
                     'visit_date' => Carbon::parse($request->start_time)->toDateString(),
@@ -335,7 +334,6 @@ class VisitRepository implements VisitInterface
             return $this->failure('server_error');
         }
 
-        // Fired after commit: a notification failure should never undo a
         // visit that was actually saved successfully.
         $this->notifications->sendNewVisitCreated($createdVisit, auth()->user());
 
