@@ -51,6 +51,21 @@ class ManagerController extends Controller
         );
     }
 
+     public function profile(Request $request, User $manager)
+    {
+        $result = $this->managerRepository->managerProfile(
+            $request,
+            $manager
+        );
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new ManagerResource($result['manager']),
+            
+        );
+    }
+
 
 
     public function store(Request $request)
