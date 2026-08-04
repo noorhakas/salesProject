@@ -62,7 +62,8 @@ class DatabaseSeeder extends Seeder
    //  $this->call(UserAccountSeeder::class);
     // $this->call(UserProductSeeder::class);
 
-    $this->call(UserBranchDepSeeder::class);
+  //  $this->call(UserBranchDepSeeder::class);
+    $this->call(SettingSeeder::class);
         
     }
 }

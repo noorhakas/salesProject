@@ -25,9 +25,13 @@ class SettingResource extends JsonResource
             'id' => $this->id,
             'app_name' => $this->app_name,
 			'app_logo'=>$this->image,
-			'map_key'=>$this->map_key,
-			'allow_distance'=>$this->allow_distance,
-			'phone'=>$this->phone
+            'android' => $this->android_build ?? [],
+            'ios' => $this->ios_build ?? [],
+
+		//	'map_key'=>$this->map_key,
+		//	'allow_distance'=>$this->allow_distance,
+			'phone'=>$this->phone,
+			'email'=>$this->email
         ];
     }
 }

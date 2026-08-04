@@ -33,16 +33,10 @@ Route::group(['middleware' => ['auth:sanctum'],'namespace' => 'Panel'], function
     Route::post('update_profile', 'UserController@updateProfile'); 
 	Route::get('current_plan', 'UserController@MycurrentPlan');   
 	
- 
-
-	/** specialty && products*/
-	/*Route::post('add_product_note', 'ProductController@addNotes'); 
-	Route::get('product_notes/{id}','ProductController@getProductNotes');
-    Route::get('product_file/{id}','ProductController@getProductFiles');*/
-
 });
 
 	Route::get('position_list', 'Panel\PositionController@index');
+    Route::resource('setting', 'Panel\SettingController')->only(['index', 'store']);
 
  
 
