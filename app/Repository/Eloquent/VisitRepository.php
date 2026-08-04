@@ -192,7 +192,7 @@ class VisitRepository implements VisitInterface
             ->whereHas('productfiles', function ($q) {
                 $q->whereNull('product_files.deleted_at');
             })
-            ->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,product_files.file as file,0 as count_of_sample , 0 as checked , 3 as type')
+            ->selectRaw('products.id ,SUBSTRING(products.name, 1, 20) as name ,1 as file,0 as count_of_sample , 0 as checked , 3 as type')
             ->get();
     }
 
