@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\API;
 
+use App\Models\Visit;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class NotificationResource extends JsonResource
@@ -13,8 +14,8 @@ class NotificationResource extends JsonResource
         return [
             'id'            => $this->id,
             'Uuid'          => $this->Uuid,
-            'title'         => $this->vTitle,
-            'body'          => $this->txBody,
+            'title'         => __('messages.' . $this->vTitle, $this->data ?? []),
+            'body'          => __('messages.' . $this->txBody, $this->data ?? []),
             'is_read'       => (bool) $this->tiIsRead,
             'model_type'    => $this->model_type,
             'model_id'      => $this->model_id,
@@ -28,11 +29,11 @@ class NotificationResource extends JsonResource
 
     protected function resolveExtraData(): array
     {
-        if (!in_array($this->model_type, ['visit', 'visit_request'])) {
+        if ($this->model_type !== Visit::class) {
             return [];
         }
 
-        $visit = $this->notifiable; // من الـ morphTo relation
+        $visit = $this->notifiable;
 
         if (!$visit) {
             return [];
