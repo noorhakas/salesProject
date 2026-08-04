@@ -110,7 +110,7 @@ class VisitRepository implements VisitInterface
                     $query->where('visits.user_id', $request->user_id);
                 })
             )
-            ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
+            ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image,specialty_id')
             ->orderBy('visits.created_at', 'DESC');
 
         $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);

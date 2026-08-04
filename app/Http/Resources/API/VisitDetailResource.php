@@ -33,6 +33,7 @@ class VisitDetailResource extends JsonResource
             'combine_with' => $this->combine_with ?? 0,
             'type' => ($this->type == 1) ? 'unplanned' : 'planned',
             'plan_code' => optional($this->plan)->Uuid,
+            'plan_status' => optional($this->plan)->status,
             'status' => $this->status,
             'statusAsString' => $statusData['name'],
             'statusColor' => $statusData['color'],

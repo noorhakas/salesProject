@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use App\Http\Resources\GlobalCollection;
 use App\Http\Resources\API\Concerns\FormatsIdName;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Customer;
-use Carbon\Carbon;
 
 class CustomerSimpleResource extends JsonResource
 {
@@ -19,6 +17,8 @@ class CustomerSimpleResource extends JsonResource
             'id'                 => $this->id,
             'name'               => $this->name,
             'image'              => $this->image,
+            'specialty'          => $this->idName($this->specialty),
+
         ];
     }
 
