@@ -49,7 +49,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
         Route::get('{branch}/departments/{department}/sales-reps', 'DepartmentController@departmentSalesReps');
     });
 
-   
+    Route::get('products/{product}', 'ProductController@show');
+
     Route::prefix('/notifications')->group(function () {
 		Route::get('/','NotificationController@notificationListing');
 		Route::get('badge-reset','NotificationController@notificationBadgeReset');
