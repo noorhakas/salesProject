@@ -3,6 +3,7 @@
 namespace App\Http\Resources\API;
 
 use App\Models\Visit;
+use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\GlobalCollection;
 
@@ -10,21 +11,35 @@ class NotificationResource extends JsonResource
 {
     public function toArray($request)
     {
-        $extra = $this->resolveExtraData();
+        $model = $this->notifiable;
+
+        $params = $this->payload['data'] ?? [];
+
 
         return [
-            'id'            => $this->id,
-            'Uuid'          => $this->Uuid,
-            'title'         => __('messages.' . $this->vTitle, $this->data ?? []),
-            'body'          => __('messages.' . $this->txBody, $this->data ?? []),
-            'is_read'       => (bool) $this->tiIsRead,
-            'model_type'    => $this->model_type,
-            'model_id'      => $this->model_id,
-            'account_name'  => $extra['account_name'] ?? '',
-            'customer_name' => $extra['customer_name'] ?? '',
-            'visit_date'    => $extra['visit_date'] ?? '',
-            'visit_time'    => $extra['visit_time'] ?? '',
-            'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
+            'id'   => $this->id,
+            'Uuid' => $this->Uuid,
+
+            'title' => __('messages.' . $this->vTitle, $params),
+            'body'  => __('messages.' . $this->txBody, $params),
+
+            'employee' => $this->creator?->full_info,
+
+            'is_read'    => (bool) $this->tiIsRead,
+            'is_request' => $this->is_request,
+
+            'model_type' => $this->model_type,
+            'model_id'   => $this->model_id,
+
+            // 'account_name'  => $extra['account_name'] ?? '',
+            // 'customer_name' => $extra['customer_name'] ?? '',
+            // 'visit_date'    => $extra['visit_date'] ?? '',
+            // 'visit_time'    => $extra['visit_time'] ?? '',
+
+            'created_at' => Carbon::parse($this->created_at)
+                ->toDayDateTimeString(),
+
+            'details' => $model?->getNotificationData()
         ];
     }
 

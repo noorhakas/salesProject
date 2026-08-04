@@ -13,7 +13,12 @@ class Notification extends Model
 
     protected $fillable = [
         'Uuid', 'user_id', 'tiNotificationType', 'vTitle', 'txBody',
-        'tiIsRead', 'model_id', 'model_type', 'created_by',
+        'tiIsRead', 'model_id', 'model_type', 'created_by', 'payload',
+    ];
+
+    protected $casts = [
+        // الأوبجكت كامل (title_key, body_key, type, data) بيتخزن ويترجع كـ array تلقائي
+        'payload' => 'array',
     ];
 
     public function NotifyUser()
@@ -52,20 +57,28 @@ class Notification extends Model
                 'created_by'         => auth()->user()->id ?? 0,
                 'model_id'           => $data['model_id'],
                 'model_type'         => $data['model_type'],
+                'payload'            => $data['payload'] ?? null,
             ]
         );
     }
 
     function notificationListing($request)
     {
+        $authUser = auth()->user();
         $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
 
-        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id');
-           /* ->where(function ($q) {
-                $q->where('notifications.user_id', auth()->user()->id)
-                    ->when(auth()->user()->position != 3, fn ($q, $v) =>
-                        $q->orWhere('notifications.tiNotificationType', 1));
-            });*/
+        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
+            // جوين تاني على مين اللي عمل الأكشن (created_by) عشان نعرف مديره
+            ->leftJoin('users as creators', 'creators.id', '=', 'notifications.created_by')
+            ->where(function ($q) use ($authUser) {
+                // 1) الإشعار موجّه ليا شخصيًا (زي: اتقبلت/اترفضت خطتك، أو طلب زيارة ليا)
+                $q->where('notifications.user_id', $authUser->id)
+                    // 2) أو إشعار عام للمديرين (user_id = 0) وأنا مدير اللي عمل الأكشن
+                    ->orWhere(function ($q2) use ($authUser) {
+                        $q2->where('notifications.user_id', 0)
+                            ->where('creators.manager_id', $authUser->id);
+                    });
+            });
 
         $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])
             ->orderBy('notifications.created_at', 'desc')
@@ -105,6 +118,7 @@ class Notification extends Model
             'notify_type'   => $data['notify_type'],
             'notify_title'  => $data['notify_title'],
             'notify_body'   => $data['notify_body'],
+            'payload'       => $data['payload'] ?? null,
         ]);
 
         $pushData = [
