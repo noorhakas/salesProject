@@ -29,7 +29,7 @@ class HomeRepository implements HomeInterface
 		    ->where('plans.status',1)->whereDate('plans.start_date', '<=', $currentDate)->whereDate('plans.end_date', '>=', $currentDate)->orderBy('plans.created_at','DESC')->paginate($limit);
 	  
 		$visits = Visit::select('visits.*')->join('plans','plans.id','=','visits.plan_id')->whereHas('user', function ($query) {$query->where('users.status',1);})
-		   ->whereDate('visits.actual_start_date', '=', $currentDate)->where('visits.status',2)->orderBy('visits.created_at','DESC')->paginate($limit);
+		   ->whereDate('visits.actual_start_date', '=', $currentDate)->where('visits.status',2)->with('user:id,name', 'account:id,name', 'customer:id,name,image')->orderBy('visits.created_at','DESC')->paginate($limit);
 
 		$logs = SiteLog::orderBy('site_logs.created_at','DESC')->paginate($limit);   
 

@@ -55,12 +55,20 @@ class UserController extends Controller
                     $user->syncRoles($request->role_id);
                 }
 
-                if (!empty($request->department_ids)) {
-                    $user->departments()->sync($request->department_ids);
-                }
-
                 if (!empty($request->branch_ids)) {
                     $user->branches()->sync($request->branch_ids);
+                }
+
+                if (!empty($request->branch_departments)) {
+
+                    $user->branchDepartments()->delete();
+
+                    foreach ($request->branch_departments as $item) {
+                        $user->branchDepartments()->create([
+                            'branch_id'     => $item['branch_id'],
+                            'department_id' => $item['department_id'],
+                        ]);
+                    }
                 }
 
                 if (
@@ -136,12 +144,19 @@ class UserController extends Controller
                     $user->syncRoles($request->role_id);
                 }
 
-                if (!empty($request->department_ids)) {
-                    $user->departments()->sync($request->department_ids);
+               if (!empty($request->branch_ids)) {
+                    $user->branches()->sync($request->branch_ids);
                 }
 
-                if (!empty($request->branch_ids)) {
-                    $user->branches()->sync($request->branch_ids);
+                $user->branchDepartments()->delete();
+
+                if (!empty($request->branch_departments)) {
+                    foreach ($request->branch_departments as $item) {
+                        $user->branchDepartments()->create([
+                            'branch_id'     => $item['branch_id'],
+                            'department_id' => $item['department_id'],
+                        ]);
+                    }
                 }
 
                 if (
