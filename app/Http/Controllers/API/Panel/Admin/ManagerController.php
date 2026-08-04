@@ -68,142 +68,152 @@ class ManagerController extends Controller
 
 
 
-    public function store(Request $request)
-    {
-        try {
+   public function store(Request $request)
+{
+    try {
 
-            $manager = DB::transaction(function () use ($request) {
+        $manager = DB::transaction(function () use ($request) {
 
-                $data = $request->all();
+            $data = $request->all();
 
-                $manager = User::create($data);
+            $manager = User::create($data);
 
 
-                if (!empty($request->branch_ids)) {
-                    $manager->branches()->sync(
-                        $request->branch_ids
-                    );
+            if (!empty($request->branch_departments)) {
+
+                $branchIds = collect($request->branch_departments)
+                    ->pluck('branch_id')
+                    ->unique()
+                    ->values()
+                    ->toArray();
+
+
+                $manager->branches()->sync($branchIds);
+
+
+                foreach ($request->branch_departments as $item) {
+
+                    $manager->branchDepartments()->create([
+                        'branch_id'     => $item['branch_id'],
+                        'department_id' => $item['department_id'],
+                    ]);
+
                 }
+            }
 
 
-                if (!empty($request->branch_departments)) {
-
-                    foreach ($request->branch_departments as $item) {
-
-                        $manager->branchDepartments()->create([
-                            'branch_id'     => $item['branch_id'],
-                            'department_id' => $item['department_id'],
-                        ]);
-                    }
-                }
-
-
-                return $manager->load([
-                    'branches',
-                    'branchDepartments.department',
-                    'branchDepartments.branch',
-                ]);
-
-            });
-
-
-            return $this->response_api(
-                true,
-                trans('messages.success'),
-                new ManagerResource($manager)
-            );
-
-
-        } catch (\Exception $e) {
-
-            Log::error('Manager Store Error', [
-                'message' => $e->getMessage()
+            return $manager->load([
+                'branches',
+                'branchDepartments.department',
+                'branchDepartments.branch',
             ]);
 
+        });
 
-            return $this->response_api(
-                false,
-                trans('messages.server_error')
-            );
-        }
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new ManagerResource($manager)
+        );
+
+
+    } catch (\Exception $e) {
+
+        Log::error('Manager Store Error', [
+            'message' => $e->getMessage()
+        ]);
+
+        return $this->response_api(
+            false,
+            trans('messages.server_error')
+        );
     }
+}
 
 
 
 
-    public function update(Request $request, User $manager)
-    {
-        try {
+   public function update(Request $request, User $manager)
+{
+    try {
+
+        $manager = DB::transaction(function () use ($request, $manager) {
+
+            $data = $request->all();
+
+            $manager->update($data);
 
 
-            $manager = DB::transaction(function () use ($request, $manager) {
+            if (!empty($request->branch_departments)) {
+
+                // استخراج البرانشات من الأقسام
+                $branchIds = collect($request->branch_departments)
+                    ->pluck('branch_id')
+                    ->unique()
+                    ->values()
+                    ->toArray();
 
 
-                $data = $request->all();
+                // تحديث علاقة البرانشات
+                $manager->branches()->sync($branchIds);
 
 
-                $manager->update($data);
-
-
-
-                if (isset($request->branch_ids)) {
-
-                    $manager->branches()->sync(
-                        $request->branch_ids
-                    );
-                }
-
-
-
+                // حذف الأقسام القديمة
                 $manager->branchDepartments()->delete();
 
 
+                // إضافة الأقسام الجديدة
+                foreach ($request->branch_departments as $item) {
 
-                if (!empty($request->branch_departments)) {
+                    $manager->branchDepartments()->create([
+                        'branch_id'     => $item['branch_id'],
+                        'department_id' => $item['department_id'],
+                    ]);
 
-                    foreach ($request->branch_departments as $item) {
-
-                        $manager->branchDepartments()->create([
-                            'branch_id'     => $item['branch_id'],
-                            'department_id' => $item['department_id'],
-                        ]);
-                    }
                 }
 
+            } else {
+
+                // لو شال كل البرانشات من الواجهة
+                $manager->branches()->detach();
+
+                $manager->branchDepartments()->delete();
+
+            }
 
 
-                return $manager->load([
-                    'branches',
-                    'branchDepartments.department',
-                    'branchDepartments.branch',
-                ]);
-
-            });
-
-
-
-            return $this->response_api(
-                true,
-                trans('messages.success'),
-                new ManagerResource($manager)
-            );
-
-
-        } catch (\Exception $e) {
-
-
-            Log::error('Manager Update Error', [
-                'user_id' => $manager->id,
-                'message' => $e->getMessage()
+            return $manager->load([
+                'branches',
+                'branchDepartments.department',
+                'branchDepartments.branch',
             ]);
 
+        });
 
-            return $this->response_api(
-                false,
-                trans('messages.server_error')
-            );
-        }
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new ManagerResource($manager)
+        );
+
+
+    } catch (\Exception $e) {
+
+
+        Log::error('Manager Update Error', [
+            'user_id' => $manager->id,
+            'message' => $e->getMessage()
+        ]);
+
+
+        return $this->response_api(
+            false,
+            trans('messages.server_error')
+        );
     }
+}
 
 
 
