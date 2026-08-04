@@ -65,7 +65,8 @@ class DatabaseSeeder extends Seeder
   //  $this->call(UserBranchDepSeeder::class);
     // $this->call(SettingSeeder::class);
    // $this->call(ProductFilesSeeder::class);
-    $this->call(UpdateUserNamesSeeder::class);
+ //   $this->call(UpdateUserNamesSeeder::class);
+    $this->call(UpdateUserEmailSeeder::class);
     
         
     }
