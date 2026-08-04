@@ -121,6 +121,7 @@ class VisitRepository implements VisitInterface
 
     public function showVisitForManager($id, array $subordinateIds)
     {
+        ##visit detail
        $visit = Visit::whereIn('user_id', $subordinateIds)->find($id);
 
         if (!$visit) {
