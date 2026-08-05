@@ -67,86 +67,55 @@ class ManagerController extends Controller
     }
 
 
+    public function store(Request $request)
+    {
+        try {
+            $manager = DB::transaction(function () use ($request) {
+                $data = $request->all();
+                $manager = User::create($data);
 
-   public function store(Request $request)
-{
-    try {
+                if (!empty($request->branch_departments)) {
+                    foreach ($request->branch_departments as $item) {
+                        $manager->branchDepartments()->create([
+                            'branch_id'     => $item['branch_id'],
+                            'department_id' => $item['department_id'] ?? null,
+                        ]);
+                    }
 
-        $manager = DB::transaction(function () use ($request) {
+                    // Derive branches from branchDepartments instead of a separate sync
+                    $branchIds = collect($request->branch_departments)
+                        ->pluck('branch_id')
+                        ->unique()
+                        ->values()
+                        ->toArray();
 
-            $data = $request->all();
-
-            $manager = User::create($data);
-
-
-            if (!empty($request->branch_departments)) {
-
-                $branchIds = collect($request->branch_departments)
-                    ->pluck('branch_id')
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
-
-                $manager->branches()->sync($branchIds);
-
-
-                foreach ($request->branch_departments as $item) {
-
-                    $manager->branchDepartments()->create([
-                        'branch_id'     => $item['branch_id'],
-                        'department_id' => $item['department_id'],
-                    ]);
-
+                    $manager->branches()->sync($branchIds);
                 }
-            }
 
+                return $manager->load([
+                    'branches',
+                    'branchDepartments.department',
+                    'branchDepartments.branch',
+                ]);
+            });
 
-            return $manager->load([
-                'branches',
-                'branchDepartments.department',
-                'branchDepartments.branch',
-            ]);
-
-        });
-
-
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            new ManagerResource($manager)
-        );
-
-
-    } catch (\Exception $e) {
-
-        Log::error('Manager Store Error', [
-            'message' => $e->getMessage()
-        ]);
-
-        return $this->response_api(
-            false,
-            trans('messages.server_error')
-        );
+            return $this->response_api(true, trans('messages.success'), new ManagerResource($manager));
+        } catch (\Exception $e) {
+            Log::error('Manager Store Error', ['message' => $e->getMessage()]);
+            return $this->response_api(false, trans('messages.server_error'));
+        }
     }
-}
 
 
 
-
-   public function update(Request $request, User $manager)
+    public function update(Request $request, User $manager)
 {
     try {
-
         $manager = DB::transaction(function () use ($request, $manager) {
-
             $data = $request->all();
-
             $manager->update($data);
 
-
             if (!empty($request->branch_departments)) {
-
                 $branchIds = collect($request->branch_departments)
                     ->pluck('branch_id')
                     ->unique()
@@ -154,62 +123,28 @@ class ManagerController extends Controller
                     ->toArray();
 
                 $manager->branches()->sync($branchIds);
-
-
                 $manager->branchDepartments()->delete();
 
-
                 foreach ($request->branch_departments as $item) {
-
                     $manager->branchDepartments()->create([
                         'branch_id'     => $item['branch_id'],
                         'department_id' => $item['department_id'],
                     ]);
-
                 }
-
             } else {
-
                 $manager->branches()->detach();
-
                 $manager->branchDepartments()->delete();
-
             }
 
-
-            return $manager->load([
-                'branches',
-                'branchDepartments.department',
-                'branchDepartments.branch',
-            ]);
-
+            return $manager;
         });
 
-
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            new ManagerResource($manager)
-        );
-
-
+        return $this->response_api(true, trans('messages.success'), new ManagerResource($manager));
     } catch (\Exception $e) {
-
-
-        Log::error('Manager Update Error', [
-            'user_id' => $manager->id,
-            'message' => $e->getMessage()
-        ]);
-
-
-        return $this->response_api(
-            false,
-            trans('messages.server_error')
-        );
+            Log::error('Manager Store Error', ['message' => $e->getMessage()]);
+            return $this->response_api(false, trans('messages.server_error'));
     }
 }
-
-
 
 
     public function destroy(User $manager)

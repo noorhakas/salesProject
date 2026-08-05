@@ -15,7 +15,6 @@ class PublicHoliday extends Model
         'name',
         'date_from',
         'date_to',
-        'type',
         'active',
     ];
 

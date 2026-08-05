@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API\Panel\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\API\PositionRequest;
+use App\Http\Requests\API\PublicHolidayRequest;
 use App\Repository\Interfaces\AttendanceReportInterface;
 
 class PublicHolidayController extends Controller
@@ -23,7 +23,7 @@ class PublicHolidayController extends Controller
 		return $this->SendResponse($response);
 	}
 
-	public function store(PositionRequest $request)
+	public function store(PublicHolidayRequest $request)
     {
 		//if (!auth()->user()->hasPermissionTo('create Acc-Type'))
 			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
@@ -41,7 +41,7 @@ class PublicHolidayController extends Controller
 		return $this->SendResponse($response);
     }
 
-	public function update(PositionRequest $request,$id) {
+	public function update(PublicHolidayRequest $request,$id) {
 		//if (!auth()->user()->hasPermissionTo('update Acc-Type'))
 			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
