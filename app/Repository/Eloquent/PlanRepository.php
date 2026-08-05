@@ -33,7 +33,7 @@ class PlanRepository implements PlanInterface
 
     public function getMyPlans($request)
     {
-        $this->applyDefaultDateRange($request);
+       // $this->applyDefaultDateRange($request);
 
         $recentPlan = User::getCurrentPlan();
         $recentPlanResource = $recentPlan ? new PlansResource($recentPlan) : (object) [];
@@ -237,7 +237,7 @@ class PlanRepository implements PlanInterface
 
     public function statistics($request, array $subordinateIds): array
     {
-        $this->applyDefaultDateRange($request);
+        //$this->applyDefaultDateRange($request);
         
         $stats = Plan::join('users', 'users.id', '=', 'plans.user_id')
                 ->whereIn('plans.user_id', $subordinateIds)->filter($request)
