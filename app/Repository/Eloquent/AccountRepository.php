@@ -13,7 +13,6 @@ use App\Models\AccType;
 use App\Http\Resources\API\AccountResource;
 use App\Http\Resources\API\AccountDetailResource;
 
-use App\Http\Resources\API\PharmacyGroupResource;
 
 class AccountRepository implements AccountInterface
 {

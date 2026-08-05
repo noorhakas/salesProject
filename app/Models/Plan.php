@@ -95,6 +95,11 @@ class Plan extends Model implements HasNotificationData
 
     public function getTotalVisitsAttribute(): int
     {
+        return (int) $this->visits()->count();
+    }
+
+    public function getTotalVisitedAttribute(): int
+    {
         return (int) $this->visits()
             ->where('status', (VisitStatusEnum::Visited)['id'])
             ->count();

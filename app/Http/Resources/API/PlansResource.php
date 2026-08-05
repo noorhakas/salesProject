@@ -33,7 +33,8 @@ class PlansResource extends JsonResource
             'Is_recent'      => Carbon::parse($this->end_date) >= Carbon::today(),
             'status'         => $this->display_status,
             'statusAsString' => $this->display_status_as_string,
-            'total_visit'    => $this->total_visits,
+            'total_visits'         => $this->total_visits,
+             'total_visited_visits' => $this->total_visited,
         ];
     }
 
