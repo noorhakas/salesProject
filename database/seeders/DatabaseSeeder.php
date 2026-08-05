@@ -66,7 +66,9 @@ class DatabaseSeeder extends Seeder
     // $this->call(SettingSeeder::class);
    // $this->call(ProductFilesSeeder::class);
  //   $this->call(UpdateUserNamesSeeder::class);
-    $this->call(UpdateUserEmailSeeder::class);
+ //   $this->call(UpdateUserEmailSeeder::class);
+
+    $this->call(SettingSeeder::class);
     
         
     }

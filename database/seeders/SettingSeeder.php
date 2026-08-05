@@ -21,9 +21,9 @@ class SettingSeeder extends Seeder
                 'shift_time_from'  => '09:00:00',
                 'shift_time_to'    => '17:00:00',
                 'weekly_off_days'  => [1, 2],
-                'android_build'    => [4,5,6,7,8,9,10,11,12],
+                'android_build'    => [1,2,3,4,5,6,7,8,9,10,11,12],
                    
-                'ios_build'        => [4,5,6,7,8,9,10,11,12]
+                'ios_build'        => [1,2,3,4,5,6,7,8,9,10,11,12]
             ]
         );
     }
