@@ -46,11 +46,8 @@ class AttendanceCalculationService
 
         if ($clockIn && $shiftStart) {
 
-            // بنستخرج الوقت (H:i:s) بس من القيمة المخزنة في الإعدادات،
-            // بغض النظر عن الفورمات (time زي "09:00:00" أو datetime زي "2024-01-01 09:00:00")
-            // بدل ما نعمل concatenation نصي ممكن يبوظ الـ parsing
-            $workStart = $date->copy()->setTimeFromTimeString(
-                Carbon::parse($shiftStart)->format('H:i:s')
+            $workStart = Carbon::parse(
+                $date->toDateString() . ' ' . $shiftStart
             );
 
             $clockInTime = Carbon::parse($clockIn);
@@ -70,8 +67,8 @@ class AttendanceCalculationService
 
         if ($clockOut && $shiftEnd) {
 
-            $workEnd = $date->copy()->setTimeFromTimeString(
-                Carbon::parse($shiftEnd)->format('H:i:s')
+            $workEnd = Carbon::parse(
+                $date->toDateString() . ' ' . $shiftEnd
             );
 
             $clockOutTime = Carbon::parse($clockOut);
