@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\Panel\Manager\AttendanceController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +34,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
        Route::get('sales_reps/{sales_rep}/profile', 'SalesRepController@profile');
        Route::get('salesrep_attendance_statistics', 'SalesRepController@statistics');
        
-       Route::get('attendances', 'AttendanceController@index');
       
       Route::get('/departments', 'DepartmentController@myDepartments');
 
@@ -68,6 +69,13 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::get('/', 'VisitsController@index');
          Route::get("/{id}", 'VisitsController@show');
     });
+
+      Route::get('attendances', [AttendanceController::class,'index']);
+       Route::post('attendance',[AttendanceController::class,'storeAttendance'])->name('manager.attendance');
+       Route::get('attendance-today-status',[AttendanceController::class,'todayAttendanceStatus'])->name('manager.attendance-today-status');
+       Route::get('attendance_log',[AttendanceController::class,'getAttendanceLog'])->name('manager.attendance_log');
+ 
+
 
       
 });
