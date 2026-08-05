@@ -29,9 +29,12 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
-	'fcm' => [
+	 'fcm' => [
 		'fcm_server_url'=>'https://fcm.googleapis.com/fcm/send',
-        'fcm_server_key' => 'AAAAMhNm-RM:APA91bFRrKrHIwzFz9ONWlfUeftwTg93tFk4wkqpmBibBzJRzM-WYMcISIpuT9pUE8w-tnj6CwnGHw2YaaWnkBOzHMOO4lDqy3GGupJRLro8USX9tBvTa3MmoNFsTI_yyyxOb_SaEq8u',
+            
+        'fcm_server_key' => 'AAAAJV_LA2A:APA91bEh2SHTWZ7ZiLanLJ8YhmVPjB7wL7tWUcJzqrSDqglFfsQtVeeBRNb_dBd8uefKjGjtGfdXR6ZE-ETky3aLCKrFZWN9_DKqT4f1D5JdaCRRir5qgGsdvNulw-xWen719oURmFR4',
+        'service_account' => storage_path('app/firebase/firebase.json'),
+        'project_id' =>'sales-rep-9a003'
     ],
 
 ];

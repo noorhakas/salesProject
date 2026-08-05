@@ -4,65 +4,84 @@ use App\Models\User;
 use Carbon\Carbon;
 use App\Models\Setting AS SiteSetting;
 use App\Enums\DayOffEnum;
+use Google\Client as GoogleClient;
+use Illuminate\Support\Facades\Log;
+
 
 function GetUuid()
 {
     return Uuid::uuid6();
 }
 
-function __send_push($tiDeviceType, $vDeviceToken, $pushData)
+
+function __send_push($deviceType, $deviceToken, $data)
 {
-    if (!empty($vDeviceToken)) {
-        if ($tiDeviceType == 2) {
-            sendPushIOS($vDeviceToken, $pushData);
-        } else if ($tiDeviceType == 1) {
-            sendPushAndroid($vDeviceToken, $pushData);
-        }
+  //dd($deviceToken);
+    if (empty($deviceToken)) return false;
+
+    $payload = [
+        'title' => $data['title'] ?? 'Notification',
+        'body'  => $data['msg'] ?? '',
+        'modelId' => (string) $data['model_id'] ?? 0,
+        'modelType' => (string) $data['model_type'] ?? 'notify',
+        'created_at' => Carbon::now()->toDateTimeString(),
+    ];
+  //dd($payload);
+    if ($deviceType == 2) {
+        return sendPushIOS($deviceToken, $payload);
+    } else {
+        return sendPushAndroid($deviceToken, $payload);
     }
-    return true;
 }
+
 
 function sendPushIOS($registrationId, $msgData)
 {
-    $fields['notification'] = [
-        'title' => $msgData['title'],
-        'body' => $msgData['msg'],
-        'sound' => 'default',
-        'icon' => asset('assets/img/royal-logo.png'),
+    $message = [
+        'message' => [
+            'token' => $registrationId,
+            'notification' => [
+                'title' => $msgData['title'],
+                'body'  => $msgData['body'],
+            ],
+            'data' => $msgData,
+        ]
     ];
-    $fields['data'] = [
-        'modelId' => isset($msgData['modelId']) && !empty($msgData['modelId']) ? $msgData['modelId'] : 0,
-    ];
-    return pushCurlCall($registrationId, $fields);
+
+    return pushFCMv1($message);
 }
+
 
 function sendPushAndroid($registrationId, $msgData)
 {
-	
-    $fields['data'] = [
-        'title' => $msgData['title'],
-        'body' => $msgData['msg'],
-        'sound' =>'default',
-        'icon' => asset('assets/img/royal-logo.png'),
-        'modelId' => isset($msgData['modelId']) && !empty($msgData['modelId']) ? $msgData['modelId'] : 0,
-		'modelTye' => isset($msgData['modelType']) && !empty($msgData['modelType']) ? $msgData['modelType'] : 'notify',
-		'created_at'=>Carbon::now()->toDateTimeString()
+    $message = [
+        'message' => [
+            'token' => $registrationId,
+            'data' => $msgData,
+            'notification' => [
+                'title' => $msgData['title'],
+                'body'  => $msgData['body'],
+            ],
+        ]
     ];
-    return pushCurlCall($registrationId, $fields);
+
+    return pushFCMv1($message);
 }
 
-function pushCurlCall($registrationId, $fields)
+
+function pushFCMv1(array $message)
 {
-		
-	 $url = config('services.fcm.fcm_server_url');
-    if (is_array($registrationId)) {
-        $fields['registration_ids'] = $registrationId;
-    } else {
-        $fields['to'] = $registrationId;
-    }
+    $projectId = 'sales-rep-9a003'; 
+    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+
+    // Get OAuth2 access token from service account JSON
+    $client = new GoogleClient();
+    $client->setAuthConfig(config('services.fcm.service_account'));
+    $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+    $token = $client->fetchAccessTokenWithAssertion()['access_token'];
 
     $headers = [
-        'Authorization: key=' . config('services.fcm.fcm_server_key'),
+        'Authorization: Bearer ' . $token,
         'Content-Type: application/json',
     ];
 
@@ -71,12 +90,19 @@ function pushCurlCall($registrationId, $fields)
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disabling SSL Certificate support temporarly
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $result = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    Log::info(['notification payload19' => json_encode($fields)]);
-    return ($result) ? 1 : 0;
+
+    Log::info([
+        'notification_payload' => $message,
+        'fcm_response' => $result,
+        'http_code' => $httpCode,
+    ]);
+
+    return ($httpCode == 200);
 }
 
  function getUserFcmTokens(){
