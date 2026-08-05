@@ -1,7 +1,12 @@
 /node_modules
 /public/hot
 /public/storage
-
+/storage/*.key
+!/storage/app/
+/storage/app/*
+!/storage/app/firebase/
+/storage/app/firebase/*
+!/storage/app/firebase/firebase.json
 /vendor
 .env
 .env.backup
