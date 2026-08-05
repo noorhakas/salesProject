@@ -110,4 +110,45 @@ class ManagerController extends Controller
         return [$active, $absent];
     }
 
+     private function getFilteredSubordinateIds(User $manager, Request $request): array
+    {
+        return User::query()
+            ->whereIn('id', $manager->getAllSubordinateIds())
+            ->when($request->filled('branch_id'), function ($q) use ($request) {
+                $q->whereHas('branches', function ($branch) use ($request) {
+                    $branch->where('branches.id', $request->branch_id);
+                });
+            })
+            ->when($request->filled('department_id'), function ($q) use ($request) {
+                $q->whereHas('departments', function ($department) use ($request) {
+                    $department->where('departments.id', $request->department_id);
+                });
+            })
+            ->pluck('id')
+            ->toArray();
+    }
+
+      private function visitsOverview(array $userIds, string $today): array
+    {
+        if (empty($userIds)) {
+            return [
+                'all'     => 0,
+                'pending' => 0,
+                'visited' => 0,
+            ];
+        }
+ 
+        $row = Visit::whereIn('user_id', $userIds)
+            ->selectRaw('SUM(CASE WHEN visit_date = ? THEN 1 ELSE 0 END) as all_count', [$today])
+            ->selectRaw('SUM(CASE WHEN status = 0 AND visit_date = ? THEN 1 ELSE 0 END) as pending_count', [$today])
+            ->selectRaw('SUM(CASE WHEN status = 2 AND visit_date = ? THEN 1 ELSE 0 END) as visited_count', [$today])
+            ->first();
+ 
+        return [
+            'all'     => (int) $row->all_count,
+            'pending' => (int) $row->pending_count,
+            'visited' => (int) $row->visited_count,
+        ];
+    }
+
 }
