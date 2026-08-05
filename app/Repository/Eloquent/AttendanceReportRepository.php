@@ -25,7 +25,7 @@ class AttendanceReportRepository implements AttendanceReportInterface
             ? (int) $request->per_page
             : 10;
 
-        $employeesQuery = User::query()->where('is_admin', 0);
+        $employeesQuery = User::query()->where('is_admin', 0)->where('status',1);
 
         $totalEmployees = (clone $employeesQuery)->count();
 

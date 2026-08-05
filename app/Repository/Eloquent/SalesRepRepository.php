@@ -22,7 +22,7 @@ class SalesRepRepository implements SalesRepInterface
 
         return app(AttendanceStatusService::class)->statistics(
             User::query()
-                ->whereIn('users.id', $subordinateIds)
+                ->whereIn('users.id', $subordinateIds)->where('status',1)
                 ->whereHas('userposition', fn($q) =>
                     $q->where('ps_key', PositionKey::SALES_REP->value)
                 ),

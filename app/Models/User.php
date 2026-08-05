@@ -86,7 +86,7 @@ class User extends Authenticatable
 		$queue = [$this->id];
 
 		while (!empty($queue)) {
-			$children = User::whereIn('manager_id', $queue)
+			$children = User::whereIn('manager_id', $queue)->where('status',1)
 				->pluck('id')
 				->all();
 

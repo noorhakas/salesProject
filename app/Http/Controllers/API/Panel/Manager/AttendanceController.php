@@ -28,7 +28,7 @@ class AttendanceController extends Controller
         $date = Carbon::parse($request->date ?? today());
         $position = $request->input('position');
 
-        $query = User::query()->with('userposition');
+        $query = User::query()->with('userposition')->where('status',1);
 
         if ($position == 'sales_rep') {
             $query->whereIn('users.id', $manager->getAllSubordinateIds());
