@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Enums\AttendanceStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Resources\API\PublicHolidayResource;
+use App\Models\PublicHoliday;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 
@@ -103,4 +105,71 @@ class AttendanceReportRepository implements AttendanceReportInterface
             'employees'        => $paginatedEmployees,
         ];
     }
+
+
+
+     /*===============================position================================*/
+
+    public function getPublicHoliday($request)
+    {
+      $public_holiday = PublicHoliday::when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+                        ->orderBy('created_at','Asc')->get();
+      $data = PublicHolidayResource::collection($public_holiday);
+      return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+    }
+
+    public function createPublicHoliday($request){
+      
+      try {
+          \DB::beginTransaction();
+            PublicHoliday::updateOrCreate(['name'=>$request->name],$request->validated());
+            \DB::commit();
+            return ['status'=>true,'message'=>trans('messages.success')];
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return ['status'=>false,'message'=>trans('messages.server_error')];
+        }
+    }
+
+    public function updatePublicHoliday($request,$id){
+
+      try {
+          \DB::beginTransaction();
+            $public_holiday = PublicHoliday::find($id);
+            if(!$public_holiday)
+                 return ["status"=>false, "message"=>trans('messages.data_not_found')];
+ 
+             $public_holiday->update($request->validated());
+             \DB::commit();
+             return ["status"=>true, "message"=>trans('messages.success')];
+         } catch (\Exception $e) {
+             \DB::rollback();
+             return ["status"=>false, "message"=>trans('messages.server_error')];
+         }
+    }
+
+  public function showPublicHoliday($id){
+
+      $public_holiday = PublicHoliday::find($id);
+     if(!$public_holiday)
+          return ["status"=>false, "message"=>trans('messages.data_not_found')];
+
+         return ["status"=>true, "message"=>trans('messages.success'),'data'=>new PublicHolidayResource($public_holiday)];	   
+  }
+
+  public function deletePublicHoliday($id)
+  {
+      try {	
+          $public_holiday = PublicHoliday::find($id);
+          if(!$public_holiday)
+          return ["status"=>false, "message"=>trans('messages.data_not_found')];
+  
+          $public_holiday->delete();
+          return ["status"=>true, "message"=>trans('messages.success')];
+       }catch (\Exception $e) {
+          return ["status"=>false, "message"=>trans('messages.server_error')];
+          }
+
+  }
+
 }

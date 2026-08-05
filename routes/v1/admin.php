@@ -39,7 +39,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
    Route::resource('departments', 'DepartmentController')->except(['edit', 'create']);
    Route::resource('branches', 'BranchController')->except(['edit', 'create']);
    Route::resource('specialty', 'SpecialtyController')->except(['edit', 'create']);
-
+   Route::apiResource('public_holiday', 'PublicHolidayController');
 
 
    ##plans
