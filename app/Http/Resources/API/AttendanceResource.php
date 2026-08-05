@@ -23,8 +23,8 @@ class AttendanceResource extends JsonResource
        return [
             'id'       => $this->id,
             'day_date' => optional($this->attendance_date)->format('Y-m-d'),
-            'signin'   => optional($this->clock_in)->format('H:i:s'),
-            'signout'  => optional($this->clock_out)->format('H:i:s')??'',
+            'signin'   => optional($this->clock_in)->format('H:i A'),
+            'signout'  => optional($this->clock_out)->format('H:i A')??'',
         ];
 
     }

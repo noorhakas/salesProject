@@ -43,8 +43,8 @@ class UserAttendanceResource extends JsonResource
                 'label'=>$attendance_status['status']->label(),
                 'color'=>$attendance_status['status']->color(),
                 'attendance_date'  => optional($attendance?->attendance_date)->format('Y-m-d'),
-                'clock_in_time'    => optional($attendance?->clock_in)->format('h:i A'),
-                'clock_out_time'   => optional($attendance?->clock_out)->format('h:i A'),
+                'clock_in_time'    => optional($attendance?->clock_in)->format('H:i A') ?? '',
+                'clock_out_time'   => optional($attendance?->clock_out)->format('H:i A') ?? '',
             ],
 
 
