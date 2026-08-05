@@ -54,8 +54,8 @@ class AttendanceReportRepository implements AttendanceReportInterface
                     'status_label'=> $status->label(),
                     'status_color'=> $status->color(),
                     'status_icon' => $status->icon(),
-                    'clock_in'    => $attendance?->clock_in->format('H:i:s')??'',
-                    'clock_out'   => $attendance?->clock_out->format('H:i:s')??'',
+                    'clock_in'    =>  optional($attendance->clock_in)->format('H:i A')?? '',
+                    'clock_out'   => optional($attendance->clock_out)->format('H:i A')?? '', 
                 ];
             });
 
