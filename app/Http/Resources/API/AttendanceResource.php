@@ -21,12 +21,10 @@ class AttendanceResource extends JsonResource
     public function toArray($request)
     {
        return [
-            'id' => $this->id,
-            'day_date' => $this->attendance_date,
-            "signin"=> $this->clock_in,
-            "signout"=> $this->clock_out,
-           
-
+            'id'       => $this->id,
+            'day_date' => optional($this->attendance_date)->format('Y-m-d'),
+            'signin'   => optional($this->clock_in)->format('H:i:s'),
+            'signout'  => optional($this->clock_out)->format('H:i:s'),
         ];
 
     }
