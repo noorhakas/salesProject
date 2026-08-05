@@ -161,8 +161,8 @@ class AttendanceRepository implements AttendanceInterface
             'checked_in'      => !is_null($attendance?->clock_in),
             'checked_out'     => !is_null($attendance?->clock_out),
 
-            'clock_in'        => $attendance?->clock_in,
-            'clock_out'       => $attendance?->clock_out,
+            'clock_in'        => $attendance?->clock_in?->format('H:i:s'),
+            'clock_out'       => $attendance?->clock_out?->format('H:i:s'),
 
             'status'          => $attendance?->status,
 

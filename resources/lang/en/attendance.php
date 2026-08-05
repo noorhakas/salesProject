@@ -12,7 +12,7 @@ return [
           'distance_not_allowed' => 'You are outside the allowed attendance area.',
           'biometric_locked'     => 'Too many biometric attempts. Please try again later.',
           'failed'               => 'Failed to add attendance.',
-          'success'              => 'Attendance added successfully.',
+          'success'              => 'added successfully.',
           'something_went_wrong' => 'Something went wrong.',
            'total_employees' => 'Total Employees',
            'attendance_rate' => 'Attendance Rate',
