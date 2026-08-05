@@ -23,7 +23,7 @@ class VisitAccessoryResource extends JsonResource
     $url = 'https://fls-a259fcee-b4fb-4b36-a088-479046f36e09.laravel.cloud';
 
     $image = match ((int) $this->type) {
-        0       => $this->file != '' ? $url . '/products/' . $this->file : url('/') . '/assets/img/medicine_logo.png',
+        0       => $this->file != '' ? $url . '/products/' . $this->file : url('/') . '/assets/img/box.png',
         3       => $this->file != '' ? $url . '/product_files/' . $this->file : '',
         default => '',
     };

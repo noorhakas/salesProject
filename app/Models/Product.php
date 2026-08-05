@@ -12,7 +12,7 @@ class Product extends Model
 	use SoftDeletes, ImageAttributes, ObservantTrait;
     protected $table = 'products';
 	protected $imgFolder = 'products';
-	protected $avatar = 'medicine_logo.png';
+	protected $avatar = 'box.png';
 
 
 	protected $fillable = ['Uuid','name','image','description','price','company_id','category_id','status'];
