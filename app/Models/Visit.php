@@ -57,7 +57,9 @@ class Visit extends Model implements HasNotificationData
                    $q->where('visits.plan_id', $v))
             ->when($status,function($q) use ($status){
                             if($status == 5)
-                             $q->where('visits.status',0)->where('visit_date','<',Carbon::now()->toDateString());
+                             // لازم يطابق نفس شرط getStatusAttribute بالظبط:
+                             // أي status غير Visited(2) وتاريخه فات = Missed (مش status=0 بس)
+                             $q->where('visits.status', '!=', 2)->where('visit_date','<',Carbon::now()->toDateString());
                             else if($status == "-1")
                              $q->where('visits.status',0)->where('visit_date','>=',Carbon::now()->toDateString());
                              else if($status == "-2")

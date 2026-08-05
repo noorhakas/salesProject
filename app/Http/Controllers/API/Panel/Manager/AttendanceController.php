@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API\Panel\Manager;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\API\UserSimpleResource;
+use App\Http\Resources\API\UserAttendanceResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\AttendanceStatusService;
@@ -47,7 +47,7 @@ class AttendanceController extends Controller
 
         return $this->response_api(true, trans('messages.success'), [
             'statistics' => $statistics,
-            'employees'  => UserSimpleResource::collection($employees),
+            'employees'  => UserAttendanceResource::collection($employees),
         ]);
     }
 

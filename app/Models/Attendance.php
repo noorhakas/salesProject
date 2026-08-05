@@ -22,13 +22,13 @@ class Attendance extends Model
     ];
 
     protected $casts = [
-        'status' => \App\Enums\AttendanceStatusEnum::class,
+        'status'           => \App\Enums\AttendanceStatusEnum::class,
+        'attendance_date'  => 'date',
+        'clock_in'         => 'datetime',
+        'clock_out'        => 'datetime',
     ];
 
     
-    /* =========================================
-        RELATIONS
-    ========================================= */
 
     public function user()
     {
