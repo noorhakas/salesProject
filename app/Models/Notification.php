@@ -161,6 +161,6 @@ class Notification extends Model
             'model'    => $data['model_type'],
         ];
 
-        __send_push($data['tiDeviceType'], $data['tokens'], $pushData);
+       // __send_push($data['tiDeviceType'], $data['tokens'], $pushData);
     }
 }
