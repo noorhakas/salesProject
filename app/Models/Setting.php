@@ -23,6 +23,7 @@ class Setting extends Model
         'android_build' => 'array',
         'ios_build' => 'array',
         'weekly_off_days' => 'array',
+		'enable_visit_check_distance'=>'boolean'
       ];
 
 } 
