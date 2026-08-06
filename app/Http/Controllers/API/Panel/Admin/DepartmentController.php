@@ -46,10 +46,9 @@ class DepartmentController extends Controller
 	   return $this->response_api(true, trans('messages.success'),$department);
     }
 
-	public function update(DepartmentRequest $request,$id) {
+	public function update(DepartmentRequest $request,Department $department) {
 		\DB::beginTransaction();
       try {
-		   $department = Department::find($id);
 		   if(!$department)
 		      return $this->response_api(false, trans('messages.data_not_found'));
 
