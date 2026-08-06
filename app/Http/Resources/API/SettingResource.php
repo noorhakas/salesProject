@@ -4,34 +4,30 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use JsonSerializable;
-
 
 class SettingResource extends JsonResource
 {
-    public function __construct($resource)
-    {
-        parent::__construct($resource);
-    }
-
     /**
      * @param Request $request
      * @return array
      */
     public function toArray($request)
     {
-         
-       return  [
+        return [
             'id' => $this->id,
             'app_name' => $this->app_name,
-			'app_logo'=>$this->image,
+            'app_logo' => $this->image,
             'android' => $this->android_build ?? [],
             'ios' => $this->ios_build ?? [],
 
-		//	'map_key'=>$this->map_key,
-		//	'allow_distance'=>$this->allow_distance,
-			'phone'=>$this->phone,
-			'email'=>$this->email
+          //  'map_key' => $this->map_key,
+            'allow_distance' => $this->allow_distance,
+            'phone' => $this->phone,
+            'email' => $this->email,
+
+            'shift_time_from' => $this->shift_time_from,
+            'shift_time_to' => $this->shift_time_to,
+            'weekly_off_days' => $this->weekly_off_days ?? [],
         ];
     }
 }
