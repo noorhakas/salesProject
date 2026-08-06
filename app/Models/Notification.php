@@ -101,6 +101,34 @@ class Notification extends Model
         return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
     }
 
+
+    
+    function notificationAdminListing($request)
+    {
+        $authUser = auth()->user();
+        $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
+
+        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
+            // جوين تاني على مين اللي عمل الأكشن (created_by) عشان نعرف مديره
+            ->leftJoin('users as creators', 'creators.id', '=', 'notifications.created_by');
+
+        $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])
+            ->orderBy('notifications.created_at', 'desc')
+            ->paginate($limit);
+
+        $UnReadNotify = (clone $getNotificationQuery)
+            ->selectRaw('count(notifications.id) as notify_count')
+            ->where('notifications.tiIsRead', 0)
+            ->first();
+
+        $countOfUnRead = $UnReadNotify ? $UnReadNotify->notify_count : 0;
+
+        $notificationList->load('notifiable');
+
+        $data = ['data' => NotificationResource::collection($notificationList), 'countOfUnRead' => $countOfUnRead];
+
+        return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
+    }
     public function notificationBadgeReset()
     {
         try {

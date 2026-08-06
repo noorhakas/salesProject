@@ -12,7 +12,7 @@ class NotificationController extends Controller
 	public function notificationListing(Request $request)
     {
 		$model = new Notification();
-		$response = $model->notificationListing($request);
+		$response = $model->notificationAdminListing($request);
 		return $this->SendResponse($response);
 	}
 
