@@ -28,6 +28,7 @@ class SettingResource extends JsonResource
             'shift_time_from' => $this->shift_time_from,
             'shift_time_to' => $this->shift_time_to,
             'weekly_off_days' => $this->weekly_off_days ?? [],
+            'enable_visit_check_distance'=>$this->enable_visit_check_distance,
         ];
     }
 }

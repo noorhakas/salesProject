@@ -16,7 +16,7 @@ class Setting extends Model
 	
 	protected $fillable = ['app_name' , 'image' , 'map_key','allow_distance','phone','email',
 	                           'shift_time_from','shift_time_to','weekly_off_days',
-							   'android_build' ,'ios_build' 
+							   'android_build' ,'ios_build' ,'enable_visit_check_distance'
 							   ];
 
 	  protected $casts = [
