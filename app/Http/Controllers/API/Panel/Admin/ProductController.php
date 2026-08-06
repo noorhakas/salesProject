@@ -70,15 +70,15 @@ class ProductController extends Controller
 	// 	return $this->SendResponse($response);
 	// }
 
-	// public function getProductNotes($id){
-	//     $response = $this->Iproduct->getAllProductNotes($id);
-	// 	return $this->SendResponse($response);
-	// }
+	public function getProductNotes($id){
+	    $response = $this->Iproduct->getAllProductNotes($id);
+		return $this->SendResponse($response);
+	}
 
-    //      public function getProductFiles($id){
-	//     $response = $this->Iproduct->getAllProductFiles($id);
-	// 	return $this->SendResponse($response);
-	// }
+         public function getProductFiles($id){
+	    $response = $this->Iproduct->getAllProductFiles($id);
+		return $this->SendResponse($response);
+	}
 
 	public function exportProducts(){
         return Excel::download(new ProductExport(), 'products.xlsx');
