@@ -34,23 +34,21 @@ class VisitRepository implements VisitInterface
         $this->notifications = $notifications;
     }
 
-    public function getUservisits($request)
+   public function getUservisits($request)
     {
-        $request->plan_id = $request->plan_id
-            ?? User::getCurrentPlan()?->id
-            ?? auth()->user()->plans()->latest('id')->first()?->id;
+        if ($request->filled('plan_id')) {
+            $plan = Plan::find($request->plan_id);
 
-        if (!$request->plan_id) {
-            return $this->success([]);
+            if (!$plan) {
+                return $this->success([]);
+            }
+
+            $baseQuery = $plan->visits();
+        } else {
+            $baseQuery = auth()->user()->visits();
         }
 
-        $plan = Plan::find($request->plan_id);
-
-        if (!$plan) {
-            return $this->success([]);
-        }
-
-        $query = $this->joinAccountsAndCustomers($plan->visits())
+        $query = $this->joinAccountsAndCustomers($baseQuery)
             ->select('visits.*')
             ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->filter($request);
@@ -63,8 +61,6 @@ class VisitRepository implements VisitInterface
 
     public function getvisitsByPlan($request)
     {
-        $request->plan_id = $request->plan_id;
-
         if (!$request->plan_id) {
             return $this->success([]);
         }
@@ -84,7 +80,6 @@ class VisitRepository implements VisitInterface
 
         return $this->success(VisitsResource::collection($visits));
     }
-
 
 
     public function getvisitDtail($id)
