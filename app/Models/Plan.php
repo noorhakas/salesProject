@@ -23,7 +23,7 @@ class Plan extends Model implements HasNotificationData
         'end_date'   => 'date',
     ];
 
-   
+
     protected $appends = ['total_days'];
 
     public static function boot()
@@ -56,7 +56,14 @@ class Plan extends Model implements HasNotificationData
         return $this->resolveDisplayStatus()[1];
     }
 
-
+    /**
+     * Single source of truth for turning a plan's raw `status` + dates
+     * into the "display" status shown to users (Pending/Accepted/Rejected
+     * are raw values; InProgress/Completed/Upcoming are derived from dates).
+     *
+     * scopeFilter() mirrors this exact logic in SQL via statusFilterQuery(),
+     * so any rule change here MUST be mirrored there too.
+     */
     protected function resolveDisplayStatus(): array
     {
         $today = Carbon::now()->toDateString();
@@ -125,53 +132,63 @@ class Plan extends Model implements HasNotificationData
         return $this->hasMany(PlanStatus::class);
     }
 
+    public function scopeFilter($q, $request)
+    {
+        $q = $q
+            ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
+            ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+            ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
+            ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+            ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
+            ->when(
+                $request->filled('status'),
+                fn ($q) => static::applyStatusFilter($q, (int) $request->status)
+            );
 
-   public function scopeFilter($q, $request)
-{
-    $q = $q
-        ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
-        ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-        ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
-        ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-        ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
-        ->when(
-            $request->filled('status'),
-            function ($q) use ($request) {
-                $status = (int) $request->status;
+        return $q;
+    }
 
-                switch ($status) {
-                    case PlanStatusEnum::Completed:
-                        $q->where(function ($q) {
-                            $q->where('plans.status', PlanStatusEnum::Completed)
-                              ->orWhereDate('plans.end_date', '<', Carbon::now()->toDateString());
-                        });
-                        break;
+    /**
+     * SQL-level mirror of resolveDisplayStatus(). Keep both in sync:
+     * this decides which rows match a given *display* status when
+     * filtering/searching, since InProgress/Completed/Upcoming don't
+     * exist as raw values in the `status` column.
+     */
+    public static function applyStatusFilter($q, int $status)
+    {
+        switch ($status) {
+            case PlanStatusEnum::Completed:
+                $q->where(function ($q) {
+                    $q->where('plans.status', PlanStatusEnum::Completed)
+                      ->orWhereDate('plans.end_date', '<', Carbon::now()->toDateString());
+                });
+                break;
 
-                    case PlanStatusEnum::Upcoming:
-                        $q->where('plans.status', PlanStatusEnum::Accepted)
-                          ->whereDate('plans.start_date', '>', Carbon::now()->toDateString());
-                        break;
+            case PlanStatusEnum::Upcoming:
+                $q->where('plans.status', PlanStatusEnum::Accepted)
+                  ->whereDate('plans.start_date', '>', Carbon::now()->toDateString());
+                break;
 
-                    case PlanStatusEnum::Accepted:
-                        $q->where('plans.status', PlanStatusEnum::Accepted);
-                        break;
+            case PlanStatusEnum::Accepted:
+                // كل خطة status=Accepted في الداتابيز بغض النظر عن تاريخها
+                // (شاملة InProgress و Upcoming واللي خلص تاريخها ومحدش قفلها).
+                $q->where('plans.status', PlanStatusEnum::Accepted);
+                break;
 
-                    case PlanStatusEnum::InProgress:
-                        $q->where('plans.status', PlanStatusEnum::Accepted)
-                          ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
-                          ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
-                        break;
+            case PlanStatusEnum::InProgress:
+                $q->where('plans.status', PlanStatusEnum::Accepted)
+                  ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
+                  ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
+                break;
 
-                    default:
-                        $q->where('plans.status', $status);
-                        break;
-                }
-            }
-        );
+            default:
+                // Pending (0) and Rejected (2) as plain matches.
+                $q->where('plans.status', $status);
+                break;
+        }
 
-    return $q;
-}
-
+        return $q;
+    }
 
     public function getNotificationData(): array
     {
