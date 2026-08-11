@@ -17,6 +17,8 @@ interface VisitInterface
 	  public function getAllVisitsByUserId($request);
     public function getCurrentVisits();
 	public function getUserVisitStatictics($request);
+	public function submitOfflineVisits($request);
+	
     public function getUserVisitAndSalesStatictics($request);
 	public function getVisitsForManager($request, array $subordinateIds);
  

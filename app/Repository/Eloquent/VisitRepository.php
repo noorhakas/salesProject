@@ -326,30 +326,27 @@ class VisitRepository implements VisitInterface
         return ['status' => true, 'message' => trans('messages.visit_success')];
     }
 
-    /**
-     * Replaces a visit's product/gift/leave-behind/file selections with
-     * whatever was submitted this time.
-     */
-    protected function replaceVisitDetails(Visit $visit, array $items): void
+    
+   protected function replaceVisitDetails(Visit $visit, array $items = []): void
     {
+        $visit->visitdetails()->delete();
+
+        if (empty($items)) {
+            return;
+        }
+
         $rows = array_map(fn ($item) => [
             'visit_id'        => $visit->id,
             'item_id'         => $item['item_id'],
-            'count_of_sample' => $item['sample'],
+            'count_of_sample' => $item['sample'] ?? 0,
             'item_type'       => $item['item_type'],
-            'created_at'      => Carbon::now(),
+            'created_at'      => now(),
         ], $items);
 
-        $visit->visitdetails()->delete();
-
-        if (!empty($rows)) {
-            VisitDetails::insert($rows);
-        }
+        VisitDetails::insert($rows);
     }
 
-    /**
-     * Haversine distance in kilometers between two lat/lng points.
-     */
+    
     public function getDistance($latitude1, $longitude1, $latitude2, $longitude2)
     {
         $earthRadius = 6371;
@@ -668,6 +665,119 @@ class VisitRepository implements VisitInterface
         $value = $request->{$field} ?? null;
 
         return !empty($value) ? Carbon::parse($value)->format($format) : $default();
+    }
+
+
+    public function submitOfflineVisits($request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $results = [];
+            $notifications = [];
+
+            foreach ($request->visits as $offlineVisit) {
+
+                $visit = Visit::find($offlineVisit['visit_id']);
+
+                if (!$visit) {
+                    throw new \Exception(
+                        "Visit {$offlineVisit['visit_id']} not found"
+                    );
+                }
+
+                // مهم جدًا: نتأكد إن الـ visit تخص المستخدم الحالي
+                if ((int) $visit->user_id !== (int) auth()->id()) {
+                    throw new \Exception(
+                        "Visit {$visit->id} does not belong to current user"
+                    );
+                }
+
+                $wasAlreadyVisited = (int) $visit->status === (int) VisitStatusEnum::Visited;
+
+                $doctorId = (
+                    isset($offlineVisit['doctor_id']) &&
+                    is_numeric($offlineVisit['doctor_id']) &&
+                    $offlineVisit['doctor_id'] > 0
+                )
+                    ? $offlineVisit['doctor_id']
+                    : $visit->customer_id;
+
+                $combineWith = (
+                    isset($offlineVisit['combine_with']) &&
+                    is_numeric($offlineVisit['combine_with']) &&
+                    $offlineVisit['combine_with'] > 0
+                )
+                    ? $offlineVisit['combine_with']
+                    : 0;
+
+                $data = [
+                    'status'            => VisitStatusEnum::Visited['id'],
+                    'actual_start_date' => Carbon::parse($offlineVisit['start_time']),
+                    'actual_end_date'   => Carbon::parse($offlineVisit['end_time']),
+                    'customer_id'       => $doctorId,
+                    'combine_with'      => $combineWith,
+                    'user_location_lat' => $offlineVisit['current_location_lat'] ?? null,
+                    'user_location_lng' => $offlineVisit['current_location_lng'] ?? null,
+                    'notes'             => $offlineVisit['notes'] ?? null,
+                ];
+
+                // لو Unplanned Visit
+                if ((int) $visit->type === 1) {
+                    $startTime = Carbon::parse($offlineVisit['start_time']);
+                    $endTime   = Carbon::parse($offlineVisit['end_time']);
+
+                    $data['visit_date'] = $startTime->toDateString();
+                    $data['start_time'] = $startTime->format('H:i:s');
+                    $data['end_time']   = $endTime->format('H:i:s');
+                }
+
+                $visit->update($data);
+
+                // استبدال الـ items
+                $this->replaceVisitDetails(
+                    $visit,
+                    $offlineVisit['items'] ?? []
+                );
+
+                $results[] = [
+                    'visit_id' => $visit->id,
+                    'status'   => 'synced',
+                ];
+
+                // نبعت notification فقط أول مرة
+                if (!$wasAlreadyVisited) {
+                    $notifications[] = $visit->fresh();
+                }
+            }
+
+            DB::commit();
+
+            // Notifications بعد نجاح الـ transaction
+            foreach ($notifications as $visit) {
+                $this->notifications->sendNewVisitCreated(
+                    $visit,
+                    auth()->user()
+                );
+            }
+
+            return $this->success([
+                'message' => 'Offline visits synced successfully',
+                'data'    => $results,
+            ]);
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            Log::error('Offline visits submission failed', [
+                'user_id' => auth()->id(),
+                'exception' => $e->getMessage(),
+                'visits' => $request->visits ?? [],
+            ]);
+
+            return $this->failure('server_error');
+        }
     }
 
 
