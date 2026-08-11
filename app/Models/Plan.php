@@ -56,14 +56,6 @@ class Plan extends Model implements HasNotificationData
         return $this->resolveDisplayStatus()[1];
     }
 
-    /**
-     * Single source of truth for turning a plan's raw `status` + dates
-     * into the "display" status shown to users (Pending/Accepted/Rejected
-     * are raw values; InProgress/Completed/Upcoming are derived from dates).
-     *
-     * scopeFilter() mirrors this exact logic in SQL via statusFilterQuery(),
-     * so any rule change here MUST be mirrored there too.
-     */
     protected function resolveDisplayStatus(): array
     {
         $today = Carbon::now()->toDateString();
@@ -84,8 +76,8 @@ class Plan extends Model implements HasNotificationData
             }
         }
 
-        if ($endDate < $today && (int) $this->status !== PlanStatusEnum::Rejected) {
-            return [PlanStatusEnum::Completed, PlanStatusEnum::toString(PlanStatusEnum::Completed)];
+        if ((int) $this->status === PlanStatusEnum::Pending && $endDate < $today) {
+            return [PlanStatusEnum::Expired, PlanStatusEnum::toString(PlanStatusEnum::Expired)];
         }
 
         return [$this->status, PlanStatusEnum::toString($this->status)];
@@ -148,12 +140,7 @@ class Plan extends Model implements HasNotificationData
         return $q;
     }
 
-    /**
-     * SQL-level mirror of resolveDisplayStatus(). Keep both in sync:
-     * this decides which rows match a given *display* status when
-     * filtering/searching, since InProgress/Completed/Upcoming don't
-     * exist as raw values in the `status` column.
-     */
+   
     public static function applyStatusFilter($q, int $status)
     {
         switch ($status) {
@@ -170,8 +157,6 @@ class Plan extends Model implements HasNotificationData
                 break;
 
             case PlanStatusEnum::Accepted:
-                // كل خطة status=Accepted في الداتابيز بغض النظر عن تاريخها
-                // (شاملة InProgress و Upcoming واللي خلص تاريخها ومحدش قفلها).
                 $q->where('plans.status', PlanStatusEnum::Accepted);
                 break;
 

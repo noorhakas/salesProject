@@ -9,9 +9,10 @@ abstract class PlanStatusEnum
     const Rejected = 2;
     const Completed  = 3;
     const Upcoming   = 4;
-    const InProgress = 5; 
+    const InProgress = 5;
+    const Expired     = 6;
 
- 
+
     protected static array $labels = [
         self::Pending     => 'Pending',
         self::Accepted    => 'Accepted',
@@ -19,6 +20,7 @@ abstract class PlanStatusEnum
         self::Completed   => 'Completed',
         self::Upcoming    => 'Upcoming',
         self::InProgress  => 'In Progress',
+        self::Expired     => 'Expired',
     ];
 
     public static function getConstants(): array
