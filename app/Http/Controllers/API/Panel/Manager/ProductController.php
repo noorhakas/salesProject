@@ -14,10 +14,11 @@ class ProductController extends Controller
         $this->Iproduct = $Iproduct;
     }
 
-	public function show(Product $Product)
+	public function show($id)
     {
-		$response = $this->Iproduct->show($Product);
-		return $this->SendResponse($response); 
+        $product = Product::find($id);
+        $response = $this->Iproduct->show($product);
+        return $this->SendResponse($response);
     }
 
 }
