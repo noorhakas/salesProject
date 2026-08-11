@@ -126,50 +126,51 @@ class Plan extends Model implements HasNotificationData
     }
 
 
-    public function scopeFilter($q, $request)
-    {
-        $q = $q
-            ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
-            ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-            ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
-            ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
-            ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
-            ->when(
-                isset($request->status) && $request->status !== '',
-                function ($q) use ($request) {
-                    $status = (int) $request->status;
+   public function scopeFilter($q, $request)
+{
+    $q = $q
+        ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
+        ->when($request->date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+        ->when($request->start_date, fn ($q, $v) => $q->whereDate('plans.start_date', '>=', $v))
+        ->when($request->end_date, fn ($q, $v) => $q->whereDate('plans.end_date', '<=', $v))
+        ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
+        ->when(
+            $request->filled('status'),
+            function ($q) use ($request) {
+                $status = (int) $request->status;
 
-                    switch ($status) {
-                        case PlanStatusEnum::Completed:
-                            
-                            $q->where(function ($q) {
-                                $q->where('plans.status', PlanStatusEnum::Completed)
-                                  ->orWhereDate('plans.end_date', '<', Carbon::now()->toDateString());
-                            });
-                            break;
+                switch ($status) {
+                    case PlanStatusEnum::Completed:
+                        $q->where(function ($q) {
+                            $q->where('plans.status', PlanStatusEnum::Completed)
+                              ->orWhereDate('plans.end_date', '<', Carbon::now()->toDateString());
+                        });
+                        break;
 
-                        case PlanStatusEnum::Upcoming:
-                            $q->where('plans.status', PlanStatusEnum::Accepted)
-                              ->whereDate('plans.start_date', '>', Carbon::now()->toDateString());
-                            break;
+                    case PlanStatusEnum::Upcoming:
+                        $q->where('plans.status', PlanStatusEnum::Accepted)
+                          ->whereDate('plans.start_date', '>', Carbon::now()->toDateString());
+                        break;
 
-                        case PlanStatusEnum::Accepted:
-                        case PlanStatusEnum::InProgress:
-                            $q->where('plans.status', PlanStatusEnum::Accepted)
-                              ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
-                              ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
-                            break;
+                    case PlanStatusEnum::Accepted:
+                        $q->where('plans.status', PlanStatusEnum::Accepted);
+                        break;
 
-                        default:
-                            // Pending (0) and Rejected (2) as plain matches.
-                            $q->where('plans.status', $status);
-                            break;
-                    }
+                    case PlanStatusEnum::InProgress:
+                        $q->where('plans.status', PlanStatusEnum::Accepted)
+                          ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
+                          ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
+                        break;
+
+                    default:
+                        $q->where('plans.status', $status);
+                        break;
                 }
-            );
+            }
+        );
 
-        return $q;
-    }
+    return $q;
+}
 
 
     public function getNotificationData(): array
