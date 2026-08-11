@@ -9,9 +9,12 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Http\Traits\PaginatesResults;
 
 class AttendanceStatusService
 {
+    use PaginatesResults;
+
     public function resolve(User $user, Carbon $date): array
     {
         $attendance = Attendance::query()
@@ -65,7 +68,7 @@ class AttendanceStatusService
             'is_day_off' => false,
         ];
     }
-  
+
     public function statistics(Builder $query, Carbon $date): array
     {
         $stats = $query
@@ -96,18 +99,15 @@ class AttendanceStatusService
             'present' => $present,
             'late'    => $late,
             'absent'  => $total - $present - $late,
-            'leave'   => 0, 
+            'leave'   => 0,
         ];
     }
 
-
-    public function list(Builder $query,Carbon $date, Request $request) {
-
+    public function list(Builder $query, Carbon $date, Request $request)
+    {
         $query->leftJoin('attendances', function ($join) use ($date) {
-
-            $join->on('attendances.user_id','=','users.id')
-                ->whereDate('attendance_date',$date);
-
+            $join->on('attendances.user_id', '=', 'users.id')
+                ->whereDate('attendances.attendance_date', $date);
         });
 
         if ($request->filled('status')) {
@@ -115,48 +115,35 @@ class AttendanceStatusService
             switch ($request->status) {
 
                 case 'present':
-
                     $query->where('attendances.status', AttendanceStatusEnum::PRESENT);
-
                     break;
 
                 case 'late':
-
-                    $query->whereIn('attendances.status',[
+                    $query->whereIn('attendances.status', [
                         AttendanceStatusEnum::LATE_ARRIVAL,
                         AttendanceStatusEnum::LEAVE_EARLY,
                         AttendanceStatusEnum::LATE_ARRIVAL_LEAVE_EARLY,
                     ]);
-
                     break;
 
                 case 'absent':
-
                     $query->whereNull('attendances.id');
-
                     break;
 
                 case 'leave':
-
-                    $query->whereIn('attendances.status',[
+                    $query->whereIn('attendances.status', [
                         AttendanceStatusEnum::LEAVE,
                     ]);
-
                     break;
             }
         }
 
         if ($request->filled('search')) {
-
-            $query->where('users.name','like','%'.$request->search.'%');
-
+            $query->where('users.name', 'like', '%' . $request->search . '%');
         }
 
-        return $query->select('users.*')->paginate( $request->per_page ?? 20);
+        $query->select('users.*');
+
+        return $this->paginateOrAll($query, $request);
+    }
 }
-
-}
-
-      
-
-
