@@ -38,6 +38,8 @@ return [
     'visit_notification_body'=>':userName would like you to accompany him to see :doctorName at :dateTime.',
     'visit_request' => 'Visit Request',
     'visit_request_msg' => ':userName would like you to accompany him to see :doctorName at :dateTime.',
+    'unauthenticated' =>'Unauthenticated'
+
 	
 
 	
