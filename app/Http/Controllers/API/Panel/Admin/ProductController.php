@@ -37,13 +37,15 @@ class ProductController extends Controller
       
     }
 
-	public function show(Product $Product)
+
+	public function show($id)
     {
 		//if (!auth()->user()->hasPermissionTo('display Product'))
 			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
-		$response = $this->Iproduct->show($Product);
-		return $this->SendResponse($response); 
+		$product = Product::find($id);
+        $response = $this->Iproduct->show($product);
+        return $this->SendResponse($response);
     }
 
 	public function update(ProductRequest $request,Product $product) {
