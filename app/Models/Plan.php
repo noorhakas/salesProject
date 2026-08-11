@@ -165,6 +165,10 @@ class Plan extends Model implements HasNotificationData
                   ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
                   ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
                 break;
+            case PlanStatusEnum::Pending:
+                $q->where('plans.status', PlanStatusEnum::Pending)
+                ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
+                break;    
 
             default:
                 // Pending (0) and Rejected (2) as plain matches.
