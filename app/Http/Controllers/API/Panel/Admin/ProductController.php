@@ -44,7 +44,7 @@ class ProductController extends Controller
 			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
 
 		$product = Product::find($id);
-        $response = $this->Iproduct->show($product);
+        $response = $this->Iproduct->showForAdmin($product);
         return $this->SendResponse($response);
     }
 

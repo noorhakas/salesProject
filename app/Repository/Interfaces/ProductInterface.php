@@ -5,6 +5,7 @@ namespace App\Repository\Interfaces;
 interface ProductInterface
 {
      public function show($id);
+     public function showForAdmin($id);
      public function createProduct($request);
      public function updateProduct($request,$id);
      public function deleteProduct($id);

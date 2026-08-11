@@ -37,6 +37,16 @@ class ProductRepository implements ProductInterface
         return ["status" => true, "message" => trans('messages.success'), 'data' => $data];
     }
 
+    public function showForAdmin($product)
+    {
+        if (!$product)
+            return ["status" => false, "message" => trans('messages.data_not_found')];
+
+        $product->load(['category', 'company', 'departments', 'productfiles']);
+
+        return ["status" => true, "message" => trans('messages.success'), 'data' => new ProductAdminResource($product)];
+    }
+
     public function getUserProduct($request)
     {
         $limit = (is_numeric(request()->get('per_page'))) ? (request()->get('per_page') > 0 ? request()->get('per_page') : 100000) : 20;
@@ -107,7 +117,7 @@ class ProductRepository implements ProductInterface
 
            \DB::commit();
 
-            $product->load(['category', 'company', 'departments', 'productfiles']);
+            $product->load(['category', 'company']);
 
             return ["status" => true, "message" => trans('messages.success'), 'data' => new ProductResource($product)];
         } catch (\Exception $e) {
@@ -121,7 +131,7 @@ class ProductRepository implements ProductInterface
         if (!$product)
             return ["status" => false, "message" => trans('messages.data_not_found')];
 
-        $product->load(['category', 'company', 'departments', 'productfiles']);
+        $product->load(['category', 'company']);
 
         return ["status" => true, "message" => trans('messages.success'), 'data' => new ProductResource($product)];
     }
