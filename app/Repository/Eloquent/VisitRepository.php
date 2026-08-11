@@ -276,6 +276,8 @@ class VisitRepository implements VisitInterface
             DB::beginTransaction();
 
             $visit = Visit::findOrFail($request->visit_id);
+            $actualStartDate = Carbon::now();
+
 
             $doctorId = (isset($request->doctor_id) && is_numeric($request->doctor_id) && $request->doctor_id > 0)
                 ? $request->doctor_id
@@ -287,8 +289,8 @@ class VisitRepository implements VisitInterface
 
             $data = [
                 'status'             => (VisitStatusEnum::Visited)['id'],
-                'actual_start_date'  => Carbon::now()->toDateTimeString(),
-                'actual_end_date'    => Carbon::now()->toDateTimeString(),
+                'actual_start_date' => $actualStartDate->toDateTimeString(),
+                'actual_end_date'   => $actualStartDate->copy()->addMinutes(10)->toDateTimeString(),
                 'customer_id'        => $doctorId,
                 'combine_with'       => $combineWith,
                 'user_location_lat'  => $request->current_location_lat,
