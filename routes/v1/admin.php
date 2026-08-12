@@ -148,6 +148,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 			Route::get('products','ProductController@exportProducts');
 			Route::get('user-doctor-visits', 'VisitsController@exportUserVisitsToExcel');
 			Route::get('managers','ManagerController@exportManagers');
+			Route::get('settings','SettingController@exportSetting');
 
 		});
 

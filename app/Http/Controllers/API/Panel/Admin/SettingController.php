@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use App\Models\Setting;
+use App\Exports\SettingsReferenceExport;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Resources\API\SettingResource;
 
 class SettingController extends Controller
@@ -32,5 +34,10 @@ class SettingController extends Controller
 				return ['status'=>false,'message'=>trans('messages.server_error')];
 			}
 	 }
+
+	 public function exportSetting()
+	{
+		return Excel::download(new SettingsReferenceExport(), 'settings_reference.xlsx');
+	}
 
 }
