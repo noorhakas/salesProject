@@ -181,12 +181,12 @@ class ManagerController extends Controller
     }
 
 
-    public function export(Request $request)
+    public function exportManagers(Request $request)
     {
         return Excel::download(new ManagersExport($request), 'managers.xlsx');
     }
 
-    public function import(Request $request)
+    public function importManagers(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:xls,xlsx',
