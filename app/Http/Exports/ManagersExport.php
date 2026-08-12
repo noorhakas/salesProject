@@ -26,9 +26,9 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     public function query()
     {
         return User::query()
-            ->whereHas('userposition', fn ($q) => $q->where('ps_key', PositionKey::SUPERVISOR->value))
+            ->whereHas('userposition', fn ($q) => $q->where('ps_key','!=', PositionKey::SALES_REP->value))
             ->with(['branches:id,name', 'branchDepartments.branch:id,name', 'branchDepartments.department:id,name',
-            'manager:id,name'])
+            'manager:emp_no,name'])
             ->filter($this->request)
             ->latest();
     }
@@ -59,7 +59,7 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
      */
     protected function columns(): array
     {
-        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'];
     }
 
     public function registerEvents(): array
