@@ -40,7 +40,7 @@ class ClassesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wit
 
     protected function columns(): array
     {
-        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'];
+        return ['A', 'B', 'C'];
     }
 
     public function registerEvents(): array

@@ -42,7 +42,7 @@ class BranchesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wi
 
     protected function columns(): array
     {
-        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'];
+        return ['A', 'B', 'C', 'D', 'E'];
     }
 
     public function registerEvents(): array

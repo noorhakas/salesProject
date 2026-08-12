@@ -40,7 +40,7 @@ class SpecialtiesReferenceSheet implements FromQuery, WithHeadings, WithMapping,
 
     protected function columns(): array
     {
-        return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'];
+        return ['A', 'B'];
     }
 
     public function registerEvents(): array
