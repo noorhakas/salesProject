@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Repository\Interfaces\ManagerInterface;
+use App\Http\Exports\ManagersExport;
+use App\Http\Imports\ManagerImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ManagerController extends Controller
 {
@@ -174,6 +177,32 @@ class ManagerController extends Controller
                 false,
                 trans('messages.server_error')
             );
+        }
+    }
+
+
+    public function export(Request $request)
+    {
+        return Excel::download(new ManagersExport($request), 'managers.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xls,xlsx',
+        ]);
+
+        try {
+            $filePath = $request->file('file')->store('uploads');
+
+            Excel::import(new ManagerImport(), $filePath);
+
+            return $this->response_api(true, trans('messages.success'));
+
+        } catch (\Exception $e) {
+            Log::error('Manager Import Error', ['message' => $e->getMessage()]);
+
+            return $this->response_api(false, trans('messages.server_error'));
         }
     }
 }

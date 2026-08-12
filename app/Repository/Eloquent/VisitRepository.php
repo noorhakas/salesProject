@@ -271,62 +271,62 @@ class VisitRepository implements VisitInterface
     }
 
     public function submitVisit($request)
-    {
-        try {
-            DB::beginTransaction();
+{
+    try {
+        DB::beginTransaction();
 
-            $visit = Visit::findOrFail($request->visit_id);
-            $actualStartDate = Carbon::now();
+        $visit = Visit::findOrFail($request->visit_id);
 
+        $doctorId = (isset($request->doctor_id) && is_numeric($request->doctor_id) && $request->doctor_id > 0)
+            ? $request->doctor_id
+            : $visit->customer_id;
 
-            $doctorId = (isset($request->doctor_id) && is_numeric($request->doctor_id) && $request->doctor_id > 0)
-                ? $request->doctor_id
-                : $visit->customer_id;
+        $combineWith = (isset($request->combine_with) && is_numeric($request->combine_with) && $request->combine_with > 0)
+            ? $request->combine_with
+            : 0;
 
-            $combineWith = (isset($request->combine_with) && is_numeric($request->combine_with) && $request->combine_with > 0)
-                ? $request->combine_with
-                : 0;
+        $actualStart = $request->start_time ? Carbon::parse($request->start_time) : Carbon::now();
+        $actualEnd   = $request->end_time ? Carbon::parse($request->end_time) : Carbon::now();
 
-            $data = [
-                'status'             => (VisitStatusEnum::Visited)['id'],
-                'actual_start_date' => $actualStartDate->toDateTimeString(),
-                'actual_end_date'   => $actualStartDate->copy()->addMinutes(10)->toDateTimeString(),
-                'customer_id'        => $doctorId,
-                'combine_with'       => $combineWith,
-                'user_location_lat'  => $request->current_location_lat,
-                'user_location_lng'  => $request->current_location_lng,
-                'notes'              => $request->notes,
-            ];
+        $data = [
+            'status'             => (VisitStatusEnum::Visited)['id'],
+            'actual_start_date'  => $actualStart->toDateTimeString(),
+            'actual_end_date'    => $actualEnd->toDateTimeString(),
+            'customer_id'        => $doctorId,
+            'combine_with'       => $combineWith,
+            'user_location_lat'  => $request->current_location_lat,
+            'user_location_lng'  => $request->current_location_lng,
+            'notes'              => $request->notes,
+        ];
 
-            // Unplanned visits don't already have a date/time, so they're
-            if ($visit->type == 1) {
-                $data = array_merge($data, [
-                    'visit_date' => Carbon::parse($request->start_time)->toDateString(),
-                    'start_time' => $request->start_time ? Carbon::parse($request->start_time)->format('H:i:s') : Carbon::now()->format('H:i:s'),
-                    'end_time'   => $request->end_time ? Carbon::parse($request->end_time)->format('H:i:s') : Carbon::now()->format('H:i:s'),
-                ]);
-            }
-
-            $createdVisit = Visit::updateOrCreate(['id' => $visit->id], $data);
-
-            $this->replaceVisitDetails($createdVisit, $request->items);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Visit submission failed: ' . $e->getMessage(), [
-                'visit_id'  => $request->visit_id ?? null,
-                'exception' => $e,
+        // Unplanned visits 
+        if ($visit->type == 1) {
+            $data = array_merge($data, [
+                'visit_date' => $actualStart->toDateString(),
+                'start_time' => $actualStart->format('H:i:s'),
+                'end_time'   => $actualEnd->format('H:i:s'),
             ]);
-
-            return $this->failure('server_error');
         }
 
-        // visit that was actually saved successfully.
-        $this->notifications->sendNewVisitCreated($createdVisit, auth()->user());
+        $createdVisit = Visit::updateOrCreate(['id' => $visit->id], $data);
 
-        return ['status' => true, 'message' => trans('messages.visit_success')];
+        $this->replaceVisitDetails($createdVisit, $request->items);
+
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Visit submission failed: ' . $e->getMessage(), [
+            'visit_id'  => $request->visit_id ?? null,
+            'exception' => $e,
+        ]);
+
+        return $this->failure('server_error');
     }
+
+    $this->notifications->sendNewVisitCreated($createdVisit, auth()->user());
+
+    return ['status' => true, 'message' => trans('messages.visit_success')];
+}
 
     
    protected function replaceVisitDetails(Visit $visit, array $items = []): void

@@ -92,28 +92,6 @@ class AccountController extends Controller
 
     }
 
-
-	public function exportPharmacy(){
-        return Excel::download(new PharmacyExport(), 'account.xlsx');
-    }
-
-     public function importPharmacy(Request $request)
-    {
-
-        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
-        $path = $request->file('file');
-		//try {
-			//\DB::beginTransaction();
-				$pharamcy = Excel::import(new PharmacyImport, $path);
-			//\DB::commit();
-			//return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-			//} catch (\Exception $e) {
-				//\DB::rollback();
-				//return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		//}
-
-    }
-
     public function importUserAccounts(Request $request)
     {
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);

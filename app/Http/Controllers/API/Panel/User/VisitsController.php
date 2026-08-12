@@ -48,7 +48,12 @@ class VisitsController extends Controller
 	public function createUnplannedVisit(Request $request){
 			 $response = $this->IVisit->createUnplannedVisit($request);
 		     return $this->SendResponse($response);
-	  }
+	}
+
+	
+	public function submitOfflineVisits(){
+		
+	}
 
      
 

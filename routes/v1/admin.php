@@ -147,6 +147,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 			Route::get('accounts','AccountController@exportAccounts');
 			Route::get('products','ProductController@exportProducts');
 			Route::get('user-doctor-visits', 'VisitsController@exportUserVisitsToExcel');
+			Route::get('managers','ManagerController@exportManagers');
 
 		});
 
@@ -155,8 +156,9 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 			Route::post('pharmacy','AccountController@importPharmacy');
 			Route::post('accounts','AccountController@importAccounts');
 			Route::post('products','ProductController@importProducts');
-                        Route::post('useraccount','AccountController@importUserAccounts');
-                        Route::post('user_list','UserController@importUserList');
+            Route::post('useraccount','AccountController@importUserAccounts');
+            Route::post('user_list','UserController@importUserList');
+            Route::post('managers','ManagerController@importManagers');
 
 		});
 Route::get('account-chart', 'AccountController@accountChart');
