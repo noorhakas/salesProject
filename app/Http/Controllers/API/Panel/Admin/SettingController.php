@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use App\Models\Setting;
-use App\Exports\SettingsReferenceExport;
+use App\Http\Exports\SettingsReferenceExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Resources\API\SettingResource;
 
