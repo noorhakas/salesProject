@@ -86,7 +86,7 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                 ],
                 'fill' => [
                     'fillType'   => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '5A0A0A'],
+                    'startColor' => ['rgb' => '0f766e'],
                 ],
                 'borders' => [
                     'allBorders' => [
