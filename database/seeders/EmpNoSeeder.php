@@ -13,13 +13,11 @@ class EmpNoSeeder extends Seeder
         DB::transaction(function () {
 
             $lastNumber = User::whereNotNull('emp_no')
-                ->orderByRaw('CAST(SUBSTRING(emp_no, 5) AS UNSIGNED) DESC')
+                ->orderByDesc('emp_no')
                 ->lockForUpdate()
                 ->value('emp_no');
 
-            $nextNumber = $lastNumber
-                ? ((int) substr($lastNumber, 4)) + 1
-                : 1;
+            $nextNumber = $lastNumber ? ((int) $lastNumber) + 1 : 1;
 
             User::whereNull('emp_no')
                 ->orderBy('id')
@@ -27,7 +25,7 @@ class EmpNoSeeder extends Seeder
                 ->chunkById(200, function ($users) use (&$nextNumber) {
                     foreach ($users as $user) {
                         $user->update([
-                            'emp_no' => str_pad($nextNumber, 5, '0', STR_PAD_LEFT),
+                            'emp_no' => $nextNumber,
                         ]);
 
                         $nextNumber++;
