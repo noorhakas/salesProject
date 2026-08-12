@@ -61,75 +61,76 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     }
 
     public function registerEvents(): array
-    {
-        return [
-            AfterSheet::class => function (AfterSheet $event) {
+{
+    return [
+        AfterSheet::class => function (AfterSheet $event) {
 
-                $sheet = $event->sheet->getDelegate();
-                $lastColumn = end($this->columns()); // 'I'
-                $highestRow = $sheet->getHighestRow();
+            $sheet = $event->sheet->getDelegate();
+            $columns = $this->columns();
+            $lastColumn = end($columns); // 'I'
+            $highestRow = $sheet->getHighestRow();
 
-                // =========================
-                // HEADER STYLE
-                // =========================
-                $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
-                    'font' => [
-                        'name'  => 'Calibri',
-                        'size'  => 15,
-                        'bold'  => true,
-                        'color' => ['rgb' => 'FFFFFF'],
+            // =========================
+            // HEADER STYLE
+            // =========================
+            $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
+                'font' => [
+                    'name'  => 'Calibri',
+                    'size'  => 15,
+                    'bold'  => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => Alignment::VERTICAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType'   => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '5A0A0A'],
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color'       => ['rgb' => 'FFFFFF'],
                     ],
-                    'alignment' => [
-                        'horizontal' => Alignment::HORIZONTAL_CENTER,
-                        'vertical'   => Alignment::VERTICAL_CENTER,
-                    ],
-                    'fill' => [
-                        'fillType'   => Fill::FILL_SOLID,
-                        'startColor' => ['rgb' => '5A0A0A'],
-                    ],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color'       => ['rgb' => 'FFFFFF'],
-                        ],
-                    ],
-                ]);
+                ],
+            ]);
 
-                $sheet->getRowDimension(1)->setRowHeight(22);
+            $sheet->getRowDimension(1)->setRowHeight(22);
 
-                // =========================
-                // COLUMN WIDTHS
-                // =========================
-                foreach ($this->columns() as $char) {
-                    $width = match (true) {
-                        $char === 'A' => 15,
-                        in_array($char, ['F', 'G', 'H']) => 30,
-                        default => 20,
-                    };
+            // =========================
+            // COLUMN WIDTHS
+            // =========================
+            foreach ($columns as $char) {
+                $width = match (true) {
+                    $char === 'A' => 15,
+                    in_array($char, ['F', 'G', 'H']) => 30,
+                    default => 20,
+                };
 
-                    $sheet->getColumnDimension($char)->setWidth($width);
-                }
+                $sheet->getColumnDimension($char)->setWidth($width);
+            }
 
-                // =========================
-                // ROW HEIGHTS + BORDERS
-                // =========================
-                for ($row = 2; $row <= $highestRow; $row++) {
-                    $sheet->getRowDimension($row)->setRowHeight(22);
+            // =========================
+            // ROW HEIGHTS + BORDERS
+            // =========================
+            for ($row = 2; $row <= $highestRow; $row++) {
+                $sheet->getRowDimension($row)->setRowHeight(22);
 
-                    $sheet->getStyle("A{$row}:{$lastColumn}{$row}")
-                        ->getBorders()
-                        ->getAllBorders()
-                        ->setBorderStyle(Border::BORDER_THIN);
-                }
+                $sheet->getStyle("A{$row}:{$lastColumn}{$row}")
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle(Border::BORDER_THIN);
+            }
 
-                // =========================
-                // GLOBAL ALIGNMENT
-                // =========================
-                $sheet->getStyle("A1:{$lastColumn}{$highestRow}")
-                    ->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(Alignment::VERTICAL_CENTER);
-            },
-        ];
-    }
+            // =========================
+            // GLOBAL ALIGNMENT
+            // =========================
+            $sheet->getStyle("A1:{$lastColumn}{$highestRow}")
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+        },
+    ];
+}
 }
