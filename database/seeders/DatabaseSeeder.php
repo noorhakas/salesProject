@@ -68,10 +68,10 @@ class DatabaseSeeder extends Seeder
  //   $this->call(UpdateUserNamesSeeder::class);
  //   $this->call(UpdateUserEmailSeeder::class);
 
-    $this->call(SettingSeeder::class);
+//    $this->call(SettingSeeder::class);
 
  //   $this->call(PublicHolidaySeeder::class);
-    
+    $this->call(EmpNoSeeder::class);
         
     }
 }

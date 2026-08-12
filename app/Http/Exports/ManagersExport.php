@@ -35,18 +35,19 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 
     public function headings(): array
     {
-        return ['Name', 'Email', 'Phone', 'Whatsapp', 'Username', 'Manager', 'Status', 'Branches', 'Departments'];
+        return ['ID','Name', 'Email', 'Phone', 'Whatsapp', 'Username', 'Manager', 'Status', 'Branches', 'Departments'];
     }
 
     public function map($manager): array
     {
         return [
+            $manager->emp_no,
             $manager->name,
             $manager->email,
             $manager->phone,
             $manager->whatsapp,
             $manager->user_name,
-            optional($manager->manager)->name,
+            optional($manager->manager)->emp_no.'-'.optional($manager->manager)->name,
             $manager->status == 1 ? 'Active' : 'Inactive',
             $manager->branches->pluck('name')->implode(', '),
             $manager->branchDepartments->pluck('department.name')->filter()->implode(', '),
