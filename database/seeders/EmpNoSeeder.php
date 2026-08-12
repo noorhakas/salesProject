@@ -12,17 +12,19 @@ class EmpNoSeeder extends Seeder
     {
         DB::transaction(function () {
 
-            $lastNumber = User::whereNotNull('emp_no')
-                ->orderByDesc('emp_no')
+            $lastNumber = User::orderByDesc('emp_no')
                 ->lockForUpdate()
                 ->value('emp_no');
 
-            $nextNumber = $lastNumber ? ((int) $lastNumber) + 1 : 1;
+            // Start from 1000
+            $nextNumber = $lastNumber
+                ? ((int) $lastNumber) + 1
+                : 1000;
 
-            User::whereNull('emp_no')
-                ->orderBy('id')
+            User::orderBy('id')
                 ->lockForUpdate()
                 ->chunkById(200, function ($users) use (&$nextNumber) {
+
                     foreach ($users as $user) {
                         $user->update([
                             'emp_no' => $nextNumber,
