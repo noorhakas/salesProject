@@ -27,26 +27,27 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     {
         return User::query()
             ->whereHas('userposition', fn ($q) => $q->where('ps_key', PositionKey::SUPERVISOR->value))
-            ->with(['branches:id,name', 'branchDepartments.branch:id,name', 'branchDepartments.department:id,name'])
+            ->with(['branches:id,name', 'branchDepartments.branch:id,name', 'branchDepartments.department:id,name',
+            'manager:id,name'])
             ->filter($this->request)
             ->latest();
     }
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Email', 'Phone', 'Whatsapp', 'Username', 'Status', 'Branches', 'Departments'];
+        return ['Name', 'Email', 'Phone', 'Whatsapp', 'Username', 'Manager', 'Status', 'Branches', 'Departments'];
     }
 
     public function map($manager): array
     {
         return [
-            $manager->id,
             $manager->name,
             $manager->email,
             $manager->phone,
             $manager->whatsapp,
             $manager->user_name,
-            $manager->status,
+            optional($manager->manager)->name,
+            $manager->status == 1 ? 'Active' : 'Inactive',
             $manager->branches->pluck('name')->implode(', '),
             $manager->branchDepartments->pluck('department.name')->filter()->implode(', '),
         ];
