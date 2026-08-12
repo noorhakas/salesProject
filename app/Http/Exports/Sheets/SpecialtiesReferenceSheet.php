@@ -4,7 +4,6 @@ namespace App\Http\Exports\Sheets;
 
 use App\Models\Specialty;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -12,8 +11,9 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class SpecialtiesReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents
+class SpecialtiesReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     public function query()
     {

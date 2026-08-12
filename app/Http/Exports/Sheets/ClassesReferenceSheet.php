@@ -11,8 +11,10 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class ClassesReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents
+
+class ClassesReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     public function query()
     {
