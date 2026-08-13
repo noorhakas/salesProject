@@ -7,6 +7,8 @@ use App\Http\Exports\Sheets\BranchesReferenceSheet;
 use App\Http\Exports\Sheets\DepartmentsReferenceSheet;
 use App\Http\Exports\Sheets\SpecialtiesReferenceSheet;
 use App\Http\Exports\Sheets\ClassesReferenceSheet;
+use App\Http\Exports\Sheets\AccTypeReferenceSheet;
+
 
 class SettingsReferenceExport implements WithMultipleSheets
 {
@@ -17,6 +19,7 @@ class SettingsReferenceExport implements WithMultipleSheets
             'Departments' => new DepartmentsReferenceSheet(),
             'Specialties' => new SpecialtiesReferenceSheet(),
             'Classes'     => new ClassesReferenceSheet(),
+            'Acc-Types'   => new AccTypeReferenceSheet(),
         ];
     }
 }

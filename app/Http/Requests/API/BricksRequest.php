@@ -29,10 +29,12 @@ class BricksRequest extends FormRequest
     {
 		return match(request()->method()){
             "POST" => [
-				'name'=>'required|string|max:100|unique:classes,name,NULL,id,deleted_at,NULL',
+				'name'=>'required|string|max:100|unique:bricks,name,NULL,id,deleted_at,NULL',
+                'branch_id'=>'required',
 			],
             "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:classes,name,' . $this->brick . ',id,deleted_at,NULL',
+                'name' => 'sometimes|required|string|max:255|unique:bricks,name,' . $this->brick . ',id,deleted_at,NULL',
+                'branch_id'=>'required',
 			],
         };
     }
