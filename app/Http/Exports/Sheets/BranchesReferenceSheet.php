@@ -88,7 +88,7 @@ class BranchesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wi
             // =========================
             foreach ($columns as $char) {
                 $width = match (true) {
-                    $char === 'A' => 15,
+                    $char === 'A' => 25,
                     in_array($char, ['F', 'G', 'H']) => 30,
                     default => 20,
                 };

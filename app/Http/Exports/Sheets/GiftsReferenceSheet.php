@@ -84,8 +84,8 @@ class GiftsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithE
                
                 foreach ($columns as $char) {
                     $width = match (true) {
-                        $char === 'A' => 15,
-                        $char === 'C' => 25,
+                        $char === 'A' => 25,
+                        $char === 'B' => 25,
                         default => 20,
                     };
 

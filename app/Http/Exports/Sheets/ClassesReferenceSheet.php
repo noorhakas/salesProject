@@ -60,7 +60,7 @@ class ClassesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wit
             $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
                 'font' => [
                     'name'  => 'Calibri',
-                    'size'  => 15,
+                    'size'  => 25,
                     'bold'  => true,
                     'color' => ['rgb' => 'FFFFFF'],
                 ],

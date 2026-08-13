@@ -88,7 +88,7 @@ class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping,
                 // =========================
                 foreach ($columns as $char) {
                     $width = match (true) {
-                        $char === 'A' => 15,
+                        $char === 'A' => 25,
                         $char === 'B' => 100, // عمود الفروع محتاج مساحة أكبر لأنه بيحتوي على قايمة أسماء
                         default => 20,
                     };

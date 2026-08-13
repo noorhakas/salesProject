@@ -59,7 +59,7 @@ class BricksReferenceSheet implements FromQuery, WithHeadings, WithMapping, With
                 $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
                     'font' => [
                         'name'  => 'Calibri',
-                        'size'  => 15,
+                        'size'  => 25,
                         'bold'  => true,
                         'color' => ['rgb' => 'FFFFFF'],
                     ],
