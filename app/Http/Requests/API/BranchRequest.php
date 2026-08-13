@@ -10,44 +10,36 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class BranchRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
-
-		return match(request()->method()){
+        return match (request()->method()) {
             "POST" => [
-				'name'=>'required|string|max:100|unique:branches,name,NULL,id,deleted_at,NULL',
-                'address'=>'required',
-                'phone'=>'required',
-                'whatsapp'=>'required'
-
-
-			],
-            "PUT", "PATCH" =>  [
-                'name' => 'sometimes|required|string|max:255|unique:branches,name,' . $this->branch . ',id,deleted_at,NULL',
-			],
+                'name'      => 'required|string|max:100|unique:branches,name,NULL,id,deleted_at,NULL',
+                'address'   => 'required|string',
+                'phone'     => 'nullable|string|regex:/^[0-9]{10,15}$/',
+                'whatsapp'  => 'nullable|string|regex:/^[0-9]{10,15}$/',
+            ],
+            "PUT", "PATCH" => [
+                'name'      => 'sometimes|required|string|max:255|unique:branches,name,' . $this->branch . ',id,deleted_at,NULL',
+                'address'   => 'sometimes|required|string',
+                'phone'     => 'nullable|string|regex:/^[0-9]{10,15}$/',
+                'whatsapp'  => 'nullable|string|regex:/^[0-9]{10,15}$/',
+            ],
         };
     }
 
     protected function failedValidation(Validator $validator)
     {
         $errors = (new ValidationException($validator))->errors();
+
         throw new HttpResponseException(response()->json(
-            ['status'=>false ,'errors' => $errors
-            ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY));
+            ['status' => false, 'errors' => $errors],
+            JsonResponse::HTTP_UNPROCESSABLE_ENTITY
+        ));
     }
 }
