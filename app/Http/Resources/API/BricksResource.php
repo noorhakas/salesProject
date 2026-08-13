@@ -8,10 +8,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 use Carbon\Carbon;
 use App\Enums\StatusEnum;
+use App\Http\Resources\API\Concerns\FormatsIdName;
 
 
 class BricksResource extends JsonResource
 {
+    use FormatsIdName;
     public function __construct($resource)
     {
         parent::__construct($resource);
@@ -27,6 +29,7 @@ class BricksResource extends JsonResource
        return  [
             'id' => $this->id,
             'name' => $this->name,
+            'branch'    => $this->idName($this->branch),
 			'created_at'=>Carbon::parse($this->created_at)->toDateTimeString(),
         ];
     }
