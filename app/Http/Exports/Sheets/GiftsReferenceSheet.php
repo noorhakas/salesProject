@@ -9,8 +9,9 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use App\Http\Exports\Concerns\ReferenceSheetStyle;
 use App\Enums\GiftTypeEnum;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class GiftsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
+class GiftsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle, WithEvents
 {
     use ReferenceSheetStyle;
     public function query()

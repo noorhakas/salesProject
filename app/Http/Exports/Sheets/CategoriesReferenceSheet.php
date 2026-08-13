@@ -8,13 +8,15 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use App\Http\Exports\Concerns\ReferenceSheetStyle;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
 
 class CategoriesReferenceSheet implements
     FromQuery,
     WithHeadings,
     WithMapping,
-    WithTitle
+    WithTitle,
+    WithEvents
 {
     use ReferenceSheetStyle;
 

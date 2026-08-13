@@ -8,9 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use App\Http\Exports\Concerns\ReferenceSheetStyle;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-
-class BricksReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
+class BricksReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     use ReferenceSheetStyle;
     public function query()

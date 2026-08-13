@@ -8,8 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use App\Http\Exports\Concerns\ReferenceSheetStyle;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
+class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithTitle, WithEvents
 {
     use ReferenceSheetStyle;
     public function query()
