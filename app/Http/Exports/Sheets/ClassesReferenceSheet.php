@@ -23,13 +23,12 @@ class ClassesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wit
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Frequency'];
+        return ['Name', 'Frequency'];
     }
 
     public function map($class): array
     {
         return [
-            $class->id,
             $class->name,
             $class->frequency,
         ];

@@ -15,10 +15,10 @@ class GiftController extends Controller
     {
         $this->IGift = $IGift;
 
-        $this->middleware('permission:display Gift')->only(['index', 'show']);
+      /*  $this->middleware('permission:display Gift')->only(['index', 'show']);
         $this->middleware('permission:create Gift')->only(['store']);
         $this->middleware('permission:update Gift')->only(['update']);
-        $this->middleware('permission:delete Gift')->only(['destroy']);
+        $this->middleware('permission:delete Gift')->only(['destroy']); */
     }
 
     public function index(Request $request)

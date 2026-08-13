@@ -22,13 +22,12 @@ class SpecialtiesReferenceSheet implements FromQuery, WithHeadings, WithMapping,
 
     public function headings(): array
     {
-        return ['ID', 'Name'];
+        return ['Name'];
     }
 
     public function map($specialty): array
     {
         return [
-            $specialty->id,
             $specialty->name,
         ];
     }
@@ -40,7 +39,7 @@ class SpecialtiesReferenceSheet implements FromQuery, WithHeadings, WithMapping,
 
     protected function columns(): array
     {
-        return ['A', 'B'];
+        return ['A'];
     }
 
     public function registerEvents(): array

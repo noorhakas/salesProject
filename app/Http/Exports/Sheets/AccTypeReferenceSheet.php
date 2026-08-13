@@ -22,13 +22,12 @@ class AccTypeReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wit
 
     public function headings(): array
     {
-        return ['ID', 'Name'];
+        return ['Name'];
     }
 
     public function map($acctype): array
     {
         return [
-            $acctype->id,
             $acctype->name,
         ];
     }
@@ -40,7 +39,7 @@ class AccTypeReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wit
 
     protected function columns(): array
     {
-        return ['A', 'B'];
+        return ['A'];
     }
 
     public function registerEvents(): array

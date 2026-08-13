@@ -2,42 +2,42 @@
 
 namespace App\Http\Exports\Sheets;
 
-use App\Models\Department;
+use App\Models\Gift;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use App\Enums\GiftTypeEnum;
 
-class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents, WithTitle
+class GiftsReferenceSheet implements FromQuery, WithHeadings, WithMapping, WithEvents, WithTitle
 {
     public function query()
     {
-        return Department::query()
-            ->with('branches:id,name')
-            ->orderBy('name');
+        return Gift::query()->orderBy('name');
     }
 
     public function headings(): array
     {
-        return ['Name', 'Branches'];
+        return ['Name', 'Type'];
     }
 
-    public function map($department): array
+    public function map($gift): array
     {
         return [
-            $department->name,
-            $department->branches->pluck('name')->implode(', '),
+            $gift->name,
+            $gift->type == GiftTypeEnum::Gift ? 'Gift' : 'Leave Behind',
         ];
     }
 
     public function title(): string
     {
-        return 'Departments';
+        return 'Gifts';
     }
 
     protected function columns(): array
@@ -55,9 +55,7 @@ class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping,
                 $lastColumn = end($columns); // 'C'
                 $highestRow = $sheet->getHighestRow();
 
-                // =========================
-                // HEADER STYLE
-                // =========================
+              
                 $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
                     'font' => [
                         'name'  => 'Calibri',
@@ -83,22 +81,18 @@ class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping,
 
                 $sheet->getRowDimension(1)->setRowHeight(22);
 
-                // =========================
-                // COLUMN WIDTHS
-                // =========================
+               
                 foreach ($columns as $char) {
                     $width = match (true) {
                         $char === 'A' => 15,
-                        $char === 'B' => 100, // عمود الفروع محتاج مساحة أكبر لأنه بيحتوي على قايمة أسماء
+                        $char === 'C' => 25,
                         default => 20,
                     };
 
                     $sheet->getColumnDimension($char)->setWidth($width);
                 }
 
-                // =========================
-                // ROW HEIGHTS + BORDERS
-                // =========================
+          
                 for ($row = 2; $row <= $highestRow; $row++) {
                     $sheet->getRowDimension($row)->setRowHeight(22);
 
@@ -108,13 +102,29 @@ class DepartmentsReferenceSheet implements FromQuery, WithHeadings, WithMapping,
                         ->setBorderStyle(Border::BORDER_THIN);
                 }
 
-                // =========================
-                // GLOBAL ALIGNMENT
-                // =========================
+              
                 $sheet->getStyle("A1:{$lastColumn}{$highestRow}")
                     ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
+
+            
+                $lastValidationRow = max($highestRow, 500);
+
+                for ($row = 2; $row <= $lastValidationRow; $row++) {
+                    $validation = $sheet->getCell("B{$row}")->getDataValidation();
+                    $validation->setType(DataValidation::TYPE_LIST);
+                    $validation->setErrorStyle(DataValidation::STYLE_STOP);
+                    $validation->setAllowBlank(false);
+                    $validation->setShowInputMessage(true);
+                    $validation->setShowErrorMessage(true);
+                    $validation->setShowDropDown(true);
+                    $validation->setErrorTitle('Invalid Type');
+                    $validation->setError('Please select either "Gift" or "Leave Behind" from the list.');
+                    $validation->setPromptTitle('Select Type');
+                    $validation->setPrompt('Choose the gift type from the dropdown.');
+                    $validation->setFormula1('"Gift,Leave Behind"');
+                }
             },
         ];
     }

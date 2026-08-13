@@ -22,13 +22,12 @@ class BranchesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wi
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Address', 'Phone', 'Whatsapp'];
+        return ['Name', 'Address', 'Phone', 'Whatsapp'];
     }
 
     public function map($branch): array
     {
         return [
-            $branch->id,
             $branch->name,
             $branch->address,
             $branch->phone,
@@ -43,7 +42,7 @@ class BranchesReferenceSheet implements FromQuery, WithHeadings, WithMapping, Wi
 
     protected function columns(): array
     {
-        return ['A', 'B', 'C', 'D', 'E'];
+        return ['A', 'B', 'C', 'D'];
     }
 
     public function registerEvents(): array

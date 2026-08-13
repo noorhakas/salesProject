@@ -8,6 +8,8 @@ use App\Http\Exports\Sheets\DepartmentsReferenceSheet;
 use App\Http\Exports\Sheets\SpecialtiesReferenceSheet;
 use App\Http\Exports\Sheets\ClassesReferenceSheet;
 use App\Http\Exports\Sheets\AccTypeReferenceSheet;
+use App\Http\Exports\Sheets\GiftsReferenceSheet;
+use App\Http\Exports\Sheets\BricksReferenceSheet;
 
 
 class SettingsReferenceExport implements WithMultipleSheets
@@ -20,6 +22,8 @@ class SettingsReferenceExport implements WithMultipleSheets
             'Specialties' => new SpecialtiesReferenceSheet(),
             'Classes'     => new ClassesReferenceSheet(),
             'Acc-Types'   => new AccTypeReferenceSheet(),
+            'Gifts'       => new GiftsReferenceSheet(),
+            'Bricks'      => new BricksReferenceSheet(),
         ];
     }
 }
