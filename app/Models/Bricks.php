@@ -25,19 +25,22 @@ class Bricks extends Model
     }
 
     public function scopeFilter($q, $request)
-    {
-        return $q
-            ->when(
-                $request->filled('user_id'),
-                fn ($q) => $q->whereHas('users', fn ($u) => $u->where('users.id', $request->user_id))
-            )
-            ->when(
-                $request->filled('search'),
-                fn ($q) => $q->where('bricks.name', 'like', '%' . $request->search . '%')
-            )
-            ->when(
-                $request->filled('branch_id'),
-                fn ($q) => $q->where('bricks.branch_id', $request->branch_id)
-            );
-    }
+	{
+		return $q
+			->when(
+				$request->filled('user_id'),
+				fn ($q) => $q->whereHas('users', fn ($u) => $u->where('users.id', $request->user_id))
+			)
+			->when(
+				$request->filled('search'),fn ($q) => $q->where(function ($q) use ($request) {
+					$q->where('bricks.name', 'like', '%' . $request->search . '%')
+						->orWhereHas('branch', function ($b) use ($request) {
+							$b->where('branches.name', 'like', '%' . $request->search . '%');
+						});
+				})
+			)
+			->when($request->filled('branch_id'),
+				fn ($q) => $q->where('bricks.branch_id', $request->branch_id)
+			);
+	}
 }
