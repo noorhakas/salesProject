@@ -21,7 +21,7 @@ class SettingsImport implements WithMultipleSheets
             'Departments' => new DepartmentsImportSheet(),
             'Specialties' => new SpecialtiesImportSheet(),
             'Classes' => new ClassesImportSheet(),
-            'Acc-Types'  => new AccTypeImportSheet(),
+            'Acc-Type'  => new AccTypeImportSheet(),
             'Gifts'  => new GiftsImportSheet(),
             'Bricks' => new BricksImportSheet(),
         ];
