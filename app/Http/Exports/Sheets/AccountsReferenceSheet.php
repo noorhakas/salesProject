@@ -23,7 +23,6 @@ class AccountsReferenceSheet implements
     {
         return Account::query()
             ->with([
-                'brick',
                 'accType',
             ])
             ->orderBy('id','desc');
@@ -36,7 +35,10 @@ class AccountsReferenceSheet implements
             'Account Type',
             'Phone',
             'Phone 1',
-            'Address'
+            'Address',
+            'Lat',
+            'Lng'
+
         ];
     }
 
@@ -48,16 +50,18 @@ class AccountsReferenceSheet implements
             $account->phone ?? '',
             $account->phone_1 ?? '',
             $account->address ?? '',
+            $account->lat ?? '',
+            $account->lng ?? '',
         ];
     }
 
     public function title(): string
     {
-        return 'Customers';
+        return 'Accounts';
     }
 
     protected function columns(): array
     {
-        return ['A','B','C','D','E','F','G','I','J'];
+        return ['A','B','C','D','E','F','G'];
     }
 }

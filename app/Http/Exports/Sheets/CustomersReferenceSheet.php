@@ -38,12 +38,13 @@ class CustomersReferenceSheet implements
             'CODE',
             'Account Name',
             'Account Type',
-            'Account Class',
             'Customer Name',
             'Specialty',
-            'Area',
             'Class',
             'Phone',
+            'Phone 1',
+            'Brief'
+
         ];
     }
 
@@ -53,7 +54,6 @@ class CustomersReferenceSheet implements
             $customer->Uuid,
             optional($customer->account)->name,
             optional($customer->accType)->name,
-            optional($customer->account)->class?->name,
             $customer->name,
             optional($customer->specialty)->name ?? '',
             optional($customer->account?->brick)->name ?? '',
