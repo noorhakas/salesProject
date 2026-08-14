@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\API\Admin\UserDetailResource;
 use App\Http\Resources\API\Admin\ManagerResource;
 use App\Models\User;
+use App\Enums\PositionKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,22 @@ class ManagerController extends Controller
                 $this->managerRepository->managers($request)
             )
         );
+    }
+
+
+    public function getManagers()
+    {
+        $managers = User::query() ->where('is_admin', 0)
+            ->whereHas('userposition', fn ($q) =>
+                $q->where('ps_key','!=',PositionKey::SALES_REP->value)
+            )->where('status', 1)->select('id', 'name')->get(); 
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $managers
+        );    
+        
     }
 
 

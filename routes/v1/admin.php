@@ -29,6 +29,9 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('permissions', 'RoleController@allPermissions');
 	Route::apiResource('managers', 'ManagerController');
     Route::get('manager_profile/{manager}', 'ManagerController@profile');
+    Route::get('manager_list', 'ManagerController@getManagers');
+
+	
 
    
    ###setting
@@ -143,7 +146,6 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 /*========================export&&import==================================*/
 		Route::prefix('/export')->group(function () {
 			Route::get('customers','CustomerController@exportCustomers');
-			Route::get('accounts','AccountController@exportAccounts');
 			Route::get('products','ProductController@exportProducts');
 			Route::get('user-doctor-visits', 'VisitsController@exportUserVisitsToExcel');
 			Route::get('managers','ManagerController@exportManagers');
@@ -152,9 +154,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 		});
 
 		Route::prefix('/import')->group(function () {
-			Route::post('doctors','CustomerController@importDoctors');
-			Route::post('pharmacy','AccountController@importPharmacy');
-			Route::post('accounts','AccountController@importAccounts');
+			Route::post('customers','CustomerController@importCustomers');
 			Route::post('products','ProductController@importProducts');
             Route::post('useraccount','AccountController@importUserAccounts');
             Route::post('user_list','UserController@importUserList');

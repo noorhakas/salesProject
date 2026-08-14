@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Http\Requests\API\CustomerRequest;
 use App\Repository\Interfaces\CustomerInterface;
 use App\Http\Exports\CustomerExport;
-use App\Http\Imports\DoctorImport;
+use App\Http\Imports\CustomerImport;
 use App\Http\Exports\UserAccountExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -63,21 +63,21 @@ class CustomerController extends Controller
         return Excel::download(new CustomerExport(), 'masterlist.xlsx');
     }
 	
-	 public function importDoctors(Request $request)
+	 public function importCustomers(Request $request)
     {
 
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
         $path = $request->file('file');
 
-		//try {
-			//\DB::beginTransaction();
-				$doctor = Excel::import(new DoctorImport, $path);
-			//\DB::commit();
+		try {
+			\DB::beginTransaction();
+				$doctor = Excel::import(new CustomerImport, $path);
+			\DB::commit();
 			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-		//} catch (\Exception $e) {
-			//\DB::rollback();
+		} catch (\Exception $e) {
+			\DB::rollback();
 				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		//}
+		}
 
     }
 
