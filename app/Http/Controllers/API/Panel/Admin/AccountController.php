@@ -8,9 +8,7 @@ use App\Models\Account;
 use App\Http\Requests\API\AccountRequest;
 use App\Repository\Interfaces\AccountInterface;
 use App\Http\Exports\AccountExport;
-use App\Http\Exports\PharmacyExport;
 use App\Http\Imports\AccountImport;
-use App\Http\Imports\PharmacyImport;
 use App\Http\Imports\UserAccountImport;
 use Maatwebsite\Excel\Facades\Excel;
 
