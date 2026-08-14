@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Traits\PaginatesResults;
+use App\Http\Exports\SalesRepsExport;
+use App\Http\Imports\ManagerImport;
 
 class UserController extends Controller
 {
@@ -246,6 +248,34 @@ class UserController extends Controller
             );
         }
     }
+
+
+    public function exportSalesRep(Request $request)
+    {
+        return Excel::download(new SalesRepsExport($request), 'salesrep.xlsx');
+    }
+
+    public function importSalesRep(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xls,xlsx',
+        ]);
+
+        try {
+            $filePath = $request->file('file')->store('uploads');
+
+            Excel::import(new ManagerImport(), $filePath);
+
+            return $this->response_api(true, trans('messages.success'));
+
+        } catch (\Exception $e) {
+            Log::error('Manager Import Error', ['message' => $e->getMessage()]);
+
+            return $this->response_api(false, trans('messages.server_error'));
+        }
+    }
+
+
 
     public function importUserList(Request $request)
     {

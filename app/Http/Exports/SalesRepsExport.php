@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use App\Http\Exports\Concerns\ReferenceSheetStyle;
 
-class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
+class SalesRepsExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     use ReferenceSheetStyle;
 
@@ -26,13 +26,14 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     {
         return User::query()
             ->whereHas('userposition', function ($q) {
-                $q->where('ps_key', '!=', PositionKey::SALES_REP->value);
+                $q->where('ps_key', PositionKey::SALES_REP->value);
             })
             ->with([
                 'branches:id,name',
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
                 'manager:emp_no,name',
+                'position:id,name',
             ])
             ->filter($this->request)
             ->latest();
@@ -54,29 +55,29 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
         ];
     }
 
-    public function map($manager): array
+    public function map($salesRep): array
     {
         return [
-            $manager->emp_no,
-            $manager->name,
-            $manager->email,
-            $manager->phone,
-            $manager->whatsapp,
-            $manager->user_name,
+            $salesRep->emp_no,
+            $salesRep->name,
+            $salesRep->email,
+            $salesRep->phone,
+            $salesRep->whatsapp,
+            $salesRep->user_name,
 
-            $manager->manager
-                ? $manager->manager->emp_no . ' - ' . $manager->manager->name
+            $salesRep->manager
+                ? $salesRep->manager->emp_no . ' - ' . $salesRep->manager->name
                 : '',
 
-            $manager->status == 1 ? 'Active' : 'Inactive',
+            $salesRep->status == 1 ? 'Active' : 'Inactive',
 
-            $manager->branches
+            $salesRep->branches
                 ->pluck('name')
                 ->filter()
                 ->unique()
                 ->implode(', '),
 
-            $manager->branchDepartments
+            $salesRep->branchDepartments
                 ->map(fn ($item) => $item->department?->name)
                 ->filter()
                 ->unique()
