@@ -23,7 +23,9 @@ class AccountsReferenceSheet implements
     {
         return Account::query()
             ->with([
+                'brick',
                 'accType',
+                'class'
             ])
             ->orderBy('id','desc');
     }
@@ -33,6 +35,8 @@ class AccountsReferenceSheet implements
         return [
             'Account Name',
             'Account Type',
+            'Brick',
+            'Class',
             'Phone',
             'Phone 1',
             'Address',
@@ -47,6 +51,8 @@ class AccountsReferenceSheet implements
         return [
             $account->name,
             optional($account->accType)->name,
+            optional($account->brick)->name,
+            optional($account->class)->name,
             $account->phone ?? '',
             $account->phone_1 ?? '',
             $account->address ?? '',
@@ -62,6 +68,6 @@ class AccountsReferenceSheet implements
 
     protected function columns(): array
     {
-        return ['A','B','C','D','E','F','G'];
+        return ['A','B','C','D','E','F','G','H','I'];
     }
 }

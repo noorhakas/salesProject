@@ -34,23 +34,15 @@ class Account extends Model
     }
 	
 
-      public function pharmacyGroup()
-    {
-        return $this->belongsTo(PharmacyGroup::class,'pharmacy_group_id','id');
-    }
 
 	public function scopeFilter($q,$request)
     {
 		$q = $q->when($request->search,fn($q, $v) => 
 					$q->where('accounts.name', 'like', "%{$v}%"))
-					->when(isset($request->is_pharmacy),function($q) use ($request){
-						 $q->where('acc_type.is_pharmacy', $request->is_pharmacy);	
-					})->when($request->acc_type_id,fn($q, $v) => 
+					->when($request->acc_type_id,fn($q, $v) => 
 					$q->where('acc_type_id', $v))
                     ->when($request->class_id,fn($q, $v) => 
-					$q->where('accounts.class_id', $v))
-                    ->when($request->pharmacy_group_id,fn($q, $v) => 
-					$q->where('accounts.pharmacy_group_id', $v));		
+					$q->where('accounts.class_id', $v));		
 
         return $q;
     }

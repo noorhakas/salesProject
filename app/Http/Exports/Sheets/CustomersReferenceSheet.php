@@ -56,9 +56,10 @@ class CustomersReferenceSheet implements
             optional($customer->accType)->name,
             $customer->name,
             optional($customer->specialty)->name ?? '',
-            optional($customer->account?->brick)->name ?? '',
             optional($customer->class)->name ?? '',
             $customer->phone ?? '',
+            $customer->phone_1 ?? '',
+            $customer->brief ?? '',
         ];
     }
 
