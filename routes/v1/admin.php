@@ -161,6 +161,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 			Route::post('products','ProductController@importProducts');
             Route::post('useraccount','AccountController@importUserAccounts');
             Route::post('user_list','UserController@importUserList');
+            Route::post('salesrep','UserController@importSalesRep');
             Route::post('managers','ManagerController@importManagers');
             Route::post('settings','SettingController@importSettings');
 

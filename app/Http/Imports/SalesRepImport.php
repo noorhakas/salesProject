@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Collection;
-use RuntimeException;
 
-class ManagerImport implements ToCollection, WithHeadingRow
+class SalesRepImport implements ToCollection, WithHeadingRow
 {
     public function collection(Collection $rows)
     {
@@ -21,40 +20,41 @@ class ManagerImport implements ToCollection, WithHeadingRow
 
             foreach ($rows as $index => $row) {
 
-                $rowNumber = $index + 2;
-
                 if (empty($row['name'])) {
                     continue;
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | Find existing user
+                | Find Existing User
                 |--------------------------------------------------------------------------
                 */
 
                 $user = null;
 
                 if (!empty($row['id'])) {
-                    $user = User::where('emp_no', $row['id'])->first();
+                    $user = User::where(
+                        'emp_no',
+                        $row['id']
+                    )->first();
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | Create / Update User
+                | Create / Update
                 |--------------------------------------------------------------------------
                 */
 
                 if (!$user) {
                     $user = new User();
 
-                    // لو emp_no عندك generated تلقائيًا
                     if (!empty($row['id'])) {
                         $user->emp_no = $row['id'];
                     }
                 }
 
                 $user->name = trim($row['name']);
+
                 $user->email = !empty($row['email'])
                     ? trim($row['email'])
                     : null;
@@ -71,18 +71,20 @@ class ManagerImport implements ToCollection, WithHeadingRow
                     ? trim($row['username'])
                     : null;
 
-                $user->status = strtolower(trim($row['status'] ?? ''))
-                    === 'active'
-                    ? 1
-                    : 0;
+                $user->status = strtolower(
+                    trim($row['status'] ?? '')
+                ) === 'active' ? 1 : 0;
 
                 /*
                 |--------------------------------------------------------------------------
-                | Position
+                | Sales Rep Position
                 |--------------------------------------------------------------------------
                 */
 
-                $position = $this->getManagerPosition();
+                $position = \App\Models\Position::where(
+                    'ps_key',
+                    PositionKey::SALES_REP->value
+                )->first();
 
                 if ($position) {
                     $user->position = $position->id;
@@ -90,7 +92,7 @@ class ManagerImport implements ToCollection, WithHeadingRow
 
                 /*
                 |--------------------------------------------------------------------------
-                | Password
+                | Password for New User
                 |--------------------------------------------------------------------------
                 */
 
@@ -112,10 +114,8 @@ class ManagerImport implements ToCollection, WithHeadingRow
                     $row['manager'] ?? null
                 );
 
-                if ($managerId) {
-                    $user->manager_id = $managerId;
-                    $user->save();
-                }
+                $user->manager_id = $managerId;
+                $user->save();
 
                 /*
                 |--------------------------------------------------------------------------
@@ -150,31 +150,20 @@ class ManagerImport implements ToCollection, WithHeadingRow
         });
     }
 
-    protected function getManagerPosition()
-    {
-        return \App\Models\Position::where(
-            'ps_key',
-            '!=',
-            PositionKey::SALES_REP->value
-        )->first();
-    }
-
     protected function resolveManager(?string $value): ?int
     {
         if (!$value) {
             return null;
         }
 
-        /*
-        | Expected:
-        | 1001 - Ahmed
-        */
-
         $empNo = trim(
             explode('-', $value)[0]
         );
 
-        return User::where('emp_no', $empNo)->value('id');
+        return User::where(
+            'emp_no',
+            $empNo
+        )->value('id');
     }
 
     protected function resolveBranches(?string $value): array

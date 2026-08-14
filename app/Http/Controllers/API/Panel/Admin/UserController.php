@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Traits\PaginatesResults;
 use App\Http\Exports\SalesRepsExport;
-use App\Http\Imports\ManagerImport;
+use App\Http\Imports\SalesRepImport;
 
 class UserController extends Controller
 {
@@ -264,7 +264,7 @@ class UserController extends Controller
         try {
             $filePath = $request->file('file')->store('uploads');
 
-            Excel::import(new ManagerImport(), $filePath);
+            Excel::import(new SalesRepImport(), $filePath);
 
             return $this->response_api(true, trans('messages.success'));
 
