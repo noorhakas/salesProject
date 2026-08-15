@@ -23,18 +23,59 @@ class SettingController extends Controller
 	 public function store(Request $request){
          try {
 			DB::beginTransaction();
-                  $setting = Setting::first();
-				  if(!$setting)
-				       $setting = (new Setting)::Create($request->all()); 
-			      else
-				        $setting->update($request->all());
-					
-				DB::commit();
-				return ['status'=>true,'message'=>trans('messages.success'),'data'=>new SettingResource($setting)];
-			} catch (\Exception $e) {
-				DB::rollback();
-				return ['status'=>false,'message'=>trans('messages.server_error')];
+
+			
+			$data = $request->except(['image', '_method', '_token', 'file']);
+
+			if ($request->has('enable_visit_check_distance')) {
+				$data['enable_visit_check_distance'] = filter_var(
+					$request->input('enable_visit_check_distance'),
+					FILTER_VALIDATE_BOOLEAN
+				);
 			}
+
+		
+			if ($request->has('weekly_off_days')) {
+				$days = $request->input('weekly_off_days');
+
+				if (is_string($days)) {
+					$decoded = json_decode($days, true);
+					$days = json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+						? $decoded
+						: [];
+				}
+
+				$data['weekly_off_days'] = array_values(
+					array_unique(
+						array_map('intval', (array) $days)
+					)
+				);
+			}
+
+			$setting = Setting::first();
+
+			if ($request->hasFile('image')) {
+				$data['image'] = $request->file('image');
+			}
+
+			if (!$setting) {
+				$setting = Setting::create($data);
+			} else {
+				$setting->update($data);
+			}
+
+			DB::commit();
+
+			return ['status'=>true,'message'=>trans('messages.success'),'data'=>new SettingResource($setting)];
+		} catch (\Exception $e) {
+			DB::rollback();
+
+			Log::error('Setting Store Error', [
+				'message' => $e->getMessage(),
+			]);
+
+			return ['status'=>false,'message'=>trans('messages.server_error')];
+		}
 	 }
 
 	 public function exportSetting()
