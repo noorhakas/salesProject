@@ -8,6 +8,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use App\Enums\StatusEnum;
 use Carbon\Carbon;
 use App\Models\UserAccounts;
+use App\Http\Resources\API\BranchSimpleResource;
+use App\Http\Resources\API\UserBranchDepartmentResource;
+
 
 
 class UserDetailResource extends JsonResource
@@ -39,6 +42,9 @@ class UserDetailResource extends JsonResource
             'created_at'=>Carbon::parse($this->created_at)->toDayDateTimeString(),
 			'role_id'=>$this->getRoleId(),
 			'role_name'=>$this->getRoleName(),
+             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
+            'departments' => UserBranchDepartmentResource::collection($this->whenLoaded('branchDepartments')),
+        
             'position' => optional($this->userposition)->only(['id', 'ps_key', 'name']),
               'brick_ids'=>$this->bricks()->pluck('id') ,
 							'product_ids'=> $this->products()->pluck('id'),
