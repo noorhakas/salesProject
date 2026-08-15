@@ -10,7 +10,7 @@ use App\Http\Requests\API\CustomerRequest;
 use App\Repository\Interfaces\CustomerInterface;
 use App\Http\Exports\CustomerExport;
 use App\Http\Imports\CustomerImport;
-use App\Http\Exports\UserAccountExport;
+use App\Http\Exports\UserAssignedExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
@@ -87,7 +87,7 @@ public function exportUserAccounts($id){
             return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
 
         $user_name = $user->user_name;
-        return Excel::download(new UserAccountExport($user), $user_name.'_list.xlsx');
+        return Excel::download(new UserAssignedExport($user), $user_name.'_list.xlsx');
     }
 
  public function doctorChart(){
