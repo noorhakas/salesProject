@@ -6,9 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Resources\GlobalCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Enums\StatusEnum;
-use App\Http\Resources\API\BranchSimpleResource;
-use App\Http\Resources\API\UserBranchDepartmentResource;
 use Carbon\Carbon;
+use App\Models\UserAccounts;
 
 
 class UserDetailResource extends JsonResource
@@ -23,7 +22,10 @@ class UserDetailResource extends JsonResource
      * @return array
      */
     public function toArray($request)
-    {
+    {			     
+        
+       $accounts_customers_ids = UserAccounts::where('user_id',$this->id)->get()->map(fn($q)=>$q->account_id.'_'.$q->customer_id);
+
        $base = [
             'id' => $this->id,
             'emp_no' => $this->emp_no,
@@ -38,6 +40,11 @@ class UserDetailResource extends JsonResource
 			'role_id'=>$this->getRoleId(),
 			'role_name'=>$this->getRoleName(),
             'position' => optional($this->userposition)->only(['id', 'ps_key', 'name']),
+              'brick_ids'=>$this->bricks()->pluck('id') ,
+							'product_ids'=> $this->products()->pluck('id'),
+                            'department_ids'=>$this->departments()->pluck('id')
+			                ,'customer_ids'=> $accounts_customers_ids
+							,'permissions'=>$this->getAllPermissions()->pluck('name')
 
         ];
 

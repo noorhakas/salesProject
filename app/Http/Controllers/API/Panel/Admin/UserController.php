@@ -7,6 +7,8 @@ use App\Http\Requests\API\ProfileRequest;
 use App\Http\Requests\API\UserRequest;
 use App\Http\Imports\UserAssignedImport;
 use App\Http\Resources\API\UserResource;
+use App\Http\Resources\API\Admin\UserDetailResource;
+
 use App\Http\Resources\API\AdminResource;
 use App\Enums\PositionKey;
 use App\Models\User;
@@ -119,11 +121,12 @@ class UserController extends Controller
                 'branches:id,name',
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
+                'manager:id,name'
             ]);
         return $this->response_api(
             true,
             trans('messages.success'),
-            new UserResource($user)
+            new UserDetailResource($user)
         );
     }
 
