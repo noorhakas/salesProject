@@ -25,19 +25,23 @@ class UserAssignedAreasSheet implements FromCollection, WithHeadings, WithTitle,
             ->select('bricks.id', 'bricks.name')
             ->get()
             ->map(fn ($brick) => [
-                'id'   => $brick->id,
                 'name' => $brick->name,
             ]);
     }
 
     public function headings(): array
     {
-        return ['ID', 'Area Name'];
+        return [ 'Area Name'];
     }
 
     public function title(): string
     {
         return 'Areas';
+    }
+
+      protected function columns(): array
+    {
+        return ['A'];
     }
 
  

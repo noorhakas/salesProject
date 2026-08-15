@@ -22,10 +22,10 @@ class UserAssignedProductsSheet implements FromCollection, WithHeadings, WithTit
     public function collection()
     {
         return $this->user->products()
-            ->select('products.id', 'products.name')
+            ->select('products.Uuid', 'products.name')
             ->get()
             ->map(fn ($product) => [
-                'id'   => $product->id,
+                'id'   => $product->Uuid,
                 'name' => $product->name,
             ]);
     }
@@ -38,6 +38,11 @@ class UserAssignedProductsSheet implements FromCollection, WithHeadings, WithTit
     public function title(): string
     {
         return 'Products';
+    }
+
+     protected function columns(): array
+    {
+        return ['A','B'];
     }
 
    

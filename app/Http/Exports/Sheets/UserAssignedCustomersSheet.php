@@ -30,19 +30,16 @@ class UserAssignedCustomersSheet implements FromCollection, WithHeadings, WithTi
         //         ->get();
         // } else {
             $customers = $this->user->customers()
-                ->with(['account.accType', 'account.class', 'account.brick', 'pharmacyGroup', 'specialty', 'class'])
+                ->with(['account.accType', 'account.class', 'specialty', 'class'])
                 ->get();
        // }
 
         return $customers->map(fn ($customer) => [
             'code'          => $customer->Uuid,
-            'group_name'    => optional($customer->pharmacyGroup)->name,
             'account_name'  => optional($customer->account)->name,
-            'account_type'  => optional($customer->account?->accType)->name,
-            'account_class' => optional($customer->account?->class)->name,
-            'doctor_name'   => $customer->name,
+            'account_type'  => optional($customer?->accType)->name,
+            'customer_name'   => $customer->name,
             'specialty'     => optional($customer->specialty)->name ?? '',
-            'area'          => optional($customer->account?->brick)->name,
             'class'         => optional($customer->class)->name ?? '',
             'phone'         => $customer->phone,
         ]);
@@ -51,14 +48,19 @@ class UserAssignedCustomersSheet implements FromCollection, WithHeadings, WithTi
     public function headings(): array
     {
         return [
-            "CODE", "Group Name", "Account Name", "Account Type",
-            "Account Class", "Doctor Name", "Specialty", "Area", "Class", "Phone",
+            "CODE", "Account Name", "Account Type",
+             "Customer Name", "Specialty", "Class", "Phone",
         ];
     }
 
     public function title(): string
     {
         return 'Customers';
+    }
+
+     protected function columns(): array
+    {
+        return ['A','B','C','D','E','F','G'];
     }
 
     
