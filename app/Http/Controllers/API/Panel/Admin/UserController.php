@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API\Panel\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\ProfileRequest;
 use App\Http\Requests\API\UserRequest;
-use App\Http\Imports\UserCustomerImport;
+use App\Http\Imports\UserAssignedImport;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\AdminResource;
 use App\Enums\PositionKey;
@@ -291,7 +291,7 @@ class UserController extends Controller
                 $filePath = $request->file('file')->store('uploads');
 
                 Excel::import(
-                    new UserCustomerImport($request->user_id),
+                    new UserAssignedImport($request->user_id),
                     $filePath
                 );
             });
