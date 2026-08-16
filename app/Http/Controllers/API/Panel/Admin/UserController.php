@@ -55,9 +55,6 @@ class UserController extends Controller
 
                 $user = User::create($data);
 
-                if ($request->type === 'admin' && $request->filled('role_id')) {
-                    $user->syncRoles($request->role_id);
-                }
 
                 if (!empty($request->branch_ids)) {
                     $user->branches()->sync($request->branch_ids);
@@ -75,9 +72,7 @@ class UserController extends Controller
                     }
                 }
 
-                if (
-                    $request->type === 'sales'
-                    && $request->hasFile('file')
+                if ( $request->hasFile('file')
                 ) {
                     $request->validate([
                         'file' => 'file|mimes:xls,xlsx',
@@ -86,7 +81,7 @@ class UserController extends Controller
                     $filePath = $request->file('file')->store('uploads');
 
                     Excel::import(
-                        new UserCustomerImport($user->id),
+                        new UserAssignedImport($user->id),
                         $filePath
                     );
                 }
@@ -145,9 +140,6 @@ class UserController extends Controller
 
                 $user->update($data);
 
-                if ($request->type === 'admin' && $request->filled('role_id')) {
-                    $user->syncRoles($request->role_id);
-                }
 
                if (!empty($request->branch_ids)) {
                     $user->branches()->sync($request->branch_ids);
@@ -165,8 +157,7 @@ class UserController extends Controller
                 }
 
                 if (
-                    $request->type === 'sales'
-                    && $request->hasFile('file')
+                     $request->hasFile('file')
                 ) {
                     $request->validate([
                         'file' => 'file|mimes:xls,xlsx',
@@ -179,7 +170,7 @@ class UserController extends Controller
                     $filePath = $request->file('file')->store('uploads');
 
                     Excel::import(
-                        new UserCustomerImport($user->id),
+                        new UserAssignedImport($user->id),
                         $filePath
                     );
                 }

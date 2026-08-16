@@ -5,11 +5,8 @@ namespace App\Http\Controllers\API\Panel\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Repository\Interfaces\VisitInterface;
-use App\Repository\VisitScheduleRepository;
-use App\Models\User;
 use App\Http\Requests\API\VisitRequest;
-use App\Http\Exports\DoctorVisitExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\API\SubmitOfflineVisitsRequest;
 
 
 class VisitsController extends Controller
@@ -51,8 +48,10 @@ class VisitsController extends Controller
 	}
 
 	
-	public function submitOfflineVisits(){
-		
+	public function submitOfflineVisits(SubmitOfflineVisitsRequest $request)
+	{
+		$response = $this->IVisit->submitOfflineVisits($request);
+		return $this->SendResponse($response);
 	}
 
      

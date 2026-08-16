@@ -47,6 +47,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::get("/{id}", 'VisitsController@show');
          Route::post('create_unplanned_visit','VisitsController@createUnplannedVisit');
          Route::post('savevisit','VisitsController@store');
+         Route::post('offline_visits', 'VisitsController@submitOfflineVisits');
       });
 
 

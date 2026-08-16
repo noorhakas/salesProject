@@ -93,7 +93,10 @@ class VisitRepository implements VisitInterface
         return $this->success($this->buildVisitDetailData($visit));
     }
 
-    
+    /**
+     * Manager equivalent of getvisitsByPlan: lists visits belonging to any
+     * of the manager's subordinates rather than a single plan.
+     */
     public function getVisitsForManager($request, array $subordinateIds)
     {
         $query = $this->joinAccountsAndCustomers(
@@ -274,8 +277,13 @@ class VisitRepository implements VisitInterface
 
         $visit = Visit::findOrFail($request->visit_id);
 
-        $doctorId    = $this->resolveDoctorId($request->doctor_id ?? null, $visit->customer_id);
-        $combineWith = $this->resolveCombineWith($request->combine_with ?? null);
+        $doctorId = (isset($request->doctor_id) && is_numeric($request->doctor_id) && $request->doctor_id > 0)
+            ? $request->doctor_id
+            : $visit->customer_id;
+
+        $combineWith = (isset($request->combine_with) && is_numeric($request->combine_with) && $request->combine_with > 0)
+            ? $request->combine_with
+            : 0;
 
         $actualStart = $request->start_time ? Carbon::parse($request->start_time) : Carbon::now();
         $actualEnd   = $request->end_time ? Carbon::parse($request->end_time) : Carbon::now();
@@ -338,21 +346,6 @@ class VisitRepository implements VisitInterface
         ], $items);
 
         VisitDetails::insert($rows);
-    }
-
-  
-    protected function resolveDoctorId($doctorId, $fallback)
-    {
-        return (isset($doctorId) && is_numeric($doctorId) && $doctorId > 0)
-            ? $doctorId
-            : $fallback;
-    }
-
-    protected function resolveCombineWith($combineWith)
-    {
-        return (isset($combineWith) && is_numeric($combineWith) && $combineWith > 0)
-            ? $combineWith
-            : 0;
     }
 
     
@@ -658,7 +651,10 @@ class VisitRepository implements VisitInterface
         return $this->success(['by_account' => $visits]);
     }
 
-  
+    /**
+     * Shared `join accounts / left join customers` pattern used by several
+     * visit-listing queries.
+     */
     protected function joinAccountsAndCustomers($query)
     {
         return $query
@@ -684,17 +680,6 @@ class VisitRepository implements VisitInterface
 
             foreach ($request->visits as $offlineVisit) {
 
-              
-                if (empty($offlineVisit['visit_id'])) {
-                    throw new \Exception('visit_id is required for each offline visit');
-                }
-
-                if (empty($offlineVisit['start_time']) || empty($offlineVisit['end_time'])) {
-                    throw new \Exception(
-                        "start_time and end_time are required for visit {$offlineVisit['visit_id']}"
-                    );
-                }
-
                 $visit = Visit::find($offlineVisit['visit_id']);
 
                 if (!$visit) {
@@ -703,6 +688,7 @@ class VisitRepository implements VisitInterface
                     );
                 }
 
+                // مهم جدًا: نتأكد إن الـ visit تخص المستخدم الحالي
                 if ((int) $visit->user_id !== (int) auth()->id()) {
                     throw new \Exception(
                         "Visit {$visit->id} does not belong to current user"
@@ -711,16 +697,26 @@ class VisitRepository implements VisitInterface
 
                 $wasAlreadyVisited = (int) $visit->status === (int) VisitStatusEnum::Visited;
 
-                $doctorId    = $this->resolveDoctorId($offlineVisit['doctor_id'] ?? null, $visit->customer_id);
-                $combineWith = $this->resolveCombineWith($offlineVisit['combine_with'] ?? null);
+                $doctorId = (
+                    isset($offlineVisit['doctor_id']) &&
+                    is_numeric($offlineVisit['doctor_id']) &&
+                    $offlineVisit['doctor_id'] > 0
+                )
+                    ? $offlineVisit['doctor_id']
+                    : $visit->customer_id;
 
-                $startTime = Carbon::parse($offlineVisit['start_time']);
-                $endTime   = Carbon::parse($offlineVisit['end_time']);
+                $combineWith = (
+                    isset($offlineVisit['combine_with']) &&
+                    is_numeric($offlineVisit['combine_with']) &&
+                    $offlineVisit['combine_with'] > 0
+                )
+                    ? $offlineVisit['combine_with']
+                    : 0;
 
                 $data = [
                     'status'            => VisitStatusEnum::Visited['id'],
-                    'actual_start_date' => $startTime,
-                    'actual_end_date'   => $endTime,
+                    'actual_start_date' => Carbon::parse($offlineVisit['start_time']),
+                    'actual_end_date'   => Carbon::parse($offlineVisit['end_time']),
                     'customer_id'       => $doctorId,
                     'combine_with'      => $combineWith,
                     'user_location_lat' => $offlineVisit['current_location_lat'] ?? null,
@@ -728,7 +724,11 @@ class VisitRepository implements VisitInterface
                     'notes'             => $offlineVisit['notes'] ?? null,
                 ];
 
+                // لو Unplanned Visit
                 if ((int) $visit->type === 1) {
+                    $startTime = Carbon::parse($offlineVisit['start_time']);
+                    $endTime   = Carbon::parse($offlineVisit['end_time']);
+
                     $data['visit_date'] = $startTime->toDateString();
                     $data['start_time'] = $startTime->format('H:i:s');
                     $data['end_time']   = $endTime->format('H:i:s');
@@ -736,6 +736,7 @@ class VisitRepository implements VisitInterface
 
                 $visit->update($data);
 
+                // استبدال الـ items
                 $this->replaceVisitDetails(
                     $visit,
                     $offlineVisit['items'] ?? []
@@ -746,12 +747,15 @@ class VisitRepository implements VisitInterface
                     'status'   => 'synced',
                 ];
 
+                // نبعت notification فقط أول مرة
                 if (!$wasAlreadyVisited) {
                     $notifications[] = $visit->fresh();
                 }
             }
 
             DB::commit();
+
+            // Notifications بعد نجاح الـ transaction
             foreach ($notifications as $visit) {
                 $this->notifications->sendNewVisitCreated(
                     $visit,
