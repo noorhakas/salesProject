@@ -44,4 +44,9 @@ class CompaniesReferenceSheet implements
         return 'Companies';
     }
 
+    protected function columns(): array
+    {
+        return ['A'];
+    }
+
 }
