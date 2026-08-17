@@ -93,7 +93,10 @@ class VisitRepository implements VisitInterface
         return $this->success($this->buildVisitDetailData($visit));
     }
 
-    
+    /**
+     * Manager equivalent of getvisitsByPlan: lists visits belonging to any
+     * of the manager's subordinates rather than a single plan.
+     */
     public function getVisitsForManager($request, array $subordinateIds)
     {
         $query = $this->joinAccountsAndCustomers(
@@ -254,6 +257,10 @@ class VisitRepository implements VisitInterface
             }
         $visitDate = Carbon::now()->toDateString();
 
+        // كانت combine_with مش بتتقرأ من الـ request ولا بتتحفظ، فكانت
+        // علاقة doubleVisit فاضلة دايمًا وcombine_with_user يرجع فاضي.
+        $combineWith = $this->resolveCombineWith($request->combine_with ?? null);
+
         $attributes = [
             'plan_id'     => $currentPlan->id,
             'user_id'     => auth()->user()->id,
@@ -262,7 +269,10 @@ class VisitRepository implements VisitInterface
             'visit_date'  => $visitDate,
         ];
 
-        $createdVisit = Visit::updateOrCreate($attributes, array_merge($attributes, ['type' => 1]));
+        $createdVisit = Visit::updateOrCreate($attributes, array_merge($attributes, [
+            'type'         => 1,
+            'combine_with' => $combineWith,
+        ]));
 
         return $this->getvisitDtail($createdVisit->id);
     }
@@ -340,7 +350,10 @@ class VisitRepository implements VisitInterface
         VisitDetails::insert($rows);
     }
 
-  
+    /**
+     * Shared logic: pick the provided doctor id if it is a valid positive
+     * number, otherwise fall back to the visit's existing customer id.
+     */
     protected function resolveDoctorId($doctorId, $fallback)
     {
         return (isset($doctorId) && is_numeric($doctorId) && $doctorId > 0)
@@ -348,6 +361,10 @@ class VisitRepository implements VisitInterface
             : $fallback;
     }
 
+    /**
+     * Shared logic: pick the provided combine_with id if it is a valid
+     * positive number, otherwise default to 0 (no combined visit).
+     */
     protected function resolveCombineWith($combineWith)
     {
         return (isset($combineWith) && is_numeric($combineWith) && $combineWith > 0)
@@ -658,7 +675,10 @@ class VisitRepository implements VisitInterface
         return $this->success(['by_account' => $visits]);
     }
 
-  
+    /**
+     * Shared `join accounts / left join customers` pattern used by several
+     * visit-listing queries.
+     */
     protected function joinAccountsAndCustomers($query)
     {
         return $query
@@ -684,7 +704,8 @@ class VisitRepository implements VisitInterface
 
             foreach ($request->visits as $offlineVisit) {
 
-              
+                // نتأكد إن كل المفاتيح المطلوبة موجودة قبل أي معالجة
+                // عشان نتفادى Undefined array key warnings وسط اللوب
                 if (empty($offlineVisit['visit_id'])) {
                     throw new \Exception('visit_id is required for each offline visit');
                 }
@@ -703,6 +724,7 @@ class VisitRepository implements VisitInterface
                     );
                 }
 
+                // مهم جدًا: نتأكد إن الـ visit تخص المستخدم الحالي
                 if ((int) $visit->user_id !== (int) auth()->id()) {
                     throw new \Exception(
                         "Visit {$visit->id} does not belong to current user"
@@ -728,6 +750,7 @@ class VisitRepository implements VisitInterface
                     'notes'             => $offlineVisit['notes'] ?? null,
                 ];
 
+                // لو Unplanned Visit
                 if ((int) $visit->type === 1) {
                     $data['visit_date'] = $startTime->toDateString();
                     $data['start_time'] = $startTime->format('H:i:s');
@@ -736,6 +759,7 @@ class VisitRepository implements VisitInterface
 
                 $visit->update($data);
 
+                // استبدال الـ items
                 $this->replaceVisitDetails(
                     $visit,
                     $offlineVisit['items'] ?? []
@@ -746,12 +770,15 @@ class VisitRepository implements VisitInterface
                     'status'   => 'synced',
                 ];
 
+                // نبعت notification فقط أول مرة
                 if (!$wasAlreadyVisited) {
                     $notifications[] = $visit->fresh();
                 }
             }
 
             DB::commit();
+
+            // Notifications بعد نجاح الـ transaction
             foreach ($notifications as $visit) {
                 $this->notifications->sendNewVisitCreated(
                     $visit,
