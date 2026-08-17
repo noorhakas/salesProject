@@ -45,7 +45,7 @@ class ProductsReferenceSheet implements
             $product->price,
             $product->company?->name,
             $product->category?->name,
-            $product->status,
+            $product->status == 1 ? 'Active' : 'Inactive',
         ];
     }
 
