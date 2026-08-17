@@ -11,4 +11,5 @@ interface AccountInterface
      public function getAll($request);
      public function getUserAccount($request);
      public function getAccountCharts();
+     public function getAccountsForManager($request, array $subordinateIds);
 }

@@ -471,4 +471,68 @@ class CustomerRepository implements CustomerInterface
             'data'    => $statisticsData,
         ];
     }
+
+    public function getCustomersForManager($request,array $subordinateIds) {
+
+    $clients = Customer::query()
+        ->whereHas('users', function ($query) use ($subordinateIds) {
+            $query->whereIn('users.id', $subordinateIds);
+        })
+        ->with([
+            'account.brick',
+            'accType',
+            'specialty',
+            'class',
+        ]);
+
+   
+    if ($request->filled('account_id') && is_numeric($request->account_id)) {
+        $clients->where('account_id',(int) $request->account_id);
+    }
+
+  
+    $clients->filter($request);
+
+    $clients = $this->paginateOrAll(
+        $clients->orderByDesc('customers.created_at'),
+        $request
+    );
+
+    return [
+        'status'  => true,
+        'message' => trans('messages.success'),
+        'data'    => CustomerResource::collection($clients),
+    ];
+}
+
+public function showCustomer(
+    $customerId,
+    array $subordinateIds
+) {
+    $client = Customer::query()
+        ->where('id', $customerId)
+        ->whereHas('users', function ($query) use ($subordinateIds) {
+            $query->whereIn('users.id', $subordinateIds);
+        })
+        ->with([
+            'account',
+            'specialty',
+            'class',
+        ])
+        ->first();
+
+    if (!$client) {
+        return [
+            'status'  => false,
+            'message' => trans('messages.data_not_found'),
+        ];
+    }
+
+    return [
+        'status'  => true,
+        'message' => trans('messages.success'),
+        'data'    => new CustomerResource($client),
+    ];
+}
+
 }

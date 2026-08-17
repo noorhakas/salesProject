@@ -387,4 +387,33 @@ class AccountRepository implements AccountInterface
             ];
         })->values();
     }
+
+    public function getAccountsForManager($request, array $subordinateIds)
+    {
+        $accounts = Account::query()
+            ->select('accounts.*')
+            ->whereHas('users', function ($query) use ($subordinateIds) {
+                $query->whereIn('users.id', $subordinateIds);
+            })
+            ->with([
+                'accType',
+                'brick',
+                'class',
+            ])
+            ->filter($request)
+            ->orderByDesc('accounts.created_at');
+
+        $accounts = $this->paginateOrAll(
+            $accounts,
+            $request
+        );
+
+        return [
+            'status'  => true,
+            'message' => trans('messages.success'),
+            'data'    => AccountResource::collection($accounts),
+        ];
+    }
+
+
 }

@@ -12,4 +12,7 @@ interface CustomerInterface
      public function getUserCustomer($request);
      public function FetchcustomersAccount($request);
      public function getDoctorCharts();
+     public function getCustomersForManager($request, array $subordinateIds);
+     public function showCustomer($customerId, array $subordinateIds);
+
 }
