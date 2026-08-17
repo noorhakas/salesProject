@@ -45,4 +45,9 @@ class CategoriesReferenceSheet implements
         return 'Categories';
     }
 
+    protected function columns(): array
+    {
+        return ['A'];
+    }
+
 }
