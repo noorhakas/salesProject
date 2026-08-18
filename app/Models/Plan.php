@@ -144,7 +144,7 @@ class Plan extends Model implements HasNotificationData
     if ($applyStatus) {
         $q->when(
             $request->filled('status'),
-            fn ($q) => static::applyStatusFilter($q, (int) $request->status)
+            fn ($q) => static::applyStatusFilter($q, (int) $request->status, $request)
         );
     }
 
