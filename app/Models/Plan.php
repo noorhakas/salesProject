@@ -124,34 +124,63 @@ class Plan extends Model implements HasNotificationData
         return $this->hasMany(PlanStatus::class);
     }
 
-    public function scopeFilter($q, $request, bool $applyStatus = true)
+   public function scopeFilter($q, $request, bool $applyStatus = true)
 {
-    $q = $q
-        ->when($request->search, fn ($q, $v) => $q->where('Uuid', 'like', "%{$v}%"))
-        ->when($request->user_id, fn ($q, $v) => $q->where('plans.user_id', $v))
+    $q
         ->when(
-            $request->filled('start_date') || $request->filled('end_date'),
-            function ($q) use ($request) {
-                if ($request->filled('start_date')) {
-                    $q->whereDate('plans.end_date', '>=', $request->start_date);
-                }
-                if ($request->filled('end_date')) {
-                    $q->whereDate('plans.start_date', '<=', $request->end_date);
-                }
-            }
+            $request->filled('search'),
+            fn ($q) => $q->where('plans.Uuid', 'like', "%{$request->search}%")
+        )
+        ->when(
+            $request->filled('user_id'),
+            fn ($q) => $q->where('plans.user_id', $request->user_id)
         );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Date Filter
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+
+        // Date range
+        $q->whereDate('plans.end_date', '>=', $request->start_date)
+            ->whereDate('plans.start_date', '<=', $request->end_date);
+
+    } elseif ($request->filled('start_date')) {
+
+        // Single date
+        $q->whereDate('plans.start_date', '<=', $request->start_date)
+            ->whereDate('plans.end_date', '>=', $request->start_date);
+
+    } elseif ($request->filled('end_date')) {
+
+        // Up to a specific date
+        $q->whereDate('plans.start_date', '<=', $request->end_date);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Filter
+    |--------------------------------------------------------------------------
+    */
 
     if ($applyStatus) {
         $q->when(
             $request->filled('status'),
-            fn ($q) => static::applyStatusFilter($q, (int) $request->status, $request)
+            fn ($q) => static::applyStatusFilter(
+                $q,
+                (int) $request->status,
+                $request
+            )
         );
     }
 
     return $q;
 }
    
-  public static function applyStatusFilter($q, int $status, $request = null)
+public static function applyStatusFilter($q, int $status, $request = null)
 {
     $referenceDate = $request?->filled('start_date')
         ? Carbon::parse($request->start_date)->toDateString()
