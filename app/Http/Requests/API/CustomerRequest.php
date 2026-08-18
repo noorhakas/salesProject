@@ -38,9 +38,9 @@ class CustomerRequest extends FormRequest
 			'phone'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'phone1'=>'numeric|digits_between:6,14|unique:customers,phone,NULL,id,deleted_at,NULL',
 			'brief'=>'sometimes|string',
-		//	'work_days'=>'sometimes',
-		//	'work_start_time'=>'sometimes',
-		//	'work_end_time'=>'sometimes',
+			'work_days'=>'sometimes',
+			'work_start_time'=>'sometimes',
+			'work_end_time'=>'sometimes',
 		];
 		
 		return match(request()->method()){
