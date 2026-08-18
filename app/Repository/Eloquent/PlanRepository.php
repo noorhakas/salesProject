@@ -237,22 +237,6 @@ class PlanRepository implements PlanInterface
     }
 
 
-    /**
-     * Statistics breakdown for a manager's subordinates' plans.
-     *
-     * IMPORTANT: this intentionally calls ->filter($request, false) — the
-     * `false` skips the status filter specifically. The statistics block
-     * must always show the FULL breakdown across every status, regardless
-     * of whether the plans LIST is currently being filtered by a status
-     * (e.g. ?status=0). Previously this called ->filter($request), which
-     * silently applied the status filter here too, so requesting
-     * ?status=0 made the whole statistics object collapse down to just
-     * the Pending count instead of showing the full picture.
-     *
-     * Other filters (search/date/user_id) still apply, since those are
-     * legitimate ways to scope "which plans am I counting", just not by
-     * status.
-     */
     public function statistics($request, array $subordinateIds): array
     {
         //$this->applyDefaultDateRange($request);
@@ -291,14 +275,9 @@ class PlanRepository implements PlanInterface
             'accepted'  => (int) $stats->accepted,
             'rejected'  => (int) $stats->rejected,
             'completed' => (int) $stats->completed,
-            // Breakdown of the 'accepted' count above by date — NOT an
-            // additional bucket, doesn't add to total. Every accepted
-            // (not-yet-completed) plan falls into exactly one of these two,
-            // so they always sum up to exactly `accepted`.
-            'accepted_breakdown' => [
                 'upcoming'    => (int) $stats->upcoming,
                 'in_progress' => (int) $stats->in_progress,
-            ],
+            
         ];
     }
 
