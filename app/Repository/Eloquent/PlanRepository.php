@@ -266,31 +266,39 @@ class PlanRepository implements PlanInterface
                 COUNT(plans.id) as total,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as pending,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date <  ? THEN 1 ELSE 0 END) as expired,
-                SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as accepted,
+                SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as accepted,
                 SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN plans.status = ? AND plans.end_date < ? THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN plans.status = ? AND plans.end_date <  ? THEN 1 ELSE 0 END) as completed,
                 SUM(CASE WHEN plans.status = ? AND plans.start_date > ? THEN 1 ELSE 0 END) as upcoming,
                 SUM(CASE WHEN plans.status = ? AND plans.start_date <= ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as in_progress
             ", [
-                PlanStatusEnum::Pending, $today,          // pending (still within window)
-                PlanStatusEnum::Pending, $today,          // expired (window passed, no decision)
-                PlanStatusEnum::Accepted,
+                PlanStatusEnum::Pending, $today,           // pending (still within window)
+                PlanStatusEnum::Pending, $today,           // expired (window passed, no decision)
+                PlanStatusEnum::Accepted, $today,          // accepted (accepted, NOT finished yet)
                 PlanStatusEnum::Rejected,
-                PlanStatusEnum::Accepted, $today,         // completed
-                PlanStatusEnum::Accepted, $today,         // upcoming
-                PlanStatusEnum::Accepted, $today, $today, // in_progress
+                PlanStatusEnum::Accepted, $today,          // completed (accepted AND finished)
+                PlanStatusEnum::Accepted, $today,          // upcoming (breakdown within accepted)
+                PlanStatusEnum::Accepted, $today, $today,  // in_progress (breakdown within accepted)
             ])
             ->first();
 
         return [
-            'total'       => (int) $stats->total,
-            'pending'     => (int) $stats->pending,
-            'expired'     => (int) $stats->expired,
-            'accepted'    => (int) $stats->accepted,
-            'rejected'    => (int) $stats->rejected,
-            'completed'   => (int) $stats->completed,
-            'upcoming'    => (int) $stats->upcoming,
-            'in_progress' => (int) $stats->in_progress,
+            // pending + expired + accepted + rejected + completed = total,
+            // each plan counted in exactly one of these five buckets.
+            'total'     => (int) $stats->total,
+            'pending'   => (int) $stats->pending,
+            'expired'   => (int) $stats->expired,
+            'accepted'  => (int) $stats->accepted,
+            'rejected'  => (int) $stats->rejected,
+            'completed' => (int) $stats->completed,
+            // Breakdown of the 'accepted' count above by date — NOT an
+            // additional bucket, doesn't add to total. Every accepted
+            // (not-yet-completed) plan falls into exactly one of these two,
+            // so they always sum up to exactly `accepted`.
+            'accepted_breakdown' => [
+                'upcoming'    => (int) $stats->upcoming,
+                'in_progress' => (int) $stats->in_progress,
+            ],
         ];
     }
 

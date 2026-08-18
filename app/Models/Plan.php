@@ -157,7 +157,8 @@ class Plan extends Model implements HasNotificationData
                 break;
 
             case PlanStatusEnum::Accepted:
-                $q->where('plans.status', PlanStatusEnum::Accepted);
+                $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.end_date', '>=', $today); 
                 break;
 
             case PlanStatusEnum::InProgress:
@@ -167,19 +168,16 @@ class Plan extends Model implements HasNotificationData
                 break;
 
             case PlanStatusEnum::Pending:
-                // لسه Pending وفي وقتها (مخالفتش الـ deadline لسه)
                 $q->where('plans.status', PlanStatusEnum::Pending)
                 ->whereDate('plans.end_date', '>=', $today);
                 break;
 
             case PlanStatusEnum::Expired:
-                // Pending بس فاتت مدتها من غير قرار
                 $q->where('plans.status', PlanStatusEnum::Pending)
                 ->whereDate('plans.end_date', '<', $today);
                 break;
 
             default:
-                // Rejected (2) وأي قيمة تانية حرفية: مطابقة مباشرة
                 $q->where('plans.status', $status);
                 break;
         }
