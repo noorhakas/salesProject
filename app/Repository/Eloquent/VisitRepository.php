@@ -460,7 +460,7 @@ class VisitRepository implements VisitInterface
             $endDate = now()->endOfMonth()->toDateString();
         }
 
-        $query = $this->DrawVisitStatistics() ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
+        $query = $this->DrawVisitStatistics() 
             ->whereBetween('visits.visit_date', [$startDate, $endDate])
             ->groupBy('users.id', 'users.name')
             ->orderByDesc('visit_count');
@@ -507,7 +507,7 @@ class VisitRepository implements VisitInterface
 
         $query = $this->joinAccountsAndCustomers(
                 $user->visits()->join('plans', 'plans.id', '=', 'visits.plan_id')
-            )
+            )->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->selectRaw('visits.*')
             ->filter($request);
 
