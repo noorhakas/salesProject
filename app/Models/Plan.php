@@ -151,49 +151,66 @@ class Plan extends Model implements HasNotificationData
     return $q;
 }
    
-    public static function applyStatusFilter($q, int $status)
-    {
-        $today = Carbon::now()->toDateString();
+    public static function applyStatusFilter($q, int $status, $request = null)
+{
+    $referenceDate = $request?->filled('start_date')
+        ? Carbon::parse($request->start_date)->toDateString()
+        : Carbon::now()->toDateString();
 
-        switch ($status) {
-            case PlanStatusEnum::Completed:
-                $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.end_date', '<', $today);
-                break;
+    switch ($status) {
+        case PlanStatusEnum::Completed:
 
-            case PlanStatusEnum::Upcoming:
-                $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.start_date', '>', $today);
-                break;
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.end_date', '<', $referenceDate);
 
-            case PlanStatusEnum::Accepted:
-                $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.end_date', '>=', $today); 
-                break;
+            break;
 
-            case PlanStatusEnum::InProgress:
-                $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.start_date', '<=', $today)
-                ->whereDate('plans.end_date', '>=', $today);
-                break;
+        case PlanStatusEnum::Upcoming:
 
-            case PlanStatusEnum::Pending:
-                $q->where('plans.status', PlanStatusEnum::Pending)
-                ->whereDate('plans.end_date', '>=', $today);
-                break;
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.start_date', '>', $referenceDate);
 
-            case PlanStatusEnum::Expired:
-                $q->where('plans.status', PlanStatusEnum::Pending)
-                ->whereDate('plans.end_date', '<', $today);
-                break;
+            break;
 
-            default:
-                $q->where('plans.status', $status);
-                break;
-        }
+        case PlanStatusEnum::Accepted:
 
-        return $q;
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.start_date', '<=', $referenceDate)
+                ->whereDate('plans.end_date', '>=', $referenceDate);
+
+            break;
+
+        case PlanStatusEnum::InProgress:
+
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.start_date', '<=', $referenceDate)
+                ->whereDate('plans.end_date', '>=', $referenceDate);
+
+            break;
+
+        case PlanStatusEnum::Pending:
+
+            $q->where('plans.status', PlanStatusEnum::Pending)
+                ->whereDate('plans.end_date', '>=', $referenceDate);
+
+            break;
+
+        case PlanStatusEnum::Expired:
+
+            $q->where('plans.status', PlanStatusEnum::Pending)
+                ->whereDate('plans.end_date', '<', $referenceDate);
+
+            break;
+
+        default:
+
+            $q->where('plans.status', $status);
+
+            break;
     }
+
+    return $q;
+}
 
     public function getNotificationData(): array
     {
