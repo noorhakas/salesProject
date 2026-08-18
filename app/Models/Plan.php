@@ -136,35 +136,17 @@ class Plan extends Model implements HasNotificationData
             fn ($q) => $q->where('plans.user_id', $request->user_id)
         );
 
-    /*
-    |--------------------------------------------------------------------------
-    | Date Filter
-    |--------------------------------------------------------------------------
-    */
-
     if ($request->filled('start_date') && $request->filled('end_date')) {
-
-        // Date range
         $q->whereDate('plans.end_date', '>=', $request->start_date)
             ->whereDate('plans.start_date', '<=', $request->end_date);
 
     } elseif ($request->filled('start_date')) {
-
-        // Single date
         $q->whereDate('plans.start_date', '<=', $request->start_date)
             ->whereDate('plans.end_date', '>=', $request->start_date);
 
     } elseif ($request->filled('end_date')) {
-
-        // Up to a specific date
         $q->whereDate('plans.start_date', '<=', $request->end_date);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Status Filter
-    |--------------------------------------------------------------------------
-    */
 
     if ($applyStatus) {
         $q->when(

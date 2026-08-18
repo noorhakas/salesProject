@@ -249,7 +249,7 @@ class PlanRepository implements PlanInterface
             ->selectRaw("
                 COUNT(plans.id) as total,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN plans.status = ? AND plans.end_date <  ? THEN 1 ELSE 0 END) as expired,
+                SUM(CASE WHEN plans.status = ?  THEN 1 ELSE 0 END) as expired,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as accepted,
                 SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as rejected,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date <  ? THEN 1 ELSE 0 END) as completed,
@@ -257,7 +257,7 @@ class PlanRepository implements PlanInterface
                 SUM(CASE WHEN plans.status = ? AND plans.start_date <= ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as in_progress
             ", [
                 PlanStatusEnum::Pending, $today,           // pending (still within window)
-                PlanStatusEnum::Pending, $today,           // expired (window passed, no decision)
+                PlanStatusEnum::Expired,           // expired (window passed, no decision)
                 PlanStatusEnum::Accepted, $today,          // accepted (accepted, NOT finished yet)
                 PlanStatusEnum::Rejected,
                 PlanStatusEnum::Accepted, $today,          // completed (accepted AND finished)
