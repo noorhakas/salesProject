@@ -237,60 +237,34 @@ class PlanRepository implements PlanInterface
     }
 
 
-    /**
-     * Statistics breakdown for a manager's subordinates' plans.
-     *
-     * IMPORTANT: this intentionally calls ->filter($request, false) — the
-     * `false` skips the status filter specifically. The statistics block
-     * must always show the FULL breakdown across every status, regardless
-     * of whether the plans LIST is currently being filtered by a status
-     * (e.g. ?status=0). Previously this called ->filter($request), which
-     * silently applied the status filter here too, so requesting
-     * ?status=0 made the whole statistics object collapse down to just
-     * the Pending count instead of showing the full picture.
-     *
-     * Other filters (search/date/user_id) still apply, since those are
-     * legitimate ways to scope "which plans am I counting", just not by
-     * status.
-     */
     public function statistics($request, array $subordinateIds): array
     {
         //$this->applyDefaultDateRange($request);
-
-        $today = Carbon::now()->toDateString();
-
+        
         $stats = Plan::join('users', 'users.id', '=', 'plans.user_id')
-                ->whereIn('plans.user_id', $subordinateIds)
-                ->filter($request, false)
+                ->whereIn('plans.user_id', $subordinateIds)->filter($request)
             ->selectRaw("
                 COUNT(plans.id) as total,
-                SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN plans.status = ? AND plans.end_date <  ? THEN 1 ELSE 0 END) as expired,
+                SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as pending,
                 SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as accepted,
-                SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN plans.status = ? AND plans.end_date < ? THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN plans.status = ? AND plans.start_date > ? THEN 1 ELSE 0 END) as upcoming,
-                SUM(CASE WHEN plans.status = ? AND plans.start_date <= ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as in_progress
+                SUM(CASE WHEN plans.status = ? THEN 1 ELSE 0 END) as rejected
             ", [
-                PlanStatusEnum::Pending, $today,          // pending (still within window)
-                PlanStatusEnum::Pending, $today,          // expired (window passed, no decision)
+                PlanStatusEnum::Pending,
                 PlanStatusEnum::Accepted,
-                PlanStatusEnum::Rejected,
-                PlanStatusEnum::Accepted, $today,         // completed
-                PlanStatusEnum::Accepted, $today,         // upcoming
-                PlanStatusEnum::Accepted, $today, $today, // in_progress
+                PlanStatusEnum::Rejected
             ])
             ->first();
 
+        $total = (int) $stats->total;
+        $pending = (int) $stats->pending;
+        $accepted = (int) $stats->accepted;
+        $rejected = (int) $stats->rejected;
+
         return [
-            'total'       => (int) $stats->total,
-            'pending'     => (int) $stats->pending,
-            'expired'     => (int) $stats->expired,
-            'accepted'    => (int) $stats->accepted,
-            'rejected'    => (int) $stats->rejected,
-            'completed'   => (int) $stats->completed,
-            'upcoming'    => (int) $stats->upcoming,
-            'in_progress' => (int) $stats->in_progress,
+            'total'   => $total,
+            'pending' => $pending,
+            'accepted'    => $accepted,
+            'rejected'   => $rejected, 
         ];
     }
 

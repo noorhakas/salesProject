@@ -143,17 +143,17 @@ class Plan extends Model implements HasNotificationData
    
     public static function applyStatusFilter($q, int $status)
     {
-        $today = Carbon::now()->toDateString();
-
         switch ($status) {
             case PlanStatusEnum::Completed:
-                $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.end_date', '<', $today);
+                $q->where(function ($q) {
+                    $q->where('plans.status', PlanStatusEnum::Completed)
+                      ->orWhereDate('plans.end_date', '<', Carbon::now()->toDateString());
+                });
                 break;
 
             case PlanStatusEnum::Upcoming:
                 $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.start_date', '>', $today);
+                  ->whereDate('plans.start_date', '>', Carbon::now()->toDateString());
                 break;
 
             case PlanStatusEnum::Accepted:
@@ -162,24 +162,16 @@ class Plan extends Model implements HasNotificationData
 
             case PlanStatusEnum::InProgress:
                 $q->where('plans.status', PlanStatusEnum::Accepted)
-                ->whereDate('plans.start_date', '<=', $today)
-                ->whereDate('plans.end_date', '>=', $today);
+                  ->whereDate('plans.start_date', '<=', Carbon::now()->toDateString())
+                  ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
                 break;
-
             case PlanStatusEnum::Pending:
-                // لسه Pending وفي وقتها (مخالفتش الـ deadline لسه)
                 $q->where('plans.status', PlanStatusEnum::Pending)
-                ->whereDate('plans.end_date', '>=', $today);
-                break;
-
-            case PlanStatusEnum::Expired:
-                // Pending بس فاتت مدتها من غير قرار
-                $q->where('plans.status', PlanStatusEnum::Pending)
-                ->whereDate('plans.end_date', '<', $today);
-                break;
+                ->whereDate('plans.end_date', '>=', Carbon::now()->toDateString());
+                break;    
 
             default:
-                // Rejected (2) وأي قيمة تانية حرفية: مطابقة مباشرة
+                // Pending (0) and Rejected (2) as plain matches.
                 $q->where('plans.status', $status);
                 break;
         }
