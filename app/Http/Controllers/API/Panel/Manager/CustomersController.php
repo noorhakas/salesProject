@@ -27,20 +27,14 @@ class CustomersController extends Controller
         return $this->SendResponse($response);
     }
 
-    // public function showClient(
-    //     Request $request,
-    //     $customerId
-    // ) {
-    //     $user = $request->user();
+   public function showCustomer(Request $request,$customerId) {
+        $user = $request->user();
 
-    //     $subordinateIds = $user->getAllSubordinateIds();
+        $subordinateIds = $user->getAllSubordinateIds();
 
-    //     $response = $this->ICustomer->showCustomer(
-    //         $customerId,
-    //         $subordinateIds
-    //     );
+        $response = $this->ICustomer->showCustomer($customerId,$subordinateIds);
 
-    //     return $this->SendResponse($response);
-    // }
+        return $this->SendResponse($response);
+    }
 
 }

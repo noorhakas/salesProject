@@ -505,11 +505,9 @@ class CustomerRepository implements CustomerInterface
     ];
 }
 
-public function showCustomer(
-    $customerId,
-    array $subordinateIds
-) {
-    $client = Customer::query()
+public function showCustomer($customerId,array $subordinateIds) {
+
+    $customer = Customer::query()
         ->where('id', $customerId)
         ->whereHas('users', function ($query) use ($subordinateIds) {
             $query->whereIn('users.id', $subordinateIds);
@@ -518,10 +516,9 @@ public function showCustomer(
             'account',
             'specialty',
             'class',
-        ])
-        ->first();
+        ])->first();
 
-    if (!$client) {
+    if (!$customer) {
         return [
             'status'  => false,
             'message' => trans('messages.data_not_found'),
@@ -531,7 +528,7 @@ public function showCustomer(
     return [
         'status'  => true,
         'message' => trans('messages.success'),
-        'data'    => new CustomerResource($client),
+        'data'    => new CustomerDetailResource($customer),
     ];
 }
 
