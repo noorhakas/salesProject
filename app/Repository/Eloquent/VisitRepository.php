@@ -51,7 +51,7 @@ class VisitRepository implements VisitInterface
         $query = $this->joinAccountsAndCustomers($baseQuery)
             ->select('visits.*')
             ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->filter($request);
+            ->filter($request) ->orderBy('visits.created_at', 'DESC');;
 
         $visits = $this->paginateOrAll($query, $request);
 
@@ -74,7 +74,7 @@ class VisitRepository implements VisitInterface
         $query = $this->joinAccountsAndCustomers($plan->visits())
             ->select('visits.*')
             ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->filter($request);
+            ->filter($request) ->orderBy('visits.created_at', 'DESC');;
 
         $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
 
@@ -256,9 +256,6 @@ class VisitRepository implements VisitInterface
                 return $this->failure(__('messages.no_active_plan'));
             }
         $visitDate = Carbon::now()->toDateString();
-
-        // كانت combine_with مش بتتقرأ من الـ request ولا بتتحفظ، فكانت
-        // علاقة doubleVisit فاضلة دايمًا وcombine_with_user يرجع فاضي.
         $combineWith = $this->resolveCombineWith($request->combine_with ?? null);
 
         $attributes = [
