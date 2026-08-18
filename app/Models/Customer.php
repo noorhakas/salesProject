@@ -55,6 +55,11 @@ class Customer extends Model
         return $this->belongsTo(Account::class);
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_customers', 'customer_id', 'user_id');
+    }
+
 	public function accType()
     {
         return $this->belongsTo(AccType::class,'acc_type_id','id');

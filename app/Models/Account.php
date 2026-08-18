@@ -32,7 +32,12 @@ class Account extends Model
     {
         return $this->belongsTo(Classes::class);
     }
-	
+
+
+	public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_customers', 'account_id', 'user_id');
+    }
 
 
 	public function scopeFilter($q,$request)
