@@ -35,7 +35,7 @@ class CustomerRepository implements CustomerInterface
         return [
             'status'  => true,
             'message' => trans('messages.success'),
-            'data'    => CustomerResource::collection($customers),
+            'data'    => CustomerDetailResource::collection($customers),
         ];
     }
 
