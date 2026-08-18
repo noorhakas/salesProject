@@ -15,37 +15,32 @@ class CustomersController extends Controller
         $this->Icustomer = $Icustomer;
     }
 
-    /**
-     * Get accounts accessible by manager.
-     */
+  
     public function index(Request $request)
     {
         $manager = $request->user();
 
         $subordinateIds = $manager->getAllSubordinateIds();
 
-        $response = $this->Icustomer->getCustomersForManager(
-            $request,
-            $subordinateIds
-        );
+        $response = $this->Icustomer->getCustomersForManager($request,$subordinateIds);
 
         return $this->SendResponse($response);
     }
 
-    public function showClient(
-        Request $request,
-        $customerId
-    ) {
-        $user = $request->user();
+    // public function showClient(
+    //     Request $request,
+    //     $customerId
+    // ) {
+    //     $user = $request->user();
 
-        $subordinateIds = $user->getAllSubordinateIds();
+    //     $subordinateIds = $user->getAllSubordinateIds();
 
-        $response = $this->ICustomer->showCustomer(
-            $customerId,
-            $subordinateIds
-        );
+    //     $response = $this->ICustomer->showCustomer(
+    //         $customerId,
+    //         $subordinateIds
+    //     );
 
-        return $this->SendResponse($response);
-    }
+    //     return $this->SendResponse($response);
+    // }
 
 }

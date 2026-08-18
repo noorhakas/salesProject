@@ -113,14 +113,7 @@ class PlanRepository implements PlanInterface
          return $this->success(new PlansResource($plan));
     }
 
-    /**
-     * Checks whether the user already has a plan whose date range overlaps
-     * the given [$startDate, $endDate] window.
-     *
-     * Rejected plans are excluded on purpose: once a plan is rejected it no
-     * longer "occupies" its date range, so the user must be able to submit
-     * a new plan covering the same dates.
-     */
+   
     private function hasOverlappingPlan($user, $startDate, $endDate): bool
     {
         return $user->plans()

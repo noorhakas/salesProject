@@ -15,25 +15,15 @@ class AccountsController extends Controller
         $this->IAccount = $IAccount;
     }
 
-    /**
-     * Get accounts accessible by manager.
-     */
     public function index(Request $request)
     {
         $manager = $request->user();
-
         $subordinateIds = $manager->getAllSubordinateIds();
 
-        $response = $this->IAccount->getAccountsForManager(
-            $request,
-            $subordinateIds
-        );
+        $response = $this->IAccount->getAccountsForManager($request,$subordinateIds);
 
         return $this->SendResponse($response);
     }
 
-    /**
-     * Get account details.
-     */
 
 }
