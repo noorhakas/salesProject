@@ -151,17 +151,17 @@ class Plan extends Model implements HasNotificationData
     return $q;
 }
    
-  public static function applyStatusFilter($q, int $status, $request = null)
+    public static function applyStatusFilter($q, int $status, $request = null)
 {
     $referenceDate = $request?->filled('start_date')
         ? Carbon::parse($request->start_date)->toDateString()
-        : Carbon::today()->toDateString();
+        : Carbon::now()->toDateString();
 
     switch ($status) {
-
         case PlanStatusEnum::Completed:
 
-            $q->where('plans.status', PlanStatusEnum::Completed);
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.end_date', '<', $referenceDate);
 
             break;
 
@@ -174,7 +174,9 @@ class Plan extends Model implements HasNotificationData
 
         case PlanStatusEnum::Accepted:
 
-            $q->where('plans.status', PlanStatusEnum::Accepted);
+            $q->where('plans.status', PlanStatusEnum::Accepted)
+                ->whereDate('plans.start_date', '<=', $referenceDate)
+                ->whereDate('plans.end_date', '>=', $referenceDate);
 
             break;
 
@@ -188,19 +190,15 @@ class Plan extends Model implements HasNotificationData
 
         case PlanStatusEnum::Pending:
 
-            $q->where('plans.status', PlanStatusEnum::Pending);
+            $q->where('plans.status', PlanStatusEnum::Pending)
+                ->whereDate('plans.end_date', '>=', $referenceDate);
 
             break;
 
         case PlanStatusEnum::Expired:
 
-            $q->where('plans.status', PlanStatusEnum::Expired);
-
-            break;
-
-        case PlanStatusEnum::Rejected:
-
-            $q->where('plans.status', PlanStatusEnum::Rejected);
+            $q->where('plans.status', PlanStatusEnum::Pending)
+                ->whereDate('plans.end_date', '<', $referenceDate);
 
             break;
 
