@@ -33,15 +33,15 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
 
 
-	Route::get('managers/{id}', 'ManagerProfileController@show');
-    Route::get('managers/{id}/supervisors','ManagerProfileController@supervisors');
-    Route::get('managers/{id}/accounts', 'ManagerProfileController@accounts');
-    Route::get('managers/{id}/customers', 'ManagerProfileController@customers');
+	Route::get('managers/{id}', 'ManagerProfController@show');
+    Route::get('managers/{id}/supervisors','ManagerProfController@supervisors');
+    Route::get('managers/{id}/accounts', 'ManagerProfController@accounts');
+    Route::get('managers/{id}/customers', 'ManagerProfController@customers');
 
-    Route::get('supervisors/{id}','SupervisorProfileController@show');
-    Route::get('supervisors/{id}/sales-reps','SupervisorProfileController@salesReps');
-    Route::get('supervisors/{id}/accounts','SupervisorProfileController@accounts');
-    Route::get('supervisors/{id}/customers','SupervisorProfileController@customers');
+    Route::get('supervisors/{id}','SupervisorProfController@show');
+    Route::get('supervisors/{id}/sales-reps','SupervisorProfController@salesReps');
+    Route::get('supervisors/{id}/accounts','SupervisorProfController@accounts');
+    Route::get('supervisors/{id}/customers','SupervisorProfController@customers');
 
 
 	
