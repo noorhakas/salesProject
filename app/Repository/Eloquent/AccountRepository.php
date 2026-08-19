@@ -416,4 +416,33 @@ class AccountRepository implements AccountInterface
     }
 
 
+    public function showAccount($accountId,array $subordinateIds) {
+
+    $account = Account::query()
+        ->where('id', $accountId)
+        ->whereHas('users', function ($query) use ($subordinateIds) {
+            $query->whereIn('users.id', $subordinateIds);
+        })
+        ->with([
+            'account',
+            'specialty',
+            'class',
+        ])->first();
+
+    if (!$account) {
+        return [
+            'status'  => false,
+            'message' => trans('messages.data_not_found'),
+        ];
+    }
+
+    return [
+        'status'  => true,
+        'message' => trans('messages.success'),
+        'data'    => new AccountResource($account),
+    ];
+}
+
+
+
 }

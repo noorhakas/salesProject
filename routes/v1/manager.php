@@ -36,7 +36,9 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
        
       /**  accounts */ 
        Route::get('accounts', 'AccountsController@index');
+       Route::get('accounts/{id}', 'AccountsController@showAccount');
        Route::get('customers', 'CustomersController@index');
+       Route::get('customers/{id}', 'CustomersController@showCustomer');
 
       
       Route::get('/departments', 'DepartmentController@myDepartments');

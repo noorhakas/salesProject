@@ -25,5 +25,15 @@ class AccountsController extends Controller
         return $this->SendResponse($response);
     }
 
+    public function showAccount(Request $request,$accountId) {
+        $user = $request->user();
+
+        $subordinateIds = $user->getAllSubordinateIds();
+
+        $response = $this->IAccount->showAccount($accountId,$subordinateIds);
+
+        return $this->SendResponse($response);
+    }
+
 
 }

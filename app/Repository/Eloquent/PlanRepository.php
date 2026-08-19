@@ -245,7 +245,7 @@ class PlanRepository implements PlanInterface
 
         $stats = Plan::join('users', 'users.id', '=', 'plans.user_id')
                 ->whereIn('plans.user_id', $subordinateIds)
-                ->filter($request, true)
+               // ->filter($request, true)
             ->selectRaw("
                 COUNT(plans.id) as total,
                 SUM(CASE WHEN plans.status = ? AND plans.end_date >= ? THEN 1 ELSE 0 END) as pending,

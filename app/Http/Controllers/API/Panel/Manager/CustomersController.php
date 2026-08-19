@@ -32,7 +32,7 @@ class CustomersController extends Controller
 
         $subordinateIds = $user->getAllSubordinateIds();
 
-        $response = $this->ICustomer->showCustomer($customerId,$subordinateIds);
+        $response = $this->Icustomer->showCustomer($customerId,$subordinateIds);
 
         return $this->SendResponse($response);
     }

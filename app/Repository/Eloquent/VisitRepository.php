@@ -701,7 +701,7 @@ class VisitRepository implements VisitInterface
 
             foreach ($request->visits as $offlineVisit) {
 
-                // نتأكد إن كل المفاتيح المطلوبة موجودة قبل أي معالجة
+                
                 // عشان نتفادى Undefined array key warnings وسط اللوب
                 if (empty($offlineVisit['visit_id'])) {
                     throw new \Exception('visit_id is required for each offline visit');
