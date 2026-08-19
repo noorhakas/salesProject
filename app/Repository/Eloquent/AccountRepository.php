@@ -424,8 +424,7 @@ class AccountRepository implements AccountInterface
             $query->whereIn('users.id', $subordinateIds);
         })
         ->with([
-            'account',
-            'specialty',
+            'accType', 'brick',
             'class',
         ])->first();
 
