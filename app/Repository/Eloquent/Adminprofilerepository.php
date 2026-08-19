@@ -91,7 +91,7 @@ class AdminProfileRepository implements AdminProfileInterface
 
     public function managerAccounts(Request $request, $id)
     {
-        $manager = $this->findByPosition($id, PositionKey::MANAGER->value);
+        $manager = $this->findByPosition($id, PositionKey::AREA_MANAGER->value);
 
         if (!$manager) {
             return $this->notFound();
@@ -104,7 +104,7 @@ class AdminProfileRepository implements AdminProfileInterface
 
     public function managerCustomers(Request $request, $id)
     {
-        $manager = $this->findByPosition($id, PositionKey::MANAGER->value);
+        $manager = $this->findByPosition($id, PositionKey::AREA_MANAGER->value);
 
         if (!$manager) {
             return $this->notFound();
