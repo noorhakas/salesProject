@@ -38,10 +38,10 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('managers/{id}/accounts', 'ManagerProfController@accounts');
     Route::get('managers/{id}/customers', 'ManagerProfController@customers');
 
-    Route::get('supervisors/{id}','SupervisorProfController@show');
-    Route::get('supervisors/{id}/sales-reps','SupervisorProfController@salesReps');
-    Route::get('supervisors/{id}/accounts','SupervisorProfController@accounts');
-    Route::get('supervisors/{id}/customers','SupervisorProfController@customers');
+    Route::get('supervisor/{id}','SupervisorProfController@show');
+    Route::get('supervisor/{id}/sales-reps','SupervisorProfController@salesReps');
+    Route::get('supervisor/{id}/accounts','SupervisorProfController@accounts');
+    Route::get('supervisor/{id}/customers','SupervisorProfController@customers');
 
 
 	
