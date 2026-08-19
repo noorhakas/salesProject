@@ -2,8 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\Panel\Admin\ManagerProfileController;
-use App\Http\Controllers\API\Panel\Admin\SupervisorProfileController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,15 +33,15 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
 
 
-	Route::get('managers/{id}', [ManagerProfileController::class, 'show']);
-    Route::get('managers/{id}/supervisors', [ManagerProfileController::class, 'supervisors']);
-    Route::get('managers/{id}/accounts', [ManagerProfileController::class, 'accounts']);
-    Route::get('managers/{id}/customers', [ManagerProfileController::class, 'customers']);
+	Route::get('managers/{id}', 'ManagerProfileController@show');
+    Route::get('managers/{id}/supervisors','ManagerProfileController@supervisors');
+    Route::get('managers/{id}/accounts', 'ManagerProfileController@accounts');
+    Route::get('managers/{id}/customers', 'ManagerProfileController@customers');
 
-    Route::get('supervisors/{id}', [SupervisorProfileController::class, 'show']);
-    Route::get('supervisors/{id}/sales-reps', [SupervisorProfileController::class, 'salesReps']);
-    Route::get('supervisors/{id}/accounts', [SupervisorProfileController::class, 'accounts']);
-    Route::get('supervisors/{id}/customers', [SupervisorProfileController::class, 'customers']);
+    Route::get('supervisors/{id}','SupervisorProfileController@show');
+    Route::get('supervisors/{id}/sales-reps','SupervisorProfileController@salesReps');
+    Route::get('supervisors/{id}/accounts','SupervisorProfileController@accounts');
+    Route::get('supervisors/{id}/customers','SupervisorProfileController@customers');
 
 
 	
