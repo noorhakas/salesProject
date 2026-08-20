@@ -56,7 +56,7 @@ class VisitRepository implements VisitInterface
             ->filter($request) ->orderBy('visits.created_at', 'DESC');;
 
 
-            dd($query->toSql(), $query->getBindings());
+         //   dd($query->toSql(), $query->getBindings());
         $visits = $this->paginateOrAll($query, $request);
 
         return $this->success(VisitsResource::collection($visits));

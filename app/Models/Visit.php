@@ -55,10 +55,8 @@ class Visit extends Model implements HasNotificationData
         ? (int) $request->status
         : null;
 
-    $q
-        ->when(
-            $request->filled('plan_id'),
-            fn ($q, $v) => $q->where('visits.plan_id', $v)
+        $q->when($request->filled('plan_id'),
+            fn ($q) => $q->where('visits.plan_id', $request->plan_id)  
         )
 
         ->when($status !== null, function ($q) use ($status) {
