@@ -44,7 +44,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('supervisor/{id}/customers','SupervisorProfController@customers');
 
 
-	
+	Route::get('branch_report','BranchReportController@index');
+    Route::get('branch_report/{branchId}','BranchReportController@show');
 
    
    ###setting
