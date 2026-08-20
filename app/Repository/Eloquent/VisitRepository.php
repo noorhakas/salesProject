@@ -44,13 +44,6 @@ class VisitRepository implements VisitInterface
             }
 
             $baseQuery = $plan->visits();
-
-              dd([
-        'requested_plan'  => $request->plan_id,
-        'plan_found'      => $plan?->id,
-        'plan_visits_count' => $plan?->visits()->count(),
-    ]);
-
         } else {
             $baseQuery = auth()->user()->visits();
         }
@@ -62,6 +55,8 @@ class VisitRepository implements VisitInterface
             ->with('user:id,name', 'account:id,name', 'customer:id,name,image')
             ->filter($request) ->orderBy('visits.created_at', 'DESC');;
 
+
+            dd($query->toSql(), $query->getBindings());
         $visits = $this->paginateOrAll($query, $request);
 
         return $this->success(VisitsResource::collection($visits));
