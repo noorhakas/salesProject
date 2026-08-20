@@ -36,17 +36,28 @@ class VisitRepository implements VisitInterface
 
    public function getUservisits($request)
     {
-        // if ($request->filled('plan_id')) {
-        //     $plan = Plan::find($request->plan_id);
+        if ($request->filled('plan_id')) {
+            $plan = Plan::find($request->plan_id);
 
-        //     if (!$plan) {
-        //         return $this->success([]);
-        //     }
+            if (!$plan) {
+                return $this->success([]);
+            }
 
-        //     $baseQuery = $plan->visits();
-        // } else {
+            $baseQuery = $plan->visits();
+
+              dd([
+        'is_admin'        => $user->is_admin,
+        'allowed_ids'     => $allowedUserIds ?? 'admin - no restriction',
+        'requested_plan'  => $request->plan_id,
+        'plan_found'      => $plan?->id,
+        'plan_visits_count' => $plan?->visits()->count(),
+    ]);
+    
+        } else {
             $baseQuery = auth()->user()->visits();
-      //  }
+        }
+
+      
 
         $query = $this->joinAccountsAndCustomers($baseQuery)
             ->select('visits.*')
