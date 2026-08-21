@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Eloquent;
 
 use App\Http\Resources\API\BranchResource;
 use App\Http\Resources\API\DepartmentResource;
