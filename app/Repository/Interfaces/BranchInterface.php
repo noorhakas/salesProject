@@ -9,4 +9,8 @@ interface BranchInterface
     public function getBranchesReport(Request $request);
 
     public function getBranchDetails(Request $request, $branchId);
+
+    public function getBranchProducts(Request $request, $branchId);
+
+    public function getBranchDepartments(Request $request, $branchId);
 }

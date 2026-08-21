@@ -1,126 +1,237 @@
 <?php
 
-namespace App\Repository\Eloquent;
+namespace App\Repository;
 
+use App\Http\Resources\API\BranchResource;
+use App\Http\Resources\API\DepartmentResource;
+use App\Http\Resources\API\ProductResource;
+use App\Http\Resources\API\SupervisorSimpleResource;
+use App\Http\Resources\API\UserSimpleResource;
+use App\Http\Traits\PaginatesResults;
 use App\Models\Branch;
-use App\Models\User;
+use App\Models\Product;
 use App\Repository\Interfaces\BranchInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BranchRepository implements BranchInterface
 {
+    use PaginatesResults;
+
+    /**
+     * Get branches report.
+     */
     public function getBranchesReport(Request $request)
     {
-        return Branch::query()
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->search . '%');
-            })
-            ->withCount([
-                'departments',
-            ])
-            ->with([
-                'users.userposition',
-            ])
-            ->latest()
-            ->get()
-            ->map(function ($branch) {
+        $branches = Branch::query()
+            ->when(
+                $request->filled('search'),
+                fn (Builder $query) => $query->where(
+                    'name',
+                    'like',
+                    '%' . $request->input('search') . '%'
+                )
+            )
+            ->withCount('departments')
+            ->get([
+                'id',
+                'name',
+                'address',
+                'phone',
+                'whatsapp',
+            ]);
 
-                $users = $branch->users;
+        $usersCount = DB::table('user_branches')
+            ->join(
+                'users',
+                'users.id',
+                '=',
+                'user_branches.user_id'
+            )
+            ->join(
+                'positions',
+                'positions.id',
+                '=',
+                'users.position'
+            )
+            ->select('user_branches.branch_id')
+            ->selectRaw(
+                "SUM(
+                    CASE
+                        WHEN positions.ps_key = 'supervisor'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as supervisor_count"
+            )
+            ->selectRaw(
+                "SUM(
+                    CASE
+                        WHEN positions.ps_key = 'sales_rep'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as sales_rep_count"
+            )
+            ->groupBy('user_branches.branch_id')
+            ->get()
+            ->keyBy('branch_id');
+
+        return $branches->map(
+            function (Branch $branch) use ($usersCount) {
+                $userCount = $usersCount->get($branch->id);
 
                 return [
                     'id' => $branch->id,
                     'name' => $branch->name,
                     'address' => $branch->address ?? '',
                     'phone' => $branch->phone ?? '',
+                    'whatsapp' => $branch->whatsapp ?? '',
 
-                    'department_count' => $branch->departments_count,
+                    'supervisor_count' =>
+                        (int) ($userCount->supervisor_count ?? 0),
 
-                    'manager_count' => $users->filter(function ($user) {
-                        return $user->userposition?->ps_key === 'area_manager';
-                    })->count(),
+                    'sales_rep_count' =>
+                        (int) ($userCount->sales_rep_count ?? 0),
 
-                    'supervisor_count' => $users->filter(function ($user) {
-                        return $user->userposition?->ps_key === 'supervisor';
-                    })->count(),
-
-                    'sales_rep_count' => $users->filter(function ($user) {
-                        return $user->userposition?->ps_key === 'sales_rep';
-                    })->count(),
+                    'department_count' =>
+                        (int) $branch->departments_count,
                 ];
-            });
+            }
+        )->values();
     }
 
+    /**
+     * Get branch details.
+     */
     public function getBranchDetails(Request $request, $branchId)
     {
         $branch = Branch::query()
-            ->with([
-                'departments',
-                'users.userposition',
-            ])
+            ->withCount('departments')
             ->findOrFail($branchId);
 
-        $users = $branch->users;
+        $areaManager = $branch->users()
+            ->with('userposition')
+            ->whereHas(
+                'userposition',
+                fn (Builder $query) => $query->where(
+                    'ps_key',
+                    'area_manager'
+                )
+            )
+            ->first();
+
+        $supervisors = $branch->users()
+            ->with('userposition')
+            ->whereHas(
+                'userposition',
+                fn (Builder $query) => $query->where(
+                    'ps_key',
+                    'supervisor'
+                )
+            )
+            ->get();
+
+        $salesRepCount = $branch->users()
+            ->whereHas(
+                'userposition',
+                fn (Builder $query) => $query->where(
+                    'ps_key',
+                    'sales_rep'
+                )
+            )
+            ->count();
 
         return [
-            'branch' => [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'address' => $branch->address ?? '',
-                'phone' => $branch->phone ?? '',
-            ],
+            'branch' => new BranchResource($branch),
 
-            'departments' => $branch->departments->map(function ($department) {
-                return [
-                    'id' => $department->id,
-                    'name' => $department->name,
-                ];
-            })->values(),
+            'department_count' => (int) $branch->departments_count,
 
-            'manager_count' => $users->filter(function ($user) {
-                return $user->userposition?->ps_key === 'area_manager';
-            })->count(),
+            'supervisor_count' => $supervisors->count(),
 
-            'supervisor_count' => $users->filter(function ($user) {
-                return $user->userposition?->ps_key === 'supervisor';
-            })->count(),
+            'sales_rep_count' => $salesRepCount,
 
-            'sales_rep_count' => $users->filter(function ($user) {
-                return $user->userposition?->ps_key === 'sales_rep';
-            })->count(),
+            'area_manager' => $areaManager
+                ? new UserSimpleResource($areaManager)
+                : null,
 
-            'managers' => $users
-                ->filter(fn ($user) =>
-                    $user->userposition?->ps_key === 'area_manager'
-                )
-                ->values()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'emp_no' => $user->emp_no,
-                    'name' => $user->name,
-                ]),
-
-            'supervisors' => $users
-                ->filter(fn ($user) =>
-                    $user->userposition?->ps_key === 'supervisor'
-                )
-                ->values()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'emp_no' => $user->emp_no,
-                    'name' => $user->name,
-                ]),
-
-            'sales_reps' => $users
-                ->filter(fn ($user) =>
-                    $user->userposition?->ps_key === 'sales_rep'
-                )
-                ->values()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'emp_no' => $user->emp_no,
-                    'name' => $user->name,
-                ]),
+            'supervisors' => SupervisorSimpleResource::collection(
+                $supervisors
+            ),
         ];
+    }
+
+    /**
+     * Get branch departments.
+     */
+    public function getBranchDepartments(
+        Request $request,
+        $branchId
+    ) {
+        $branch = Branch::findOrFail($branchId);
+
+        $departmentsQuery = $branch->departments()
+            ->when(
+                $request->filled('search'),
+                fn (Builder $query) => $query->where(
+                    'name',
+                    'like',
+                    '%' . $request->input('search') . '%'
+                )
+            )
+            ->withCount([
+                'users',
+                'products',
+            ]);
+
+        $departments = $this->paginateOrAll(
+            $departmentsQuery,
+            $request
+        );
+
+        return DepartmentResource::collection(
+            $departments
+        );
+    }
+
+    /**
+     * Get branch products.
+     */
+    public function getBranchProducts(
+        Request $request,
+        $branchId
+    ) {
+        $productQuery = Product::query()
+            ->with([
+                'company',
+                'category',
+            ])
+            ->whereHas(
+                'departments.branches',
+                fn (Builder $query) => $query->where(
+                    'branches.id',
+                    $branchId
+                )
+            )
+            ->when(
+                $request->filled('search'),
+                fn (Builder $query) => $query->where(
+                    'name',
+                    'like',
+                    '%' . $request->input('search') . '%'
+                )
+            )
+            ->distinct()
+            ->latest();
+
+        $products = $this->paginateOrAll(
+            $productQuery,
+            $request
+        );
+
+        return ProductResource::collection(
+            $products
+        );
     }
 }

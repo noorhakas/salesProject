@@ -17,7 +17,9 @@ class BranchReportController extends Controller
      */
     public function index(Request $request)
     {
-        $response = $this->IBranch->getBranchesReport($request);
+        $response = $this->IBranch->getBranchesReport(
+            $request
+        );
 
         return $this->response_api(
             true,
@@ -29,9 +31,49 @@ class BranchReportController extends Controller
     /**
      * Branch details
      */
-    public function show(Request $request, $branchId)
-    {
+    public function show(
+        Request $request,
+        $branchId
+    ) {
         $response = $this->IBranch->getBranchDetails(
+            $request,
+            $branchId
+        );
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $response
+        );
+    }
+
+    /**
+     * Branch departments
+     */
+    public function departments(
+        Request $request,
+        $branchId
+    ) {
+        $response = $this->IBranch->getBranchDepartments(
+            $request,
+            $branchId
+        );
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $response
+        );
+    }
+
+    /**
+     * Branch products
+     */
+    public function products(
+        Request $request,
+        $branchId
+    ) {
+        $response = $this->IBranch->getBranchProducts(
             $request,
             $branchId
         );
