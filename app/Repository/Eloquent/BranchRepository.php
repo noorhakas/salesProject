@@ -190,9 +190,7 @@ class BranchRepository implements BranchInterface
             $request
         );
 
-        return DepartmentResource::collection(
-            $departments
-        );
+        return $departments;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Panel\Admin;
 use App\Http\Controllers\Controller;
 use App\Repository\Interfaces\BranchInterface;
 use Illuminate\Http\Request;
+use App\Http\Resources\API\Admin\DepartmentResource;
 
 class BranchReportController extends Controller
 {
@@ -17,9 +18,7 @@ class BranchReportController extends Controller
      */
     public function index(Request $request)
     {
-        $response = $this->IBranch->getBranchesReport(
-            $request
-        );
+        $response = $this->IBranch->getBranchesReport($request);
 
         return $this->response_api(
             true,
@@ -31,14 +30,8 @@ class BranchReportController extends Controller
     /**
      * Branch details
      */
-    public function show(
-        Request $request,
-        $branchId
-    ) {
-        $response = $this->IBranch->getBranchDetails(
-            $request,
-            $branchId
-        );
+    public function show(Request $request,$branchId) {
+        $response = $this->IBranch->getBranchDetails($request,$branchId);
 
         return $this->response_api(
             true,
@@ -54,10 +47,12 @@ class BranchReportController extends Controller
         Request $request,
         $branchId
     ) {
-        $response = $this->IBranch->getBranchDepartments(
+        $department = $this->IBranch->getBranchDepartments(
             $request,
             $branchId
         );
+
+        $response = DepartmentResource::collection($department)
 
         return $this->response_api(
             true,
