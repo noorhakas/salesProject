@@ -49,84 +49,164 @@ class Visit extends Model implements HasNotificationData
     //     return (Carbon::parse($this->visit_date)->toDateString() < Carbon::now()->toDateString()) && $value != 2 ? 5 : $value;
     // }
 
-    public function scopeFilter($q, $request)
+   public function scopeFilter($q, $request)
 {
     $status = $request->filled('status')
         ? (int) $request->status
         : null;
 
-        $q->when($request->filled('plan_id'),
-            fn ($q) => $q->where('visits.plan_id', $request->plan_id)  
+    return $q
+        /*
+        |--------------------------------------------------------------------------
+        | Plan
+        |--------------------------------------------------------------------------
+        */
+        ->when(
+            $request->filled('plan_id'),
+            fn ($q) =>
+                $q->where('visits.plan_id', $request->plan_id)
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | Status / Type
+        |--------------------------------------------------------------------------
+        */
         ->when($status !== null, function ($q) use ($status) {
 
-            // if ($status === 5) {
-            //     // Missed
-            //     $q->where('visits.status', 5);
-            // }
+            if ($status === -1) {
 
-            // } elseif ($status === -1) {
-            //     // Pending / upcoming visits
-            //     $q->where('visits.status', 0)
-            //         ->whereDate('visits.visit_date', '>=', Carbon::today());
-
-             if ($status === -1) {
-                // planned
+                // Planned
                 $q->where('visits.type', 0);
 
             } elseif ($status === -2) {
-                // UnPlanned
+
+                // Unplanned
                 $q->where('visits.type', 1);
 
             } else {
+
                 $q->where('visits.status', $status);
             }
         })
 
+        /*
+        |--------------------------------------------------------------------------
+        | Search
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('search'),
-            fn ($q, $v) => $q->where(function ($query) use ($v) {
-                $query
-                    ->where('customers.name', 'like', "%{$v}%")
-                    ->orWhere('accounts.name', 'like', "%{$v}%");
-            })
+            function ($q) use ($request) {
+
+                $search = $request->input('search');
+
+                $q->where(function ($query) use ($search) {
+
+                    $query
+                        ->where('customers.name', 'like', "%{$search}%")
+                        ->orWhere('accounts.name', 'like', "%{$search}%");
+                });
+            }
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | Start Date
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('start_date'),
-            fn ($q, $v) => $q->where(function ($query) use ($v) {
-                $query
-                    ->whereDate('visits.visit_date', '>=', $v)
-                    ->orWhereDate('visits.actual_start_date', '>=', $v);
-            })
+            function ($q) use ($request) {
+
+                $startDate = $request->input('start_date');
+
+                $q->where(function ($query) use ($startDate) {
+
+                    $query
+                        ->whereDate(
+                            'visits.visit_date',
+                            '>=',
+                            $startDate
+                        )
+                        ->orWhereDate(
+                            'visits.actual_start_date',
+                            '>=',
+                            $startDate
+                        );
+                });
+            }
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | End Date
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('end_date'),
-            fn ($q, $v) => $q->where(function ($query) use ($v) {
-                $query
-                    ->whereDate('visits.visit_date', '<=', $v)
-                    ->orWhereDate('visits.actual_start_date', '<=', $v);
-            })
+            function ($q) use ($request) {
+
+                $endDate = $request->input('end_date');
+
+                $q->where(function ($query) use ($endDate) {
+
+                    $query
+                        ->whereDate(
+                            'visits.visit_date',
+                            '<=',
+                            $endDate
+                        )
+                        ->orWhereDate(
+                            'visits.actual_start_date',
+                            '<=',
+                            $endDate
+                        );
+                });
+            }
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | Exact Visit Date
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('visit_date'),
-            fn ($q, $v) => $q->whereDate('visits.visit_date', $v)
+            fn ($q) =>
+                $q->whereDate(
+                    'visits.visit_date',
+                    $request->input('visit_date')
+                )
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | User
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('user_id'),
-            fn ($q, $v) => $q->where('visits.user_id', $v)
+            fn ($q) =>
+                $q->where(
+                    'visits.user_id',
+                    $request->input('user_id')
+                )
         )
 
+        /*
+        |--------------------------------------------------------------------------
+        | Customer
+        |--------------------------------------------------------------------------
+        */
         ->when(
             $request->filled('customer_id'),
-            fn ($q, $v) => $q->where('visits.customer_id', $v)
+            fn ($q) =>
+                $q->where(
+                    'visits.customer_id',
+                    $request->input('customer_id')
+                )
         );
-
-    return $q;
 }
 
     public function getNotificationData(): array
