@@ -52,7 +52,7 @@ class BranchReportController extends Controller
             $branchId
         );
 
-        $response = DepartmentResource::collection($department)
+        $response = DepartmentResource::collection($department);
 
         return $this->response_api(
             true,
