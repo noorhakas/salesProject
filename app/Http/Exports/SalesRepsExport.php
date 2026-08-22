@@ -33,7 +33,6 @@ class SalesRepsExport implements FromQuery, WithHeadings, WithMapping, WithEvent
                 'branchDepartments.branch:id,name',
                 'branchDepartments.department:id,name',
                 'manager:emp_no,name',
-                'position:id,name',
             ])
             ->filter($this->request)
             ->latest();
