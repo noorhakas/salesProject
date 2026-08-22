@@ -451,8 +451,31 @@ class VisitRepository implements VisitInterface
         }
     }
 
+    public function getAllVisits()
+    {
+        $request = request();
 
-    public function getAllVisits($request)
+        if ($request->filled('search_date')) {
+            $search = Carbon::parse($request->search_date);
+            $startDate = $search->copy()->startOfMonth()->toDateString();
+            $endDate = $search->copy()->endOfMonth()->toDateString();
+        } else {
+            $startDate = now()->startOfMonth()->toDateString();
+            $endDate = now()->endOfMonth()->toDateString();
+        }
+
+        $query = $this->DrawVisitStatistics() 
+            ->whereBetween('visits.visit_date', [$startDate, $endDate])
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('visit_count');
+
+        $visits = $this->paginateOrAll($query, $request, self::DEFAULT_PER_PAGE);
+
+        return $this->success(VisitStatisticsResource::collection($visits));
+    }
+
+
+    public function getCurrentVisits($request)
     {
         $query = $this->joinAccountsAndCustomers(
                 Visit::select('visits.*')
@@ -468,6 +491,7 @@ class VisitRepository implements VisitInterface
         return $this->success(VisitsResource::collection($visits));
     }
 
+    
     public function DrawVisitStatistics()
     {
         return Visit::query()
