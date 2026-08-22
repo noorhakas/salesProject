@@ -312,8 +312,8 @@ class VisitRepository implements VisitInterface
         );
 
         $visitStatistics = (clone $this->DrawVisitStatistics())
-            ->whereDate('visits.visit_date', '>=', $startDate)
-            ->whereDate('visits.visit_date', '<=', $endDate)
+            // ->whereDate('visits.visit_date', '>=', $startDate)
+            // ->whereDate('visits.visit_date', '<=', $endDate)
             ->where('users.id', $userId)
             ->groupBy('users.id')
             ->first();
@@ -1210,8 +1210,7 @@ class VisitRepository implements VisitInterface
 
                 SUM(
                     CASE
-                        WHEN visits.status != 2
-                        AND DATE(visits.visit_date) < CURDATE()
+                        WHEN visits.status = 5
                         THEN 1 ELSE 0
                     END
                 ) AS missed_visit_count,
@@ -1219,7 +1218,6 @@ class VisitRepository implements VisitInterface
                 SUM(
                     CASE
                         WHEN visits.status = 0
-                        AND DATE(visits.visit_date) > CURDATE()
                         THEN 1 ELSE 0
                     END
                 ) AS pending_count
