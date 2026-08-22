@@ -133,12 +133,12 @@ class HomeRepository implements HomeInterface
 	{
 		$today = Carbon::today();
 
-		// Visits that never got marked as Visited and whose date has
-		// already passed — same "missed" definition used elsewhere
-		// (status != Visited AND visit_date is in the past).
 		$missedVisits = Visit::where('status', '!=', 2)
-			->whereDate('visit_date', '<', $today)
-			->count();
+        ->whereBetween('visit_date', [
+            $today->copy()->startOfMonth(),
+            $today,
+        ])
+        ->count();
 
 		$pendingPlanApprovals = Plan::where('status', PlanStatusEnum::Pending)
 			->whereDate('end_date', '>=', $today)
@@ -153,13 +153,7 @@ class HomeRepository implements HomeInterface
 		];
 	}
 
-	/**
-	 * ASSUMPTION: supervisor -> reps is modeled via `users.manager_id`
-	 * (a rep's manager_id points at their supervisor), matching the
-	 * pattern used elsewhere in this codebase (SupervisorRepository).
-	 * Deliberately avoids relying on a `getAllSubordinateIds()` call per
-	 * supervisor (N+1) — this does it in two queries total.
-	 */
+	
 	protected function countSupervisorsWithoutReps(): int
 	{
 		$supervisorIds = User::where('status', 1)
@@ -231,11 +225,7 @@ class HomeRepository implements HomeInterface
 		return round(($counts['present'] / $counts['total']) * 100, 1);
 	}
 
-	/**
-	 * Last 7 days of completed visits, replacing the old sales chart
-	 * (this business doesn't track sales — visits are the operational
-	 * metric that matters).
-	 */
+
 	protected function visitsTrend(): array
 	{
 		return collect(range(6, 0))
