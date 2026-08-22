@@ -79,4 +79,11 @@ class BranchReportController extends Controller
             $response
         );
     }
+
+    public function salesReps(Request $request, $branchId)
+    {
+        $result = $this->IBranch->getBranchSalesReps($request, $branchId);
+
+        return $this->response_api(true, trans('messages.success'), $result);
+    }
 }

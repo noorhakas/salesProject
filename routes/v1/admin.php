@@ -48,8 +48,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('branch_report/{branchId}','BranchReportController@show');
     Route::get('branch_report/{branchId}/departments','BranchReportController@departments');
     Route::get('branch_report/{branchId}/products','BranchReportController@products');
+    Route::get('branch_report/{branchId}/sales-reps','BranchReportController@salesReps');
 
-   
    ###setting
    Route::resource('acc_type', 'AccTypeController')->except(['edit', 'create']);
    Route::resource('classes', 'ClassesController')->except(['edit', 'create']);

@@ -194,6 +194,49 @@ class BranchRepository implements BranchInterface
     }
 
     /**
+     * Get branch sales reps.
+     *
+     * Same shape/pattern as getBranchDepartments (paginated + searchable),
+     * unlike the plain ->count() used for sales reps inside
+     * getBranchDetails — this one returns the actual rows for the
+     * "Sales Reps" tab on the branch detail screen.
+     */
+    public function getBranchSalesReps(
+        Request $request,
+        $branchId
+    ) {
+        $branch = Branch::findOrFail($branchId);
+
+        $salesRepsQuery = $branch->users()
+            ->with('userposition')
+            ->whereHas(
+                'userposition',
+                fn (Builder $query) => $query->where(
+                    'ps_key',
+                    'sales_rep'
+                )
+            )
+            ->when(
+                $request->filled('search'),
+                fn (Builder $query) => $query->where(
+                    'users.name',
+                    'like',
+                    '%' . $request->input('search') . '%'
+                )
+            )
+            ->latest('users.created_at');
+
+        $salesReps = $this->paginateOrAll(
+            $salesRepsQuery,
+            $request
+        );
+
+        return SupervisorSimpleResource::collection(
+            $salesReps
+        );
+    }
+
+    /**
      * Get branch products.
      */
     public function getBranchProducts(
