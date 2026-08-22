@@ -280,10 +280,7 @@ class VisitRepository implements VisitInterface
 
     public function getVisitsByUserId($request)
     {
-        $userId = $request->input(
-            'user_id',
-            auth()->id()
-        );
+        $userId = $request->input('userId');
 
         $startDate = $this->resolveMonthBoundary(
             $request,
