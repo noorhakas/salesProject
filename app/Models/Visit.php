@@ -61,21 +61,22 @@ class Visit extends Model implements HasNotificationData
 
         ->when($status !== null, function ($q) use ($status) {
 
-            if ($status === 5) {
-                // Missed
-                $q->where('visits.status', 5);
+            // if ($status === 5) {
+            //     // Missed
+            //     $q->where('visits.status', 5);
+            // }
 
-            } elseif ($status === -1) {
-                // Pending / upcoming visits
-                $q->where('visits.status', 0)
-                    ->whereDate('visits.visit_date', '>=', Carbon::today());
+            // } elseif ($status === -1) {
+            //     // Pending / upcoming visits
+            //     $q->where('visits.status', 0)
+            //         ->whereDate('visits.visit_date', '>=', Carbon::today());
 
-            } elseif ($status === -2) {
-                // Unplanned
+             if ($status === -1) {
+                // planned
                 $q->where('visits.type', 0);
 
-            } elseif ($status === -3) {
-                // Planned
+            } elseif ($status === -2) {
+                // UnPlanned
                 $q->where('visits.type', 1);
 
             } else {

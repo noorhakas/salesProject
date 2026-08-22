@@ -491,7 +491,7 @@ class VisitRepository implements VisitInterface
         return $this->success(VisitsResource::collection($visits));
     }
 
-    
+
     public function DrawVisitStatistics()
     {
         return Visit::query()
@@ -771,7 +771,6 @@ class VisitRepository implements VisitInterface
                     'status'   => 'synced',
                 ];
 
-                // نبعت notification فقط أول مرة
                 if (!$wasAlreadyVisited) {
                     $notifications[] = $visit->fresh();
                 }
@@ -779,7 +778,6 @@ class VisitRepository implements VisitInterface
 
             DB::commit();
 
-            // Notifications بعد نجاح الـ transaction
             foreach ($notifications as $visit) {
                 $this->notifications->sendNewVisitCreated(
                     $visit,
