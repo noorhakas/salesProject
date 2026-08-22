@@ -10,12 +10,11 @@ interface VisitInterface
 	 public function submitVisit($request);
 	 public function getvisitDtail($id);
 	  public function getVisitCharts($request);
-	  public function getAllVisits();
+	  public function getAllVisits($request);
 	  public function DrawVisitCountStatistics();
 	  public function getVisitsByUserId($request);
 	  public function createUnplannedVisit($request);
 	  public function getAllVisitsByUserId($request);
-    public function getCurrentVisits();
 	public function getUserVisitStatictics($request);
 	public function submitOfflineVisits($request);
 	

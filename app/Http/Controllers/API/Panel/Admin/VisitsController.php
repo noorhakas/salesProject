@@ -52,15 +52,15 @@ class VisitsController extends Controller
 		     return $this->SendResponse($response);
 	  }
 
-	  public function AllVisits(){
-		     $response = $this->IVisit->getAllVisits();
+	  public function AllVisits(Request $request){
+		     $response = $this->IVisit->getAllVisits($request);
 		     return $this->SendResponse($response);
 	  }
 
-         public function currentVisits(){
-                   $response = $this->IVisit->getCurrentVisits();
-		   return $this->SendResponse($response);
-         }
+        //  public function currentVisits(){
+        //            $response = $this->IVisit->getCurrentVisits();
+		//    return $this->SendResponse($response);
+        //  }
 
 	  public function UserVisits(Request $request){
 			 $response = $this->IVisit->getVisitsByUserId($request);

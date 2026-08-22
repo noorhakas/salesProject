@@ -42,10 +42,6 @@ class HomeRepository implements HomeInterface
 				,"current_visits"=> VisitsResource::collection($visits)
 				,"logs"=>LogsResource::collection($logs),
 				"statistics"=>$statistics,
-				// New blocks powering the dashboard concept: trend badges on
-				// the KPI cards, an "action center" of things needing
-				// attention, an attendance breakdown for today, and a
-				// 7-day visits trend to replace the old sales chart.
 				"trends"=>$this->trends(),
 				"action_center"=>$this->actionCenter(),
 				"attendance_summary"=>$this->attendanceSummary(),
@@ -85,12 +81,6 @@ class HomeRepository implements HomeInterface
 		];
 	}
 
-	/**
-	 * Day-over-day percentage change for the KPIs that make sense to
-	 * trend (visits completed, attendance rate). Everything else on
-	 * the dashboard (admin/manager/rep counts) barely changes day to
-	 * day, so a trend arrow on those would be noise, not signal.
-	 */
 	protected function trends(): array
 	{
 		$today = Carbon::today();
@@ -125,10 +115,6 @@ class HomeRepository implements HomeInterface
 		return round((($current - $previous) / $previous) * 100, 1);
 	}
 
-	/**
-	 * "Needs your attention" block: things an admin would otherwise have
-	 * to go dig for across three different screens.
-	 */
 	protected function actionCenter(): array
 	{
 		$today = Carbon::today();

@@ -451,27 +451,21 @@ class VisitRepository implements VisitInterface
         }
     }
 
-    public function getAllVisits()
+
+    public function getAllVisits($request)
     {
-        $request = request();
+        $query = $this->joinAccountsAndCustomers(
+                Visit::select('visits.*')
+                 ->when($request->filled('user_id'), function ($query) use ($request) {
+                    $query->where('visits.user_id', $request->user_id);
+                })
+            )
+            ->filter($request)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
+            ->orderBy('visits.created_at', 'DESC');
 
-        if ($request->filled('search_date')) {
-            $search = Carbon::parse($request->search_date);
-            $startDate = $search->copy()->startOfMonth()->toDateString();
-            $endDate = $search->copy()->endOfMonth()->toDateString();
-        } else {
-            $startDate = now()->startOfMonth()->toDateString();
-            $endDate = now()->endOfMonth()->toDateString();
-        }
+        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
 
-        $query = $this->DrawVisitStatistics() 
-            ->whereBetween('visits.visit_date', [$startDate, $endDate])
-            ->groupBy('users.id', 'users.name')
-            ->orderByDesc('visit_count');
-
-        $visits = $this->paginateOrAll($query, $request, self::DEFAULT_PER_PAGE);
-
-        return $this->success(VisitStatisticsResource::collection($visits));
+        return $this->success(VisitsResource::collection($visits));
     }
 
     public function DrawVisitStatistics()
@@ -552,26 +546,8 @@ class VisitRepository implements VisitInterface
         return $this->success(['data' => VisitsResource::collection($visits)]);
     }
 
-    public function getCurrentVisits()
-    {
-        $request = request();
+     
 
-        $startDate = $request->get('start_date') ?: Carbon::today();
-        $endDate = $request->get('end_date') ?: '';
-
-        $query = Visit::select('visits.*')
-            ->join('plans', 'plans.id', '=', 'visits.plan_id')
-            ->whereHas('user', fn ($q) => $q->where('users.status', 1))
-            ->when($startDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '>=', $v))
-            ->when($endDate, fn ($q, $v) => $q->whereDate('visits.actual_start_date', '<=', $v))
-            ->when($request->get('user_id'), fn ($q, $v) => $q->where('visits.user_id', $v))
-            ->where('visits.status', 2)->with('user:id,name', 'account:id,name', 'customer:id,name,image')
-            ->orderBy('visits.created_at', 'DESC');
-
-        $visits = $this->paginateOrAll($query, $request, self::ALL_RESULTS);
-
-        return $this->success(['data' => VisitsResource::collection($visits)]);
-    }
 
     public function getUserVisitStatictics($request)
     {

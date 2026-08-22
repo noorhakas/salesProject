@@ -108,7 +108,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 		Route::post('/', 'VisitsController@index');
 		Route::get('/schedule', 'VisitsController@VisitAsSchedule');
 		Route::get('/all_visits', 'VisitsController@AllVisits');
-        Route::get('current_visits', 'VisitsController@currentVisits');
+      //  Route::get('current_visits', 'VisitsController@currentVisits');
         Route::post('all_user_visit','VisitsController@UserVisits');
 		Route::post('whole_user_visits','VisitsController@getAllUserVisits');
 		Route::get("/{id}", 'VisitsController@show');
