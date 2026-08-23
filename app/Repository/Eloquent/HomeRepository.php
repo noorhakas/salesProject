@@ -73,10 +73,10 @@ class HomeRepository implements HomeInterface
 
 			'total_customers' => Customer::count(),
 
-			'total_current_visits' => Visit::has('plan')->whereDate('actual_start_date', $currentDate)
+			'total_current_visits' => Visit::has('plan')->whereHas('user',fn($q)=>$q->where('status', 1))->whereDate('actual_start_date', $currentDate)
 				->where('status', 2)->count(),
 
-			'total_current_plans' => Plan::has('user')->whereDate('start_date', '<=', $currentDate)
+			'total_current_plans' => Plan::whereHas('user',fn($q)=>$q->where('status', 1))->whereDate('start_date', '<=', $currentDate)
 				->where('end_date', '>=', $currentDate)->where('status', 1)->count(),
 		];
 	}
@@ -119,14 +119,14 @@ class HomeRepository implements HomeInterface
 	{
 		$today = Carbon::today();
 
-		$missedVisits = Visit::whereHas('user')->where('status', '=', 5)
+		$missedVisits = Visit::has('plan')->whereHas('user',fn($q)=>$q->where('status', 1))->where('status', '=', 5)
         ->whereBetween('visit_date', [
             $today->copy()->startOfMonth(),
             $today,
         ])
         ->count();
 
-		$pendingPlanApprovals = Plan::whereHas('user')->where('status', PlanStatusEnum::Pending)
+		$pendingPlanApprovals = Plan::whereHas('user',fn($q)=>$q->where('status', 1))->where('status', PlanStatusEnum::Pending)
 			->whereDate('end_date', '>=', $today)
 			->count();
 
