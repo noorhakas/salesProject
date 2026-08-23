@@ -8,14 +8,8 @@ use Spatie\Permission\Models\Permission;
 
 class AssignPermissionsToUserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        // user رقم 1
         $user = User::find(93);
 
         if (!$user) {
@@ -23,12 +17,14 @@ class AssignPermissionsToUserSeeder extends Seeder
             return;
         }
 
-        // كل البرمشنز
+        // Get all current permissions
         $permissions = Permission::all();
 
-        // assign permissions
+        // Remove old permissions and assign the new ones
         $user->syncPermissions($permissions);
 
-        $this->command->info('Permissions assigned successfully.');
+        $this->command->info(
+            'Old permissions removed and all current permissions assigned successfully.'
+        );
     }
 }

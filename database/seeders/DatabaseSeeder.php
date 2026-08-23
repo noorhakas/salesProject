@@ -72,7 +72,8 @@ class DatabaseSeeder extends Seeder
 
  //   $this->call(PublicHolidaySeeder::class);
   //  $this->call(EmpNoSeeder::class);
-     $this->call(PermissionSeeder::class);
+    // $this->call(PermissionSeeder::class);
+   $this->call(AssignPermissionsToUserSeeder::class);
         
     }
 }
