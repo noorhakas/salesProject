@@ -3,22 +3,25 @@
 namespace App\Http\Controllers\API\Panel\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\API\Admin\DepartmentResource;
 use App\Repository\Interfaces\BranchInterface;
 use Illuminate\Http\Request;
-use App\Http\Resources\API\Admin\DepartmentResource;
 
 class BranchReportController extends Controller
 {
     public function __construct(
         protected BranchInterface $IBranch
-    ) {}
+    ) {
+    }
 
     /**
-     * Branches report
+     * GET /admin/branches
      */
     public function index(Request $request)
     {
-        $response = $this->IBranch->getBranchesReport($request);
+        $response = $this->IBranch->getBranchesReport(
+            $request
+        );
 
         return $this->response_api(
             true,
@@ -28,10 +31,26 @@ class BranchReportController extends Controller
     }
 
     /**
-     * Branch details
+     * GET /admin/branches/{branch}
      */
-    public function show(Request $request,$branchId) {
-        $response = $this->IBranch->getBranchDetails($request,$branchId);
+    public function show(
+        Request $request,
+        $branchId
+    ) {
+        $response = $this->IBranch->getBranchDetails(
+            $request,
+            $branchId
+        );
+
+        if (
+            isset($response['status']) &&
+            ! $response['status']
+        ) {
+            return $this->response_api(
+                false,
+                $response['message']
+            );
+        }
 
         return $this->response_api(
             true,
@@ -41,7 +60,7 @@ class BranchReportController extends Controller
     }
 
     /**
-     * Branch departments
+     * GET /admin/branches/{branch}/departments
      */
     public function departments(
         Request $request,
@@ -52,7 +71,19 @@ class BranchReportController extends Controller
             $branchId
         );
 
-        $response = DepartmentResource::collection($department);
+        if (
+            isset($department['status']) &&
+            ! $department['status']
+        ) {
+            return $this->response_api(
+                false,
+                $department['message']
+            );
+        }
+
+        $response = DepartmentResource::collection(
+            $department
+        );
 
         return $this->response_api(
             true,
@@ -62,7 +93,7 @@ class BranchReportController extends Controller
     }
 
     /**
-     * Branch products
+     * GET /admin/branches/{branch}/products
      */
     public function products(
         Request $request,
@@ -73,6 +104,16 @@ class BranchReportController extends Controller
             $branchId
         );
 
+        if (
+            isset($response['status']) &&
+            ! $response['status']
+        ) {
+            return $this->response_api(
+                false,
+                $response['message']
+            );
+        }
+
         return $this->response_api(
             true,
             trans('messages.success'),
@@ -80,10 +121,32 @@ class BranchReportController extends Controller
         );
     }
 
-    public function salesReps(Request $request, $branchId)
-    {
-        $result = $this->IBranch->getBranchSalesReps($request, $branchId);
+    /**
+     * GET /admin/branches/{branch}/sales-reps
+     */
+    public function salesReps(
+        Request $request,
+        $branchId
+    ) {
+        $response = $this->IBranch->getBranchSalesReps(
+            $request,
+            $branchId
+        );
 
-        return $this->response_api(true, trans('messages.success'), $result);
+        if (
+            isset($response['status']) &&
+            ! $response['status']
+        ) {
+            return $this->response_api(
+                false,
+                $response['message']
+            );
+        }
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            $response
+        );
     }
 }

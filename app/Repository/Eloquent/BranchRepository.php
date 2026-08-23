@@ -3,13 +3,13 @@
 namespace App\Repository\Eloquent;
 
 use App\Http\Resources\API\BranchResource;
-use App\Http\Resources\API\DepartmentResource;
 use App\Http\Resources\API\ProductResource;
 use App\Http\Resources\API\SupervisorSimpleResource;
 use App\Http\Resources\API\UserSimpleResource;
 use App\Http\Traits\PaginatesResults;
 use App\Models\Branch;
 use App\Models\Product;
+use App\Models\User;
 use App\Repository\Interfaces\BranchInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -21,10 +21,30 @@ class BranchRepository implements BranchInterface
 
     /**
      * Get branches report.
+     *
+     * Admin:
+     *     $user = null       => all branches
+     *
+     * Manager:
+     *     $user = manager    => manager's branches only
      */
-    public function getBranchesReport(Request $request)
-    {
-        $branches = Branch::query()
+    public function getBranchesReport(
+        Request $request,
+        ?User $user = null
+    ) {
+        $subordinateIds = $user?->getAllSubordinateIds();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Branches
+        |--------------------------------------------------------------------------
+        */
+
+        $branchesQuery = $user
+            ? $user->branches()
+            : Branch::query();
+
+        $branches = $branchesQuery
             ->when(
                 $request->filled('search'),
                 fn (Builder $query) => $query->where(
@@ -35,12 +55,18 @@ class BranchRepository implements BranchInterface
             )
             ->withCount('departments')
             ->get([
-                'id',
-                'name',
-                'address',
-                'phone',
-                'whatsapp',
+                'branches.id',
+                'branches.name',
+                'branches.address',
+                'branches.phone',
+                'branches.whatsapp',
             ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Supervisors / Sales Reps counts
+        |--------------------------------------------------------------------------
+        */
 
         $usersCount = DB::table('user_branches')
             ->join(
@@ -55,31 +81,44 @@ class BranchRepository implements BranchInterface
                 '=',
                 'users.position'
             )
+            ->when(
+                $subordinateIds !== null,
+                fn ($query) => $query->whereIn(
+                    'users.id',
+                    $subordinateIds
+                )
+            )
             ->select('user_branches.branch_id')
-            ->selectRaw(
-                "SUM(
+            ->selectRaw("
+                SUM(
                     CASE
                         WHEN positions.ps_key = 'supervisor'
                         THEN 1
                         ELSE 0
                     END
-                ) as supervisor_count"
-            )
-            ->selectRaw(
-                "SUM(
+                ) as supervisor_count
+            ")
+            ->selectRaw("
+                SUM(
                     CASE
                         WHEN positions.ps_key = 'sales_rep'
                         THEN 1
                         ELSE 0
                     END
-                ) as sales_rep_count"
-            )
+                ) as sales_rep_count
+            ")
             ->groupBy('user_branches.branch_id')
             ->get()
             ->keyBy('branch_id');
 
-        return $branches->map(
-            function (Branch $branch) use ($usersCount) {
+        /*
+        |--------------------------------------------------------------------------
+        | Response
+        |--------------------------------------------------------------------------
+        */
+
+        return $branches
+            ->map(function (Branch $branch) use ($usersCount) {
                 $userCount = $usersCount->get($branch->id);
 
                 return [
@@ -98,67 +137,124 @@ class BranchRepository implements BranchInterface
                     'department_count' =>
                         (int) $branch->departments_count,
                 ];
-            }
-        )->values();
+            })
+            ->values();
     }
 
     /**
      * Get branch details.
+     *
+     * Admin:
+     *     $user = null => all users
+     *
+     * Manager:
+     *     $user = manager => only manager's subordinates
      */
-    public function getBranchDetails(Request $request, $branchId)
-    {
+    public function getBranchDetails(
+        Request $request,
+        $branchId,
+        ?User $user = null
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Branch
+        |--------------------------------------------------------------------------
+        */
+
         $branch = Branch::query()
             ->withCount('departments')
             ->findOrFail($branchId);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Permission / Scope
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user &&
+            ! $user->branches()->whereKey($branch->id)->exists()
+        ) {
+            return [
+                'status' => false,
+                'message' => trans('messages.permission_denied'),
+            ];
+        }
+
+        $subordinateIds = $user?->getAllSubordinateIds();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Area Manager
+        |--------------------------------------------------------------------------
+        */
 
         $areaManager = $branch->users()
             ->with('userposition')
             ->whereHas(
                 'userposition',
-                fn (Builder $query) => $query->where(
-                    'ps_key',
-                    'area_manager'
-                )
+                fn (Builder $query) =>
+                    $query->where('ps_key', 'area_manager')
             )
             ->first();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Supervisors
+        |--------------------------------------------------------------------------
+        */
+
         $supervisors = $branch->users()
             ->with('userposition')
+            ->when(
+                $subordinateIds !== null,
+                fn ($query) =>
+                    $query->whereIn('users.id', $subordinateIds)
+            )
             ->whereHas(
                 'userposition',
-                fn (Builder $query) => $query->where(
-                    'ps_key',
-                    'supervisor'
-                )
+                fn (Builder $query) =>
+                    $query->where('ps_key', 'supervisor')
             )
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Sales Reps
+        |--------------------------------------------------------------------------
+        */
+
         $salesRepCount = $branch->users()
+            ->when(
+                $subordinateIds !== null,
+                fn ($query) =>
+                    $query->whereIn('users.id', $subordinateIds)
+            )
             ->whereHas(
                 'userposition',
-                fn (Builder $query) => $query->where(
-                    'ps_key',
-                    'sales_rep'
-                )
+                fn (Builder $query) =>
+                    $query->where('ps_key', 'sales_rep')
             )
             ->count();
 
         return [
             'branch' => new BranchResource($branch),
 
-            'department_count' => (int) $branch->departments_count,
+            'department_count' =>
+                (int) $branch->departments_count,
 
-            'supervisor_count' => $supervisors->count(),
+            'supervisor_count' =>
+                $supervisors->count(),
 
-            'sales_rep_count' => $salesRepCount,
+            'sales_rep_count' =>
+                $salesRepCount,
 
             'area_manager' => $areaManager
                 ? new UserSimpleResource($areaManager)
                 : null,
 
-            'supervisors' => SupervisorSimpleResource::collection(
-                $supervisors
-            ),
+            'supervisors' =>
+                SupervisorSimpleResource::collection($supervisors),
         ];
     }
 
@@ -167,62 +263,96 @@ class BranchRepository implements BranchInterface
      */
     public function getBranchDepartments(
         Request $request,
-        $branchId
+        $branchId,
+        ?User $user = null
     ) {
         $branch = Branch::findOrFail($branchId);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Manager can only access his branches
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user &&
+            ! $user->branches()->whereKey($branch->id)->exists()
+        ) {
+            return [
+                'status' => false,
+                'message' => trans('messages.permission_denied'),
+            ];
+        }
 
         $departmentsQuery = $branch->departments()
             ->when(
                 $request->filled('search'),
-                fn (Builder $query) => $query->where(
-                    'name',
-                    'like',
-                    '%' . $request->input('search') . '%'
-                )
+                fn (Builder $query) =>
+                    $query->where(
+                        'name',
+                        'like',
+                        '%' . $request->input('search') . '%'
+                    )
             )
             ->withCount([
                 'users',
                 'products',
             ]);
 
-        $departments = $this->paginateOrAll(
+        return $this->paginateOrAll(
             $departmentsQuery,
             $request
         );
-
-        return $departments;
     }
 
     /**
      * Get branch sales reps.
-     *
-     * Same shape/pattern as getBranchDepartments (paginated + searchable),
-     * unlike the plain ->count() used for sales reps inside
-     * getBranchDetails — this one returns the actual rows for the
-     * "Sales Reps" tab on the branch detail screen.
      */
     public function getBranchSalesReps(
         Request $request,
-        $branchId
+        $branchId,
+        ?User $user = null
     ) {
         $branch = Branch::findOrFail($branchId);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Manager can only access his branches
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user &&
+            ! $user->branches()->whereKey($branch->id)->exists()
+        ) {
+            return [
+                'status' => false,
+                'message' => trans('messages.permission_denied'),
+            ];
+        }
+
+        $subordinateIds = $user?->getAllSubordinateIds();
+
         $salesRepsQuery = $branch->users()
             ->with('userposition')
+            ->when(
+                $subordinateIds !== null,
+                fn ($query) =>
+                    $query->whereIn('users.id', $subordinateIds)
+            )
             ->whereHas(
                 'userposition',
-                fn (Builder $query) => $query->where(
-                    'ps_key',
-                    'sales_rep'
-                )
+                fn (Builder $query) =>
+                    $query->where('ps_key', 'sales_rep')
             )
             ->when(
                 $request->filled('search'),
-                fn (Builder $query) => $query->where(
-                    'users.name',
-                    'like',
-                    '%' . $request->input('search') . '%'
-                )
+                fn (Builder $query) =>
+                    $query->where(
+                        'users.name',
+                        'like',
+                        '%' . $request->input('search') . '%'
+                    )
             )
             ->latest('users.created_at');
 
@@ -241,8 +371,27 @@ class BranchRepository implements BranchInterface
      */
     public function getBranchProducts(
         Request $request,
-        $branchId
+        $branchId,
+        ?User $user = null
     ) {
+        $branch = Branch::findOrFail($branchId);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Manager can only access his branches
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user &&
+            ! $user->branches()->whereKey($branch->id)->exists()
+        ) {
+            return [
+                'status' => false,
+                'message' => trans('messages.permission_denied'),
+            ];
+        }
+
         $productQuery = Product::query()
             ->with([
                 'company',
@@ -250,18 +399,20 @@ class BranchRepository implements BranchInterface
             ])
             ->whereHas(
                 'departments.branches',
-                fn (Builder $query) => $query->where(
-                    'branches.id',
-                    $branchId
-                )
+                fn (Builder $query) =>
+                    $query->where(
+                        'branches.id',
+                        $branchId
+                    )
             )
             ->when(
                 $request->filled('search'),
-                fn (Builder $query) => $query->where(
-                    'name',
-                    'like',
-                    '%' . $request->input('search') . '%'
-                )
+                fn (Builder $query) =>
+                    $query->where(
+                        'name',
+                        'like',
+                        '%' . $request->input('search') . '%'
+                    )
             )
             ->distinct()
             ->latest();
@@ -271,7 +422,7 @@ class BranchRepository implements BranchInterface
             $request
         );
 
-        return ProductResource::collection(
+        return \App\Http\Resources\API\ProductResource::collection(
             $products
         );
     }
