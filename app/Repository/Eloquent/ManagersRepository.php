@@ -25,9 +25,6 @@ class ManagersRepository implements ManagerInterface
             ->whereHas('userposition', fn ($q) =>
                 $q->where('ps_key','!=',PositionKey::SALES_REP->value)
             )
-            ->when($request->filled('search'), fn ($q) =>
-                $q->where('name', 'like', '%' . $request->search . '%')
-            )
             ->filter($request)
             ->latest();
         return  $this->paginateOrAll($managerQuey, $request); 
