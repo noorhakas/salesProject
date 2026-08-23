@@ -38,25 +38,14 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::get('managers/{manager}/accounts', 'UserProfileController@managerAccounts');
     Route::get('managers/{manager}/customers', 'UserProfileController@managerCustomers');
    // Route::get('managers/{manager}/supervisors/statistics', 'UserProfileController@managerSupervisorsStatistics');
-    Route::get('managers/{manager}/reps', 'UserProfileController@managerReps');
+    Route::get('managers/{manager}/sales-reps', 'UserProfileController@managerReps');
    // Route::get('managers/{manager}/reps/statistics', 'UserProfileController@managerRepsStatistics');
 
     // Supervisor
     Route::get('supervisor/{supervisor}', 'UserProfileController@supervisorProfile');
-    Route::get('supervisor/{supervisor}/reps', 'UserProfileController@supervisorReps');
-    Route::get('supervisor/{supervisor}/accounts', 'UserProfileController@supervisorAccounts');
-    Route::get('supervisor/{supervisor}/customers', 'UserProfileController@supervisorCustomers');
-
-
-	/*Route::get('managers/{id}', 'ManagerProfController@show');
-    Route::get('managers/{id}/supervisors','ManagerProfController@supervisors');
-    Route::get('managers/{id}/accounts', 'ManagerProfController@accounts');
-    Route::get('managers/{id}/customers', 'ManagerProfController@customers');
-
-    Route::get('supervisor/{id}','SupervisorProfController@show');
-    Route::get('supervisor/{id}/sales-reps','SupervisorProfController@salesReps');
-    Route::get('supervisor/{id}/accounts','SupervisorProfController@accounts');
-    Route::get('supervisor/{id}/customers','SupervisorProfController@customers');*/
+    Route::get('supervisor/{supervisor}/sales-reps', 'UserProfileController@supervisorReps');
+    Route::get('supervisor/{supervisor}/accounts', 'UserProfileController@managerAccounts');
+    Route::get('supervisor/{supervisor}/customers', 'UserProfileController@managerCustomers');
 
 
 	Route::get('branch_report','BranchReportController@index');
