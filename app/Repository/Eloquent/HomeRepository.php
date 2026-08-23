@@ -119,14 +119,14 @@ class HomeRepository implements HomeInterface
 	{
 		$today = Carbon::today();
 
-		$missedVisits = Visit::where('status', '=', 5)
+		$missedVisits = Visit::whereHas('user')->where('status', '=', 5)
         ->whereBetween('visit_date', [
             $today->copy()->startOfMonth(),
             $today,
         ])
         ->count();
 
-		$pendingPlanApprovals = Plan::where('status', PlanStatusEnum::Pending)
+		$pendingPlanApprovals = Plan::whereHas('user')->where('status', PlanStatusEnum::Pending)
 			->whereDate('end_date', '>=', $today)
 			->count();
 
