@@ -9,16 +9,6 @@ use App\Repository\Interfaces\AdminProfileInterface;
 use App\Http\Traits\PaginatesResults;
 use Illuminate\Http\Request;
 
-/**
- * Powers the Admin-panel "view profile by id" screens for the three
- * hierarchy roles (Manager -> Supervisor -> Sales Rep).
- *
- * Unlike SupervisorRepository / SalesRepRepository (used by the Manager
- * panel), these methods do NOT check that $request->user() is the target's
- * manager/supervisor — an admin can look up anyone. Ownership is only
- * checked where it protects data integrity (e.g. the given id must
- * actually hold the expected position), never against $request->user().
- */
 class AdminProfileRepository implements AdminProfileInterface
 {
     use PaginatesResults;
@@ -97,8 +87,6 @@ class AdminProfileRepository implements AdminProfileInterface
             return $this->notFound();
         }
 
-        // Whole team's accounts: every subordinate under this manager,
-        // supervisors and reps alike.
         return $this->accounts->getAccountsForManager($request, $manager->getAllSubordinateIds());
     }
 
@@ -109,11 +97,6 @@ class AdminProfileRepository implements AdminProfileInterface
         if (!$manager) {
             return $this->notFound();
         }
-
-        // ASSUMPTION: a CustomerRepository::getCustomersForManager() method
-        // mirroring AccountRepository::getAccountsForManager() — same
-        // whereHas('users', whereIn subordinateIds) pattern against the
-        // Customer model. Swap this for the real service once it exists.
         return app(\App\Repository\Interfaces\CustomerInterface::class)
             ->getCustomersForManager($request, $manager->getAllSubordinateIds());
     }

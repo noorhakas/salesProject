@@ -17,20 +17,22 @@ class SalesRepController extends Controller
 
     public function statistics(Request $request)
     {
+          $manager = $request->user();
         return $this->response_api(
             true,
             trans('messages.success'),
-            $this->salesRepRepository->statistics($request)
+            $this->salesRepRepository->statistics($request,$manager)
         );
     }
 
     public function getReps(Request $request)
     {
+          $manager = $request->user();
         return $this->response_api(
             true,
             trans('messages.success'),
             SalesRepProfileResource::collection(
-                $this->salesRepRepository->getReps($request)
+                $this->salesRepRepository->getReps($request,$manager)
             )
         );
     }

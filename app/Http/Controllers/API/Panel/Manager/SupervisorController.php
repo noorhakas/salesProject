@@ -22,20 +22,22 @@ class SupervisorController extends Controller
 
     public function statistics(Request $request)
     {
+         $manager = $request->user();
         return $this->response_api(
             true,
             trans('messages.success'),
-            $this->supervisorRepository->statistics($request)
+            $this->supervisorRepository->statistics($request,$manager)
         );
     }
 
     public function supervisors(Request $request)
     {
+         $manager = $request->user();
         return $this->response_api(
             true,
             trans('messages.success'),
             SupervisorSimpleResource::collection(
-                $this->supervisorRepository->supervisors($request)
+                $this->supervisorRepository->supervisors($request,$manager)
             )
         );
     }

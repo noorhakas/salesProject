@@ -14,9 +14,8 @@ class SalesRepRepository implements SalesRepInterface
 {
 
     use PaginatesResults;
-    public function statistics(Request $request)
+    public function statistics(Request $request, User $manager)
     {
-        $manager = $request->user();
 
         $subordinateIds = $manager->getAllSubordinateIds();
 
@@ -30,9 +29,8 @@ class SalesRepRepository implements SalesRepInterface
         );
     }
 
-    public function getReps(Request $request)
+    public function getReps(Request $request, User $manager)
     {
-        $manager = $request->user();
 
         $subordinateIds = $manager->getAllSubordinateIds();
         

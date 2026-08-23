@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 interface SupervisorInterface
 {
-    public function statistics(Request $request);
+    public function statistics(Request $request, User $manager);
 
-    public function supervisors(Request $request);
+    public function supervisors(Request $request, User $manager);
 
     public function supervisorProfile(Request $request, User $supervisor);
     

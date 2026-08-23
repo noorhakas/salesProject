@@ -14,9 +14,8 @@ use App\Http\Traits\PaginatesResults;
 class SupervisorRepository implements SupervisorInterface
 {
     use PaginatesResults;
-    public function statistics(Request $request)
+    public function statistics(Request $request, User $manager)
     {
-        $manager = $request->user();
 
         return app(AttendanceStatusService::class)->statistics(
             User::query()
@@ -28,9 +27,8 @@ class SupervisorRepository implements SupervisorInterface
         );
     }
 
-    public function supervisors(Request $request)
+    public function supervisors(Request $request, User $manager)
     {
-        $manager = $request->user();
 
 
         $query = User::with([
