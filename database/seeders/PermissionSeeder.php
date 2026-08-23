@@ -22,11 +22,17 @@ class PermissionSeeder extends Seeder
             ['name' => 'update Admin', 'guard_name' => 'web' , 'group_name'=>'Admins'],
             ['name' => 'delete Admin', 'guard_name' => 'web' , 'group_name'=>'Admins'],
 
-            ['name' => 'display Users', 'guard_name' => 'web' , 'group_name'=>'MedicalRep.'],
-            ['name' => 'create User', 'guard_name' => 'web' , 'group_name'=>'MedicalRep.'],
-            ['name' => 'update User', 'guard_name' => 'web' , 'group_name'=>'MedicalRep.'],
-            ['name' => 'delete User', 'guard_name' => 'web' , 'group_name'=>'MedicalRep.'],
-             ['name' => 'view User', 'guard_name' => 'web' , 'group_name'=>'MedicalRep.'],
+            ['name' => 'display SalesRep', 'guard_name' => 'web' , 'group_name'=>'SalesRep.'],
+            ['name' => 'create SalesRep', 'guard_name' => 'web' , 'group_name'=>'SalesRep.'],
+            ['name' => 'update SalesRep', 'guard_name' => 'web' , 'group_name'=>'SalesRep.'],
+            ['name' => 'delete SalesRep', 'guard_name' => 'web' , 'group_name'=>'SalesRep.'],
+             ['name' => 'view SalesRep', 'guard_name' => 'web' , 'group_name'=>'SalesRep.'],
+
+            ['name' => 'display Managers', 'guard_name' => 'web' , 'group_name'=>'Managers.'],
+            ['name' => 'create Manager', 'guard_name' => 'web' , 'group_name'=>'Managers.'],
+            ['name' => 'update Manager', 'guard_name' => 'web' , 'group_name'=>'Managers.'],
+            ['name' => 'delete Manager', 'guard_name' => 'web' , 'group_name'=>'Managers.'],
+            ['name' => 'view Manager', 'guard_name' => 'web' , 'group_name'=>'Managers.'],
 
             ['name' => 'display Roles', 'guard_name' => 'web' , 'group_name'=>'Role'],
             ['name' => 'create Role', 'guard_name' => 'web' , 'group_name'=>'Role'],
@@ -38,10 +44,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'update Account', 'guard_name' => 'web' , 'group_name'=>'Accounts'],
             ['name' => 'delete Account', 'guard_name' => 'web' , 'group_name'=>'Accounts'],
 
-            ['name' => 'display Doctors', 'guard_name' => 'web' , 'group_name'=>'Doctors'],
-            ['name' => 'create Doctor', 'guard_name' => 'web' , 'group_name'=>'Doctors'],
-            ['name' => 'update Doctor', 'guard_name' => 'web' , 'group_name'=>'Doctors'],
-            ['name' => 'delete Doctor', 'guard_name' => 'web' , 'group_name'=>'Doctors'],
+            ['name' => 'display Customers', 'guard_name' => 'web' , 'group_name'=>'Customers'],
+            ['name' => 'create Customer', 'guard_name' => 'web' , 'group_name'=>'Customers'],
+            ['name' => 'update Customer', 'guard_name' => 'web' , 'group_name'=>'Customers'],
+            ['name' => 'delete Customer', 'guard_name' => 'web' , 'group_name'=>'Customers'],
 
 
             ['name' => 'display Products', 'guard_name' => 'web' , 'group_name'=>'Products'],
@@ -49,6 +55,35 @@ class PermissionSeeder extends Seeder
             ['name' => 'update Product', 'guard_name' => 'web' , 'group_name'=>'Products'],
             ['name' => 'delete Product', 'guard_name' => 'web' , 'group_name'=>'Products'],
             ['name' => 'view Product', 'guard_name' => 'web' , 'group_name'=>'Products'],
+
+            ['name' => 'display Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+            ['name' => 'create Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+            ['name' => 'update Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+            ['name' => 'delete Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+            ['name' => 'view Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+
+
+            ['name' => 'display Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
+            ['name' => 'create Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
+            ['name' => 'update Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
+            ['name' => 'delete Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
+            ['name' => 'view Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
+
+
+            ['name' => 'display Plans', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'approval Of Plans', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'display Visits', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'display Overview Visits', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'display Visit Analytics', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'display Branches', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+            ['name' => 'display Map', 'guard_name' => 'web' , 'group_name'=>'Reports'],
+
+             ['name' => 'display Sales', 'guard_name' => 'web' , 'group_name'=>'Sales'],
+            ['name' => 'display Sales Chart', 'guard_name' => 'web' , 'group_name'=>'Sales'],
+
+             ['name' => 'display Attendance', 'guard_name' => 'web' , 'group_name'=>'Attendance'],
+            ['name' => 'display Public Holiday', 'guard_name' => 'web' , 'group_name'=>'Attendance'],
+
 
             ['name' => 'display Acc-Type', 'guard_name' => 'web' , 'group_name'=>'Acc-Type'],
             ['name' => 'create Acc-Type', 'guard_name' => 'web' , 'group_name'=>'Acc-Type'],
@@ -70,36 +105,22 @@ class PermissionSeeder extends Seeder
             ['name' => 'update Specialty', 'guard_name' => 'web' , 'group_name'=>'Specialty'],
             ['name' => 'delete Specialty', 'guard_name' => 'web' , 'group_name'=>'Specialty'],
 
-            ['name' => 'display Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
-            ['name' => 'create Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
-            ['name' => 'update Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
-            ['name' => 'delete Company', 'guard_name' => 'web' , 'group_name'=>'Company'],
+            ['name' => 'display Branch', 'guard_name' => 'web' , 'group_name'=>'Branch'],
+            ['name' => 'create Branch', 'guard_name' => 'web' , 'group_name'=>'Branch'],
+            ['name' => 'update Branch', 'guard_name' => 'web' , 'group_name'=>'Branch'],
+            ['name' => 'delete Branch', 'guard_name' => 'web' , 'group_name'=>'Branch'],
             // Add more permissions here as needed
 
-            ['name' => 'display Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
-            ['name' => 'create Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
-            ['name' => 'update Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
-            ['name' => 'delete Category', 'guard_name' => 'web' , 'group_name'=>'Category'],
-        
-            ['name' => 'display Pharmacy', 'guard_name' => 'web' , 'group_name'=>'Pharmacy'],
-            ['name' => 'create Pharmacy', 'guard_name' => 'web' , 'group_name'=>'Pharmacy'],
-            ['name' => 'update Pharmacy', 'guard_name' => 'web' , 'group_name'=>'Pharmacy'],
-            ['name' => 'delete Pharmacy', 'guard_name' => 'web' , 'group_name'=>'Pharmacy'],
+            ['name' => 'display Department', 'guard_name' => 'web' , 'group_name'=>'Department'],
+            ['name' => 'create Department', 'guard_name' => 'web' , 'group_name'=>'Department'],
+            ['name' => 'update Department', 'guard_name' => 'web' , 'group_name'=>'Department'],
+            ['name' => 'delete Department', 'guard_name' => 'web' , 'group_name'=>'Department'],
         
 
-            ['name' => 'display Pharmacy Group', 'guard_name' => 'web' , 'group_name'=>'Pharmacy Group'],
-            ['name' => 'create Pharmacy Group', 'guard_name' => 'web' , 'group_name'=>'Pharmacy Group'],
-            ['name' => 'update Pharmacy Group', 'guard_name' => 'web' , 'group_name'=>'Pharmacy Group'],
-            ['name' => 'delete Pharmacy Group', 'guard_name' => 'web' , 'group_name'=>'Pharmacy Group'],
+           
 
-
-            ['name' => 'display Plans', 'guard_name' => 'web' , 'group_name'=>'Reports'],
-            ['name' => 'approval Of Plans', 'guard_name' => 'web' , 'group_name'=>'Reports'],
-            ['name' => 'display Current Visits', 'guard_name' => 'web' , 'group_name'=>'Reports'],
-            ['name' => 'display Visits', 'guard_name' => 'web' , 'group_name'=>'Reports'],
-
-            ['name' => 'display Notification', 'guard_name' => 'web' , 'group_name'=>'Others'],
-            ['name' => 'display Logs', 'guard_name' => 'web' , 'group_name'=>'Others']
+            ['name' => 'display Notification', 'guard_name' => 'web' , 'group_name'=>'Setting'],
+            ['name' => 'display Logs', 'guard_name' => 'web' , 'group_name'=>'Setting']
 
          
         ];

@@ -29,9 +29,7 @@ class ProductController extends Controller
 
 	public function store(ProductRequest $request)
     {
-		// if (!auth()->user()->hasPermissionTo('create Product'))
-		// 	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
 		$response = $this->Iproduct->createProduct($request);
 		return $this->SendResponse($response); 
       
@@ -40,37 +38,25 @@ class ProductController extends Controller
 
 	public function show($id)
     {
-		//if (!auth()->user()->hasPermissionTo('display Product'))
-			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
 		$product = Product::find($id);
         $response = $this->Iproduct->showForAdmin($product);
         return $this->SendResponse($response);
     }
 
 	public function update(ProductRequest $request,Product $product) {
-		// if (!auth()->user()->hasPermissionTo('update Product'))
-		// 	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
 		$response = $this->Iproduct->updateProduct($request,$product);
 		return $this->SendResponse($response);
      
 	}
 	public function destroy(Product $product)
     {
-		// if (!auth()->user()->hasPermissionTo('delete Product'))
-		// 	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
-
+		
 		$response = $this->Iproduct->deleteProduct($product);
 		return $this->SendResponse($response);
     }
 
-
-	// public function addNotes(ProductNoteRequest $request){
-	//    $response = $this->Iproduct->addProductNote($request);
-	// 	return $this->SendResponse($response);
-	// }
 
 	public function getProductNotes($id){
 	    $response = $this->Iproduct->getAllProductNotes($id);
@@ -90,15 +76,15 @@ class ProductController extends Controller
     {
         $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
         $path = $request->file('file');
-		//try {
+		try {
 			\DB::beginTransaction();
 				$products = Excel::import(new ProductImport, $path);
 			\DB::commit();
 			return  $this->SendResponse(['status'=>true,'message'=>trans('messages.success')]);
-		/*	} catch (\Exception $e) {
+			} catch (\Exception $e) {
 				\DB::rollback();
 				return $this->SendResponse(['status'=>false,'message'=>trans('messages.server_error')]);
-		}*/
+		}
 
     }
 

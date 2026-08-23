@@ -18,9 +18,7 @@ class RoleController extends Controller
 {
 	public function index(Request $request)
 	{
-		// if (!auth()->user()->hasPermissionTo('display Roles'))
-		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-		 
+		
 		$role = Role::when(request()->get('search'),fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
 		     ->get(['id','name','created_at'])->map(fn ($role) => collect($role)
 		     ->put('created_at', Carbon::parse($role->created_at)->toDayDateTimeString())
@@ -32,9 +30,7 @@ class RoleController extends Controller
 
 	public function store(RoleRequest $request)
     {
-		 //if (!auth()->user()->hasPermissionTo('create Role'))
-			//return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
         $role = Role::updateOrCreate(['name'=>$request->name],array_merge($request->validated(),['guard_name'=>'web']));
 		$role->syncPermissions($request->permissions);
         return $this->response_api(true, trans('messages.success'));
@@ -52,9 +48,7 @@ class RoleController extends Controller
 
 	public function update(RoleRequest $request,Role $role)
     {
-		//if (!auth()->user()->hasPermissionTo('update Role'))
-		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
 		if(!$role)
            return $this->response_api(false, trans('messages.server_error'));
 
@@ -65,9 +59,7 @@ class RoleController extends Controller
 
 	public function destroy($id)
     {
-		//if (!auth()->user()->hasPermissionTo('delete Role'))
-		//	return $this->SendResponse(["status"=>false, "message"=>__('messages.permission_denied')],403);
-
+		
 		$role = Role::find($id);
 		if(!$role)
            return $this->response_api(false, trans('messages.server_error'));

@@ -29,7 +29,6 @@ class UserProfileController extends Controller
     // Manager
     // =====================================================
 
-    // GET /admin/managers/{manager}
     public function managerProfile(User $manager)
     {
         $manager->load([
@@ -46,7 +45,6 @@ class UserProfileController extends Controller
         );
     }
 
-    // GET /admin/managers/{manager}/supervisors
     public function managerSupervisors(Request $request, User $manager)
     {
         return $this->response_api(
@@ -58,7 +56,6 @@ class UserProfileController extends Controller
         );
     }
 
-    // GET /admin/managers/{manager}/supervisors/statistics
     public function managerSupervisorsStatistics(Request $request, User $manager)
     {
         return $this->response_api(
@@ -68,7 +65,6 @@ class UserProfileController extends Controller
         );
     }
 
-    // GET /admin/managers/{manager}/reps
     public function managerReps(Request $request, User $manager)
     {
         return $this->response_api(
@@ -80,7 +76,6 @@ class UserProfileController extends Controller
         );
     }
 
-    // GET /admin/managers/{manager}/reps/statistics
     public function managerRepsStatistics(Request $request, User $manager)
     {
         return $this->response_api(
@@ -111,7 +106,6 @@ class UserProfileController extends Controller
     // Supervisor
     // =====================================================
 
-    // GET /admin/supervisors/{supervisor}
     public function supervisorProfile(Request $request, User $supervisor)
     {
         $result = $this->supervisorRepository->supervisorProfile($request, $supervisor);
@@ -127,11 +121,9 @@ class UserProfileController extends Controller
         );
     }
 
-    // GET /admin/supervisors/{supervisor}/reps
     public function supervisorReps(Request $request, User $supervisor)
     {
-        // null = Admin isn't restricted to "must be your own subordinate"
-        // the way a manager calling this same repository method would be.
+        
         $result = $this->supervisorRepository->supervisorSalesRep($request, $supervisor, null);
 
         if (! $result['status']) {
@@ -168,7 +160,6 @@ class UserProfileController extends Controller
     // Sales Rep
     // =====================================================
 
-    // GET /admin/reps/{salesRep}
     public function salesRepProfile(Request $request, User $salesRep)
     {
         $result = $this->salesRepRepository->profile($request, $salesRep, null);
