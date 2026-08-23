@@ -63,6 +63,7 @@ class SupervisorRepository implements SupervisorInterface
             'branches:id,name',
             'branchDepartments.branch:id,name',
             'branchDepartments.department:id,name',
+             'manager:id,name',
         ]);
 
         return [

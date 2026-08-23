@@ -71,7 +71,7 @@ class SalesRepRepository implements SalesRepInterface
             'branches:id,name',
             'branchDepartments.branch:id,name',
             'branchDepartments.department:id,name',
-            'manager',
+            'manager:id,name',
         ]);
 
         return [
