@@ -56,7 +56,6 @@ class SupervisorRepository implements SupervisorInterface
 
     public function supervisorProfile(Request $request, User $supervisor)
     {
-        $manager = $request->user();
 
         $supervisor->load([
             'userposition',

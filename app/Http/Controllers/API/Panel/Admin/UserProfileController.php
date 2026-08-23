@@ -146,18 +146,18 @@ class UserProfileController extends Controller
     }
 
 
-    public function supervisorAccounts(Request $request, User $manager)
+    public function supervisorAccounts(Request $request, User $supervisor)
     {
-        $subordinateIds = $manager->getAllSubordinateIds();
+        $subordinateIds = $supervisor->getAllSubordinateIds();
 
         $response = $this->accountRepository->getAccountsForManager($request,$subordinateIds);
 
         return $this->response_api($response['status'], $response['message'], $response['data'] ?? null);
     }
 
-     public function supervisorCustomers(Request $request, User $manager)
+     public function supervisorCustomers(Request $request, User $supervisor)
     {
-        $subordinateIds = $manager->getAllSubordinateIds();
+        $subordinateIds = $supervisor->getAllSubordinateIds();
 
         $response = $this->customerRepository->getCustomersForManager($request,$subordinateIds);
 

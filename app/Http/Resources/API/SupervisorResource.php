@@ -27,6 +27,7 @@ class SupervisorResource extends JsonResource
             'position' => optional($this->userposition)->only(['id','ps_key','name',]),
             'branches' => BranchSimpleResource::collection($this->whenLoaded('branches')),
             'departments' => UserBranchDepartmentResource::collection($this->whenLoaded('branchDepartments')),
+            'manager' => new UserShortDetailResource($this->whenLoaded('manager')),
             'attendance_status'=>[
                 'value'=>$attendance_status['status']->value,
                 'label'=>$attendance_status['status']->label(),
