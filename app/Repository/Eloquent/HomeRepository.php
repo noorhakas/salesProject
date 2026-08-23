@@ -119,7 +119,7 @@ class HomeRepository implements HomeInterface
 	{
 		$today = Carbon::today();
 
-		$missedVisits = Visit::where('status', '!=', 2)
+		$missedVisits = Visit::where('status', '=', 5)
         ->whereBetween('visit_date', [
             $today->copy()->startOfMonth(),
             $today,
