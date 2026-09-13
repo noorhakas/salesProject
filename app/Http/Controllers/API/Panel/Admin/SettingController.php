@@ -16,9 +16,19 @@ use Illuminate\Support\Facades\DB;
 class SettingController extends Controller
 {
 	 public function index(){
-        $setting = Setting::first();
-		 return $this->SendResponse(['status'=>true,'message'=>trans('messages.success'),'data'=>new SettingResource($setting)]);
-	 }
+         $setting = Setting::first();
+
+		if (!$setting) {
+			return $this->SendResponse([
+				'status'  => true,'message' => trans('messages.success'),
+				'data'    => null,
+			]);
+		}
+
+		return $this->SendResponse(['status'  => true,'message' => trans('messages.success'),
+			'data'    => new SettingResource($setting),
+		]);
+	}
 
 	 public function store(Request $request){
          try {
