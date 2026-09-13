@@ -104,16 +104,9 @@ class SalesRepImport implements ToCollection, WithHeadingRow
 
                 $user->save();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Manager
-                |--------------------------------------------------------------------------
-                | يقبل "manager" (اللي طالع من الـ export) أو "manager_id" لو موجود
-                | في أي نسخة تانية من الشيت، عشان منقعش في نفس مشكلة الـ
-                | Undefined array key تاني.
-                */
+             
 
-                $managerValue = $row['manager'] ?? $row['manager_id'] ?? null;
+                $managerValue = $row['manager']  ?? null;
 
                 $managerId = $this->resolveManager($managerValue);
 
