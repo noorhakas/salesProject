@@ -141,10 +141,8 @@ class SalesRepImport implements ToCollection, WithHeadingRow
                     $row['departments'] ?? null
                 );
 
-                if (method_exists($user, 'branchDepartments')) {
-                    $user->branchDepartments()->sync(
-                        $departmentIds
-                    );
+                if (method_exists($user, 'departments')) {
+                    $user->departments()->sync($departmentIds);
                 }
             }
         });
