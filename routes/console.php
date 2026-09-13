@@ -22,3 +22,4 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('plans:update-statuses')->everyMinute(); //->hourly();
 Schedule::command('visits:update-statuses')->everyMinute(); //->dailyAt('00:05');
+
