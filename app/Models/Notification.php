@@ -8,110 +8,159 @@ use App\Http\Resources\API\NotificationResource;
 
 class Notification extends Model
 {
-	use SoftDeletes;
+    use SoftDeletes;
     protected $table = 'notifications';
-	
-	protected $fillable = ['Uuid','user_id' ,'tiNotificationType','vTitle','txBody','tiIsRead','model_id','model_type','account_id','customer_id','visit_date','visit_time','created_by'];
 
+    protected $fillable = [
+        'Uuid', 'user_id', 'tiNotificationType', 'vTitle', 'txBody',
+        'tiIsRead', 'model_id', 'model_type', 'created_by', 'payload',
+    ];
 
-	public function NotifyUser()
+    protected $casts = [
+        'payload' => 'array',
+    ];
+
+    public function NotifyUser()
     {
-        return $this->belongsTo(User::class,'created_by','id');
-    }
-	public function user()
-    {
-        return $this->belongsTo(User::class,'user_id','id');
-    }
-    public function account()
-    {
-        return $this->belongsTo(Account::class,'account_id','id');
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
-	public function customer()
+
+    public function creator()
     {
-        return $this->belongsTo(Customer::class,'customer_id','id');
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
-	public static function CreateNotify(array $data)
+    public function user()
     {
-		Notification::updateOrCreate(['created_by'=>auth()->user()->id??0 ,'vTitle' => $data['notify_title'], 'model_id'=>$data['model_id'] ,'model_type'=>$data['model_type'] ],[
-			'Uuid' => GetUuid(),
-			'user_id' =>$data['notify_userId'],
-			'tiNotificationType' => $data['notify_type'], // admins
-			'vTitle' => $data['notify_title'],
-			'txBody' => $data['notify_body'],
-			'tiIsRead' => 0,
-			'created_by'=>auth()->user()->id??0,
-			'model_id'=>$data['model_id'],
-			'model_type'=>$data['model_type'],
-            'account_id' => $data['account_id'] ?? 0,
-            'customer_id' => $data['customer_id'] ?? 0,
-            'visit_date' => $data['visit_date'] ?? '',
-            'visit_time' => $data['visit_time'] ?? ''
-		]);
-	}
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 
-	function notificationListing($request){
+    public function notifiable()
+    {
+        return $this->morphTo(__FUNCTION__, 'model_type', 'model_id');
+    }
 
-		$limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
-				$getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
-				->where(function ($q) {
-                  $q->where('notifications.user_id' ,auth()->user()->id)
-				  ->when(auth()->user()->position != 3 ,fn($q,$v) =>
-					$q->orWhere('notifications.tiNotificationType' , 1));
-                 });
-	
-          $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])->orderBy('notifications.created_at','desc')->paginate($limit);
-		  $UnReadNotify =  (clone $getNotificationQuery)->selectRaw('count(notifications.id) as notify_count')->where('notifications.tiIsRead',0)->first();
-           $countOfUnRead = ($UnReadNotify) ? $UnReadNotify->notify_count : 0;
-			$data = ['data'=> NotificationResource::collection($notificationList) ,'countOfUnRead' =>$countOfUnRead];
+    public static function CreateNotify(array $data)
+    {
+        Notification::updateOrCreate(
+            [
+                'created_by' => auth()->user()->id ?? 0,
+                'vTitle'     => $data['notify_title'],
+                'model_id'   => $data['model_id'],
+                'model_type' => $data['model_type'],
+            ],
+            [
+                'Uuid'               => GetUuid(),
+                'user_id'            => $data['notify_userId'],
+                'tiNotificationType' => $data['notify_type'],
+                'vTitle'             => $data['notify_title'],
+                'txBody'             => $data['notify_body'],
+                'tiIsRead'           => 0,
+                'created_by'         => auth()->user()->id ?? 0,
+                'model_id'           => $data['model_id'],
+                'model_type'         => $data['model_type'],
+                'payload'            => $data['payload'] ?? null,
+            ]
+        );
+    }
 
-		return ['status'=>true,'message'=>trans('messages.success'),'data'=>$data];
-	}
+    function notificationListing($request)
+    {
+        $authUser = auth()->user();
+        $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
 
-	public function notificationBadgeReset()
+        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
+            // جوين تاني على مين اللي عمل الأكشن (created_by) عشان نعرف مديره
+            ->leftJoin('users as creators', 'creators.id', '=', 'notifications.created_by')
+            ->where(function ($q) use ($authUser) {
+                // 1) الإشعار موجّه ليا شخصيًا (زي: اتقبلت/اترفضت خطتك، أو طلب زيارة ليا)
+                $q->where('notifications.user_id', $authUser->id)
+                    // 2) أو إشعار عام للمديرين (user_id = 0) وأنا مدير اللي عمل الأكشن
+                    ->orWhere(function ($q2) use ($authUser) {
+                        $q2->where('notifications.user_id', 0)
+                            ->where('creators.manager_id', $authUser->id);
+                    });
+            });
+
+        $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])
+            ->orderBy('notifications.created_at', 'desc')
+            ->paginate($limit);
+
+        $UnReadNotify = (clone $getNotificationQuery)
+            ->selectRaw('count(notifications.id) as notify_count')
+            ->where('notifications.tiIsRead', 0)
+            ->first();
+
+        $countOfUnRead = $UnReadNotify ? $UnReadNotify->notify_count : 0;
+
+        $notificationList->load('notifiable');
+
+        $data = ['data' => NotificationResource::collection($notificationList), 'countOfUnRead' => $countOfUnRead];
+
+        return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
+    }
+
+
+    
+    function notificationAdminListing($request)
+    {
+        $authUser = auth()->user();
+        $limit = (is_numeric($request->per_page)) && ($request->per_page > 0) ? $request->per_page : 20;
+
+        $getNotificationQuery = Notification::leftJoin('users', 'users.id', '=', 'notifications.user_id')
+            // جوين تاني على مين اللي عمل الأكشن (created_by) عشان نعرف مديره
+            ->leftJoin('users as creators', 'creators.id', '=', 'notifications.created_by');
+
+        $notificationList = (clone $getNotificationQuery)->select(['notifications.*'])
+            ->orderBy('notifications.created_at', 'desc')
+            ->paginate($limit);
+
+        $UnReadNotify = (clone $getNotificationQuery)
+            ->selectRaw('count(notifications.id) as notify_count')
+            ->where('notifications.tiIsRead', 0)
+            ->first();
+
+        $countOfUnRead = $UnReadNotify ? $UnReadNotify->notify_count : 0;
+
+        $notificationList->load('notifiable');
+
+        $data = ['data' => NotificationResource::collection($notificationList), 'countOfUnRead' => $countOfUnRead];
+
+        return ['status' => true, 'message' => trans('messages.success'), 'data' => $data];
+    }
+    public function notificationBadgeReset()
     {
         try {
-            $userId = auth()->user()->id;
-
-            Notification::where('tiIsRead', 0)
-                ->where(function ($q) use ($userId) {
-                    $q->where('notifications.user_id', $userId)
-                      ->when(auth()->user()->position != 3, fn($q) =>
-                          $q->orWhere('notifications.tiNotificationType', 1)
-                      );
-                })
-                ->update(['tiIsRead' => 1]);
-
-            return ['status'=>true,'message'=>trans('messages.success')];
-        } catch (Exception $e) {
+            Notification::where(['tiIsRead' => 0])->update(['tiIsRead' => 1]);
+            return ['status' => true, 'message' => trans('messages.success')];
+        } catch (\Exception $e) {
             return ExceptionResponse($e);
         }
     }
 
+    public function sendNotification(array $data)
+    {
+        self::CreateNotify([
+            'created_by'    => auth()->user()->id ?? 0,
+            'model_id'      => $data['model_id'],
+            'model_type'    => $data['model_type'],
+            'notify_userId' => $data['notify_userId'],
+            'notify_type'   => $data['notify_type'],
+            'notify_title'  => $data['notify_title'],
+            'notify_body'   => $data['notify_body'],
+            'payload'       => $data['payload'] ?? null,
+        ]);
 
-	public function sendNotification(array $data){
-			self::CreateNotify(['created_by'=>auth()->user()->id??0 , 
-				'model_id'=>$data['model_id'] , 'model_type'=>$data['model_type'],
-				'notify_userId'=>$data['notify_userId'],
-				'notify_type'=>$data['notify_type'],
-				'notify_title'=>$data['notify_title'],
-				'notify_body'=>$data['notify_body'],
-                'account_id' => $data['account_id'] ?? 0,
-                'customer_id' => $data['customer_id'] ?? 0,
-                'visit_date' => $data['visit_date'] ?? '',
-                'visit_time' => $data['visit_time'] ?? ''
-				]);
-		
-			$pushData = [
-				'id' => $data['model_id'],
-				'title' => $data['title'],
-				'msg' => $data['msg'],
-				'sound' => 'default',
-				'model_id' =>  $data['model_id'],
-				'model'=>$data['model_type'],
-			];
-			__send_push($data['tiDeviceType'],$data['tokens'],$pushData);
-	}
+        $pushData = [
+            'id'       => $data['model_id'],
+            'title'    => $data['title'],
+            'msg'      => $data['msg'],
+            'sound'    => 'default',
+            'model_id' => $data['model_id'],
+            'model'    => $data['model_type'],
+        ];
 
+       // __send_push($data['tiDeviceType'], $data['tokens'], $pushData);
+    }
 }
