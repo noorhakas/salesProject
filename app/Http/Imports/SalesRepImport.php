@@ -53,7 +53,7 @@ class SalesRepImport implements ToCollection, WithHeadingRow
                     }
                 }
 
-                $user->name = trim($row['name']);
+                $user->name = trim($row['name'] ?? '');
 
                 $user->email = !empty($row['email'])
                     ? trim($row['email'])
@@ -108,11 +108,14 @@ class SalesRepImport implements ToCollection, WithHeadingRow
                 |--------------------------------------------------------------------------
                 | Manager
                 |--------------------------------------------------------------------------
+                | يقبل "manager" (اللي طالع من الـ export) أو "manager_id" لو موجود
+                | في أي نسخة تانية من الشيت، عشان منقعش في نفس مشكلة الـ
+                | Undefined array key تاني.
                 */
 
-                $managerId = $this->resolveManager(
-                    $row['manager'] ?? null
-                );
+                $managerValue = $row['manager'] ?? $row['manager_id'] ?? null;
+
+                $managerId = $this->resolveManager($managerValue);
 
                 $user->manager_id = $managerId;
                 $user->save();
@@ -154,9 +157,14 @@ class SalesRepImport implements ToCollection, WithHeadingRow
             return null;
         }
 
+        // يقبل الصيغة "1001 - Ahmed" أو رقم الموظف لوحده "1001"
         $empNo = trim(
             explode('-', $value)[0]
         );
+
+        if ($empNo === '') {
+            return null;
+        }
 
         return User::where(
             'emp_no',
