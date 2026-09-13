@@ -7,7 +7,7 @@ use App\Http\Imports\Sheets\CategoriesImportSheet;
 use App\Http\Imports\Sheets\CompaniesImportSheet;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class ProductsImport implements WithMultipleSheets
+class ProductImport implements WithMultipleSheets
 {
     public function sheets(): array
     {
