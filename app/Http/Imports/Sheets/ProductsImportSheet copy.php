@@ -5,8 +5,6 @@ namespace App\Http\Imports\Sheets;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Company;
-use App\Models\Department;
-
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -30,6 +28,17 @@ class ProductsImportSheet implements
         }
 
         /*
+         * Resolve Category by name
+         */
+        $categoryId = null;
+
+        if (!empty($row['category'])) {
+            $categoryId = Category::query()
+                ->where('name', trim($row['category']))
+                ->value('id');
+        }
+
+        /*
          * Resolve Company by name
          */
         $companyId = null;
@@ -40,23 +49,10 @@ class ProductsImportSheet implements
                 ->value('id');
         }
 
-        $categoryId = null;
-
-        if (!empty($row['category'])) {
-            $categoryId = Category::query()
-                ->where('name', trim($row['category']))
-                ->value('id');
-        }
-
-
-       
-        $statusRaw = strtolower(trim($row['status'] ?? ''));
-        $status = in_array($statusRaw, ['active', '1', 'yes', 'true'], true) ? 1 : 0;
-
         /*
          * Create or update product
          */
-        $product = Product::updateOrCreate(
+        return Product::updateOrCreate(
             [
                 'name' => $name,
             ],
@@ -65,43 +61,15 @@ class ProductsImportSheet implements
                 'description' => $row['description'] ?? null,
                 'price'       => $row['price'] ?? null,
                 'company_id'  => $companyId,
-                'status'      => $status,
                 'category_id' => $categoryId,
+                'status'      => $row['status'] ?? null,
             ]
         );
-
-        /*
-         * Categories: بتقبل أكتر من قسم مفصولين بفاصلة
-         * مثال: "Electronics, Home Appliances"
-         */
-           $departmentIds = $this->resolveDepartments(
-                    $row['departments'] ?? null
-                );
-
-                 if (method_exists($product, 'departments')) {
-                    $product->departments()->sync($departmentIds);
-                }
-
-        return $product;
     }
 
-    protected function resolveDepartments(?string $value): array
-    {
-        if (!$value) {
-            return [];
-        }
-
-        $names = collect(
-            preg_split('/\s*,\s*/', $value)
-        )
-            ->map(fn ($name) => trim($name))
-            ->filter()
-            ->unique();
-
-        return Department::whereIn('name', $names)
-            ->pluck('id')
-            ->toArray();
-    }
+      if ($request->has('department_ids')) {
+                $product->departments()->sync($request->department_ids);
+            }
 
     public function rules(): array
     {
@@ -132,13 +100,11 @@ class ProductsImportSheet implements
             'category' => [
                 'nullable',
                 'string',
-                'max:1000',
+                'max:255',
             ],
 
             'status' => [
                 'nullable',
-                'string',
-                'in:Active,Inactive,active,inactive',
             ],
         ];
     }
