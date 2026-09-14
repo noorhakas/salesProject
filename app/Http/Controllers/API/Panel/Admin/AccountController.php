@@ -9,7 +9,7 @@ use App\Http\Requests\API\AccountRequest;
 use App\Repository\Interfaces\AccountInterface;
 use App\Http\Exports\AccountExport;
 use App\Http\Imports\AccountImport;
-use App\Http\Imports\UserAccountImport;
+use App\Http\Imports\UserAssignedImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AccountController extends Controller
@@ -61,35 +61,55 @@ class AccountController extends Controller
     }
 
 
+  
     public function importUserAccounts(Request $request)
     {
-        $request->validate([ 'file' => 'required|file|mimes:xls,xlsx' ]);
+        $request->validate([
+            'file' => 'required|file|mimes:xls,xlsx',
+        ]);
+
         $path = $request->file('file');
 
-            try {
-                // Start transaction
-                \DB::beginTransaction();
+        try {
 
-                $account_import = new UserAccountImport;
-                Excel::import($account_import, $path);
+            \DB::beginTransaction();
 
-                $result = [ 
-                    'Exist' => $account_import->exist_data,
-                    'DontExist' => $account_import->dontexist_data, 
-                    'BrickExist' => $account_import->exist_brick,
-                    'DontBrickExist' => $account_import->dontexist_brick,
-                    'ProductExist'=>$account_import->exist_product,
-                    'DontProductExist' => $account_import->dontexist_product,
-                ];
+            // User is not created yet
+            $account_import = new UserAssignedImport();
 
-                \DB::commit();
+            Excel::import($account_import, $path);
 
-                return $this->SendResponse([ 'status' => true,'message' => trans('messages.success'),'data' => $result]);
-            } catch (\Exception $e) {
-                \DB::rollback();
-                return $this->SendResponse([ 'status' => false,'message' => trans('messages.server_error'),
-                    'error' => $e->getMessage() ]);
-            }
+            $report = $account_import->report();
+
+            $result = [
+                'Exist' => $report['accounts']['matched'],
+                'DontExist' => $report['accounts']['unmatched'],
+
+                'BrickExist' => $report['areas']['matched'],
+                'DontBrickExist' => $report['areas']['unmatched'],
+
+                'ProductExist' => $report['products']['matched'],
+                'DontProductExist' => $report['products']['unmatched'],
+            ];
+
+            \DB::commit();
+
+            return $this->SendResponse([
+                'status' => true,
+                'message' => trans('messages.success'),
+                'data' => $result,
+            ]);
+
+        } catch (\Exception $e) {
+
+            \DB::rollback();
+
+            return $this->SendResponse([
+                'status' => false,
+                'message' => trans('messages.server_error'),
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
  
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Imports\Sheets;
 
-use App\Models\User;
 use App\Models\Bricks;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -10,14 +9,11 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class UserAssignedAreasImport implements ToCollection, WithHeadingRow
 {
-    protected User $user;
-
     public Collection $exist_brick;
     public Collection $dontexist_brick;
 
-    public function __construct(User $user)
+    public function __construct()
     {
-        $this->user = $user;
         $this->exist_brick = collect();
         $this->dontexist_brick = collect();
     }
@@ -25,7 +21,7 @@ class UserAssignedAreasImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         $names = $rows
-            ->pluck('area_name') // heading "Area Name" => area_name
+            ->pluck('area_name')
             ->filter()
             ->map(fn ($name) => trim($name))
             ->unique()
@@ -35,16 +31,21 @@ class UserAssignedAreasImport implements ToCollection, WithHeadingRow
             return;
         }
 
-        $bricks = Bricks::whereIn('name', $names)->get(['id', 'name']);
+        $bricks = Bricks::whereIn('name', $names)
+            ->get(['id', 'name']);
 
+        // Areas that exist
         foreach ($bricks as $brick) {
             $this->exist_brick->add([
-                'id'         => $brick->id,
+                'id' => $brick->id,
                 'brick_name' => $brick->name,
             ]);
         }
 
-        $foundNames = $bricks->pluck('name')->all();
+        // Areas that don't exist
+        $foundNames = $bricks
+            ->pluck('name')
+            ->all();
 
         foreach ($names as $name) {
             if (!in_array($name, $foundNames, true)) {
@@ -53,7 +54,5 @@ class UserAssignedAreasImport implements ToCollection, WithHeadingRow
                 ]);
             }
         }
-
-        $this->user->bricks()->sync($bricks->pluck('id'));
     }
 }
