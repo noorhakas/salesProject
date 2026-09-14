@@ -30,13 +30,13 @@ class UserController extends Controller
     {
         $userQuery = User::filter($request)
             ->where('is_admin', 0)
-            // ->whereHas(
-            //     'userposition',
-            //     fn ($q) => $q->where(
-            //         'ps_key',
-            //         PositionKey::SALES_REP->value
-            //     )
-            // )
+            ->whereHas(
+                'userposition',
+                fn ($q) => $q->where(
+                    'ps_key',
+                    PositionKey::SALES_REP->value
+                )
+            )
             ->latest();
 
         $users = $this->paginateOrAll($userQuery, $request);

@@ -20,10 +20,11 @@ class UserRequest extends FormRequest
         $userId = $this->user?->id;
 
         $rules = [
-            'emp_no'     => 'required',
-            'name'       => 'required|string|max:100',
+            'emp_no' => 'required',
 
-            'user_name'  => [
+            'name' => 'required|string|max:100',
+
+            'user_name' => [
                 'required',
                 'string',
                 'max:100',
@@ -36,12 +37,28 @@ class UserRequest extends FormRequest
                 'unique:users,email,' . $userId . ',id,deleted_at,NULL',
             ],
 
-            'status'     => 'required|integer|in:0,1',
-            'role_id'    => 'sometimes|exists:roles,id',
-            'position'   => 'sometimes',
+            'phone' => [
+                'nullable',
+                'max:20',
+            ],
+
+            'whatsapp' => [
+                'nullable',
+                'max:20',
+            ],
+
+            'status' => 'required|integer|in:0,1',
+
+            'role_id' => 'sometimes|exists:roles,id',
+
+            'position' => 'sometimes',
+
             'manager_id' => 'sometimes',
         ];
 
+        /*
+         * Create
+         */
         if ($this->isMethod('POST')) {
 
             $rules['password'] = 'required|min:6';
@@ -49,6 +66,9 @@ class UserRequest extends FormRequest
             $rules['file'] = 'required|file|mimes:xls,xlsx';
         }
 
+        /*
+         * Update
+         */
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
 
             $rules['password'] = 'sometimes|required|min:6';

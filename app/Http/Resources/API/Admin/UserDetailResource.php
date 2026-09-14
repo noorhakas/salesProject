@@ -35,7 +35,7 @@ class UserDetailResource extends JsonResource
             'user_name' => $this->user_name,
             'name' => $this->name,
             'email' => $this->email,
-             'phone' => $this->phone ?? '',
+            'phone' => $this->phone ?? '',
             'whatsapp' => $this->whatsapp ?? '',
 			'status'=>$this->status,
             'statusAsString'=>StatusEnum::toString($this->status),
