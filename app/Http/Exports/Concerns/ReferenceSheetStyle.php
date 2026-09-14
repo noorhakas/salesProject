@@ -43,7 +43,7 @@ trait ReferenceSheetStyle
 
                     'fill' => [
                         'fillType'   => Fill::FILL_SOLID,
-                        'startColor' => ['rgb' => 'e0013f'],
+                        'startColor' => ['rgb' => '#053562'],
                     ],
 
                     'borders' => [
