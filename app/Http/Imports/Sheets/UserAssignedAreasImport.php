@@ -6,8 +6,9 @@ use App\Models\Bricks;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
-class UserAssignedAreasImport implements ToCollection, WithHeadingRow
+class UserAssignedAreasImport implements ToCollection, WithHeadingRow, WithCalculatedFormulas
 {
     public Collection $exist_brick;
     public Collection $dontexist_brick;

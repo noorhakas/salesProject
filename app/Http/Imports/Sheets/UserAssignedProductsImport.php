@@ -6,8 +6,9 @@ use App\Models\Product;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
-class UserAssignedProductsImport implements ToCollection, WithHeadingRow
+class UserAssignedProductsImport implements ToCollection, WithHeadingRow, WithCalculatedFormulas
 {
     public Collection $exist_product;
     public Collection $dontexist_product;

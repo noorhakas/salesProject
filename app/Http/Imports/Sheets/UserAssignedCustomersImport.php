@@ -7,8 +7,9 @@ use App\Models\Customer;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
-class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
+class UserAssignedCustomersImport implements ToCollection, WithHeadingRow, WithCalculatedFormulas
 {
     public Collection $exist_data;
     public Collection $dontexist_data;
