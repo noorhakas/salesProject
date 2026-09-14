@@ -8,7 +8,6 @@ use App\Http\Requests\API\UserRequest;
 use App\Http\Imports\UserAssignedImport;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\Admin\UserDetailResource;
-
 use App\Http\Resources\API\AdminResource;
 use App\Enums\PositionKey;
 use App\Models\User;
@@ -23,14 +22,24 @@ use App\Http\Imports\SalesRepImport;
 class UserController extends Controller
 {
     use PaginatesResults;
-     
+
+    /**
+     * List Sales Representatives
+     */
     public function index(Request $request)
     {
-        $userQuery = User::filter($request)->where('is_admin', 0)->whereHas('userposition', fn ($q) =>
-					$q->where('ps_key', PositionKey::SALES_REP->value)
-				)->latest();
+        $userQuery = User::filter($request)
+            ->where('is_admin', 0)
+            ->whereHas(
+                'userposition',
+                fn ($q) => $q->where(
+                    'ps_key',
+                    PositionKey::SALES_REP->value
+                )
+            )
+            ->latest();
 
-        $users = $this->paginateOrAll($userQuery, $request);    
+        $users = $this->paginateOrAll($userQuery, $request);
 
         return $this->response_api(
             true,
@@ -40,31 +49,49 @@ class UserController extends Controller
     }
 
 
-
+    /**
+     * Create User
+     */
     public function store(UserRequest $request)
     {
         try {
+
             $user = DB::transaction(function () use ($request) {
 
                 $data = array_merge(
                     $request->validated(),
                     [
-                        'access_all_data' => $request->customer_select_all
+                        'access_all_data' => 0, //$request->customer_select_all,
+                        'is_admin'=> 0,
                     ]
                 );
 
+                /*
+                 * 1. Create User
+                 */
                 $user = User::create($data);
 
 
+                /*
+                 * 2. Branches
+                 */
                 if (!empty($request->branch_ids)) {
-                    $user->branches()->sync($request->branch_ids);
+
+                    $user->branches()->sync(
+                        $request->branch_ids
+                    );
                 }
 
+
+                /*
+                 * 3. Branch Departments
+                 */
                 if (!empty($request->branch_departments)) {
 
                     $user->branchDepartments()->delete();
 
                     foreach ($request->branch_departments as $item) {
+
                         $user->branchDepartments()->create([
                             'branch_id'     => $item['branch_id'],
                             'department_id' => $item['department_id'],
@@ -72,22 +99,74 @@ class UserController extends Controller
                     }
                 }
 
-                if ( $request->hasFile('file')
-                ) {
+
+                /*
+                 * 4. Import User Assignments Excel
+                 */
+                if ($request->hasFile('file')) {
+
                     $request->validate([
                         'file' => 'file|mimes:xls,xlsx',
                     ]);
 
-                    $filePath = $request->file('file')->store('uploads');
+                    $accountImport = new UserAssignedImport();
 
                     Excel::import(
-                        new UserAssignedImport($user->id),
-                        $filePath
+                        $accountImport,
+                        $request->file('file')
                     );
+
+                    $report = $accountImport->report();
+
+
+                    /*
+                     * Products
+                     */
+                    $productIds = collect(
+                        $report['products']['matched']
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->products()->sync($productIds);
+
+
+                    /*
+                     * Areas / Bricks
+                     */
+                    $brickIds = collect(
+                        $report['areas']['matched']
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->bricks()->sync($brickIds);
+
+
+                    /*
+                     * Customers
+                     */
+                    $customerIds = collect(
+                        $report['accounts']['matched']
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->customers()->sync($customerIds);
                 }
 
                 return $user;
             });
+
 
             return $this->response_api(
                 true,
@@ -98,7 +177,8 @@ class UserController extends Controller
         } catch (\Exception $e) {
 
             Log::error('User Store Error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(
@@ -108,16 +188,20 @@ class UserController extends Controller
         }
     }
 
+
+    /**
+     * Show User
+     */
     public function show(User $user)
     {
-
         $user->load([
-                'userposition',
-                'branches:id,name',
-                'branchDepartments.branch:id,name',
-                'branchDepartments.department:id,name',
-                'manager:id,name'
-            ]);
+            'userposition',
+            'branches:id,name',
+            'branchDepartments.branch:id,name',
+            'branchDepartments.department:id,name',
+            'manager:id,name'
+        ]);
+
         return $this->response_api(
             true,
             trans('messages.success'),
@@ -125,12 +209,19 @@ class UserController extends Controller
         );
     }
 
+
+    /**
+     * Update User
+     */
     public function update(UserRequest $request, User $user)
     {
         try {
 
             DB::transaction(function () use ($request, $user) {
 
+                /*
+                 * 1. Update basic user data
+                 */
                 $data = array_merge(
                     $request->validated(),
                     [
@@ -141,14 +232,26 @@ class UserController extends Controller
                 $user->update($data);
 
 
-               if (!empty($request->branch_ids)) {
-                    $user->branches()->sync($request->branch_ids);
-                }
+                /*
+                 * 2. Update Branches
+                 *
+                 * Always sync so removed branches
+                 * are also removed.
+                 */
+                $user->branches()->sync(
+                    $request->branch_ids ?? []
+                );
 
+
+                /*
+                 * 3. Update Branch Departments
+                 */
                 $user->branchDepartments()->delete();
 
                 if (!empty($request->branch_departments)) {
+
                     foreach ($request->branch_departments as $item) {
+
                         $user->branchDepartments()->create([
                             'branch_id'     => $item['branch_id'],
                             'department_id' => $item['department_id'],
@@ -156,37 +259,105 @@ class UserController extends Controller
                     }
                 }
 
-                if (
-                     $request->hasFile('file')
-                ) {
+
+                /*
+                 * 4. Update Excel Assignments
+                 *
+                 * Only replace Products / Areas / Customers
+                 * when a NEW Excel file is uploaded.
+                 */
+                if ($request->hasFile('file')) {
+
                     $request->validate([
                         'file' => 'file|mimes:xls,xlsx',
                     ]);
 
-                    $user->bricks()->detach();
-                    $user->products()->detach();
-                    $user->customers()->detach();
 
-                    $filePath = $request->file('file')->store('uploads');
+                    /*
+                     * Read Excel
+                     */
+                    $accountImport = new UserAssignedImport();
 
                     Excel::import(
-                        new UserAssignedImport($user->id),
-                        $filePath
+                        $accountImport,
+                        $request->file('file')
                     );
+
+
+                    /*
+                     * Get matched IDs
+                     */
+                    $report = $accountImport->report();
+
+
+                    /*
+                     * Products
+                     *
+                     * sync([]) is intentional.
+                     * If the Excel contains no matched products,
+                     * old products will be removed.
+                     */
+                    $productIds = collect(
+                        $report['products']['matched'] ?? []
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->products()->sync($productIds);
+
+
+                    /*
+                     * Areas / Bricks
+                     */
+                    $brickIds = collect(
+                        $report['areas']['matched'] ?? []
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->bricks()->sync($brickIds);
+
+
+                    /*
+                     * Customers
+                     */
+                    $customerIds = collect(
+                        $report['accounts']['matched'] ?? []
+                    )
+                        ->pluck('id')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    $user->customers()->sync($customerIds);
                 }
             });
+
+
+            /*
+             * Reload user with fresh data
+             */
+            $user = $user->fresh();
 
             return $this->response_api(
                 true,
                 trans('messages.success'),
-                new UserResource($user->fresh())
+                new UserResource($user)
             );
 
         } catch (\Exception $e) {
 
             Log::error('User Update Error', [
                 'user_id' => $user->id,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(
@@ -196,6 +367,10 @@ class UserController extends Controller
         }
     }
 
+
+    /**
+     * Delete User
+     */
     public function destroy(User $user)
     {
         $user->delete();
@@ -206,6 +381,10 @@ class UserController extends Controller
         );
     }
 
+
+    /**
+     * My Profile
+     */
     public function myProfile(Request $request)
     {
         return $this->response_api(
@@ -215,13 +394,19 @@ class UserController extends Controller
         );
     }
 
+
+    /**
+     * Update Profile
+     */
     public function updateProfile(ProfileRequest $request)
     {
         try {
 
             $user = auth()->user();
 
-            $user->update($request->validated());
+            $user->update(
+                $request->validated()
+            );
 
             return $this->response_api(
                 true,
@@ -244,11 +429,21 @@ class UserController extends Controller
     }
 
 
+    /**
+     * Export Sales Representatives
+     */
     public function exportSalesRep(Request $request)
     {
-        return Excel::download(new SalesRepsExport($request), 'salesrep.xlsx');
+        return Excel::download(
+            new SalesRepsExport($request),
+            'salesrep.xlsx'
+        );
     }
 
+
+    /**
+     * Import Sales Representatives
+     */
     public function importSalesRep(Request $request)
     {
         $request->validate([
@@ -256,25 +451,46 @@ class UserController extends Controller
         ]);
 
         try {
+
             $filePath = $request->file('file')->store('uploads');
 
-            Excel::import(new SalesRepImport(), $filePath);
+            Excel::import(
+                new SalesRepImport(),
+                $filePath
+            );
 
-            return $this->response_api(true, trans('messages.success'));
+            return $this->response_api(
+                true,
+                trans('messages.success')
+            );
 
         } catch (\Exception $e) {
-            Log::error('Manager Import Error', ['message' => $e->getMessage()]);
 
-            return $this->response_api(false, trans('messages.server_error'));
+            Log::error(
+                'Manager Import Error',
+                [
+                    'message' => $e->getMessage()
+                ]
+            );
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
         }
     }
 
 
-
+    /**
+     * Import / Replace User Assignments
+     *
+     * Used when assigning a new Excel file
+     * to an EXISTING user.
+     */
     public function importUserList(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xls,xlsx',
+            'file'    => 'required|file|mimes:xls,xlsx',
             'user_id' => 'required|exists:users,id',
         ]);
 
@@ -282,13 +498,73 @@ class UserController extends Controller
 
             DB::transaction(function () use ($request) {
 
-                $filePath = $request->file('file')->store('uploads');
+                $user = User::findOrFail(
+                    $request->user_id
+                );
+
+
+                /*
+                 * Read Excel
+                 */
+                $accountImport = new UserAssignedImport();
 
                 Excel::import(
-                    new UserAssignedImport($request->user_id),
-                    $filePath
+                    $accountImport,
+                    $request->file('file')
                 );
+
+
+                /*
+                 * Get matched IDs
+                 */
+                $report = $accountImport->report();
+
+
+                /*
+                 * Products
+                 */
+                $productIds = collect(
+                    $report['products']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $user->products()->sync($productIds);
+
+
+                /*
+                 * Areas / Bricks
+                 */
+                $brickIds = collect(
+                    $report['areas']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $user->bricks()->sync($brickIds);
+
+
+                /*
+                 * Customers
+                 */
+                $customerIds = collect(
+                    $report['accounts']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $user->customers()->sync($customerIds);
             });
+
 
             return $this->response_api(
                 true,
@@ -299,7 +575,8 @@ class UserController extends Controller
 
             Log::error('Import User List Error', [
                 'user_id' => $request->user_id,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(

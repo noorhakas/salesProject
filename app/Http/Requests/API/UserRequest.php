@@ -28,15 +28,15 @@ class UserRequest extends FormRequest
    public function rules()
 {
     $base = [
+        'emp_no'=>'required',
         'name'=>'required|string|max:100',
         'user_name'=>'required|string|max:100|unique:users,user_name,NULL,id,deleted_at,NULL',
         'email'=>'required|email:rfc,dns|unique:users,email,NULL,id,deleted_at,NULL',
         'status'=>'required|integer|in:0,1',
-        'customer_select_all'=>'integer|in:0,1',
         'role_id' => 'sometimes|exists:roles,id',
         'password' => 'required|min:6',
         'position'=>'sometimes',
-        'department_id'=>'sometimes',
+        'manager_id'=>'sometimes',
     ];
 
     return match (request()->method()){
