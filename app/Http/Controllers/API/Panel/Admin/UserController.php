@@ -76,12 +76,17 @@ class UserController extends Controller
                 /*
                  * 2. Branches
                  */
-                if (!empty($request->branch_ids)) {
+                $branchIds = collect($request->branch_ids ?? [])
+                ->merge(
+                    collect($request->branch_departments ?? [])
+                        ->pluck('branch_id')
+                )
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
 
-                    $user->branches()->sync(
-                        $request->branch_ids
-                    );
-                }
+                 $user->branches()->sync($branchIds);
 
 
                 /*
@@ -235,12 +240,18 @@ class UserController extends Controller
             $user->update($data);
 
 
-            $user->branches()->sync(
-                $request->branch_ids ?? []
-            );
+            $branchIds = collect($request->branch_ids ?? [])
+                ->merge(
+                    collect($request->branch_departments ?? [])
+                        ->pluck('branch_id')
+                )
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
 
+            $user->branches()->sync($branchIds);
 
-          
             $user->branchDepartments()->delete();
 
             if (!empty($request->branch_departments)) {
