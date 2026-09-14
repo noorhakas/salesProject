@@ -214,159 +214,166 @@ class UserController extends Controller
     /**
      * Update User
      */
-    public function update(UserRequest $request, User $user)
-    {
-        try {
+   public function update(UserRequest $request, User $user)
+{
+    try {
 
-            DB::transaction(function () use ($request, $user) {
-
-                /*
-                 * 1. Update basic user data
-                 */
-                $data = array_merge(
-                    $request->validated(),
-                    [
-                        'access_all_data' => $request->customer_select_all
-                    ]
-                );
-
-                $user->update($data);
-
-
-                /*
-                 * 2. Update Branches
-                 *
-                 * Always sync so removed branches
-                 * are also removed.
-                 */
-                $user->branches()->sync(
-                    $request->branch_ids ?? []
-                );
-
-
-                /*
-                 * 3. Update Branch Departments
-                 */
-                $user->branchDepartments()->delete();
-
-                if (!empty($request->branch_departments)) {
-
-                    foreach ($request->branch_departments as $item) {
-
-                        $user->branchDepartments()->create([
-                            'branch_id'     => $item['branch_id'],
-                            'department_id' => $item['department_id'],
-                        ]);
-                    }
-                }
-
-
-                /*
-                 * 4. Update Excel Assignments
-                 *
-                 * Only replace Products / Areas / Customers
-                 * when a NEW Excel file is uploaded.
-                 */
-                if ($request->hasFile('file')) {
-
-                    $request->validate([
-                        'file' => 'file|mimes:xls,xlsx',
-                    ]);
-
-
-                    /*
-                     * Read Excel
-                     */
-                    $accountImport = new UserAssignedImport();
-
-                    Excel::import(
-                        $accountImport,
-                        $request->file('file')
-                    );
-
-
-                    /*
-                     * Get matched IDs
-                     */
-                    $report = $accountImport->report();
-
-
-                    /*
-                     * Products
-                     *
-                     * sync([]) is intentional.
-                     * If the Excel contains no matched products,
-                     * old products will be removed.
-                     */
-                    $productIds = collect(
-                        $report['products']['matched'] ?? []
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->products()->sync($productIds);
-
-
-                    /*
-                     * Areas / Bricks
-                     */
-                    $brickIds = collect(
-                        $report['areas']['matched'] ?? []
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->bricks()->sync($brickIds);
-
-
-                    /*
-                     * Customers
-                     */
-                    $customerIds = collect(
-                        $report['accounts']['matched'] ?? []
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->customers()->sync($customerIds);
-                }
-            });
-
+        DB::transaction(function () use ($request, $user) {
 
             /*
-             * Reload user with fresh data
+             * 1. Update basic user data
              */
-            $user = $user->fresh();
-
-            return $this->response_api(
-                true,
-                trans('messages.success'),
-                new UserResource($user)
+            $data = array_merge(
+                $request->validated(),
+                [
+                    'access_all_data' => 0,
+                    'is_admin'        => 0,
+                    'position'        => 3,
+                ]
             );
 
-        } catch (\Exception $e) {
+            $user->update($data);
 
-            Log::error('User Update Error', [
-                'user_id' => $user->id,
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
 
-            return $this->response_api(
-                false,
-                trans('messages.server_error')
+            $user->branches()->sync(
+                $request->branch_ids ?? []
             );
-        }
+
+
+          
+            $user->branchDepartments()->delete();
+
+            if (!empty($request->branch_departments)) {
+
+                foreach ($request->branch_departments as $item) {
+
+                    $user->branchDepartments()->create([
+                        'branch_id'     => $item['branch_id'],
+                        'department_id' => $item['department_id'],
+                    ]);
+                }
+            }
+
+            if ($request->hasFile('file')) {
+
+                /*
+                 * Validate Excel
+                 */
+                $request->validate([
+                    'file' => 'required|file|mimes:xls,xlsx',
+                ]);
+
+
+                /*
+                 * Read Excel
+                 */
+                $accountImport = new UserAssignedImport();
+
+                Excel::import(
+                    $accountImport,
+                    $request->file('file')
+                );
+
+
+                /*
+                 * Get matched data
+                 */
+                $report = $accountImport->report();
+
+
+                /*
+                 * ==========================================
+                 * Products
+                 * ==========================================
+                 */
+
+                $productIds = collect(
+                    $report['products']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                /*
+                 * Replace old products with new ones
+                 */
+                $user->products()->sync($productIds);
+
+
+                /*
+                 * ==========================================
+                 * Areas / Bricks
+                 * ==========================================
+                 */
+
+                $brickIds = collect(
+                    $report['areas']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                /*
+                 * Replace old areas with new ones
+                 */
+                $user->bricks()->sync($brickIds);
+
+
+                /*
+                 * ==========================================
+                 * Customers
+                 * ==========================================
+                 */
+
+                $customerIds = collect(
+                    $report['accounts']['matched'] ?? []
+                )
+                    ->pluck('id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                /*
+                 * Replace old customers with new ones
+                 */
+                $user->customers()->sync($customerIds);
+            }
+        });
+
+
+        /*
+         * Reload updated user
+         */
+        $user = $user->fresh();
+
+
+        return $this->response_api(
+            true,
+            trans('messages.success'),
+            new UserResource($user)
+        );
+
+
+    } catch (\Exception $e) {
+
+        Log::error('User Update Error', [
+            'user_id' => $user->id,
+            'message' => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+
+
+        return $this->response_api(
+            false,
+            trans('messages.server_error')
+        );
     }
+}
 
 
     /**
