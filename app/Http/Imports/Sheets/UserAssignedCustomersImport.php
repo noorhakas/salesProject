@@ -25,9 +25,9 @@ class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
 
             $account_type = trim($row['account_type'] ?? '');
             $account_name = trim($row['account_name'] ?? '');
-            $doctor_name  = trim($row['doctor_name'] ?? '');
+            $customer_name  = trim($row['customer_name'] ?? '');
 
-            if (empty($account_name) || empty($doctor_name)) {
+            if (empty($account_name) || empty($customer_name)) {
                 continue;
             }
 
@@ -68,7 +68,7 @@ class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
                     'row'          => $i + 2,
                     'account_type' => $account_type,
                     'account_name' => $account_name,
-                    'doctor_name'  => $doctor_name,
+                    'doctor_name'  => $customer_name,
                 ]);
 
                 continue;
@@ -77,10 +77,10 @@ class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
             /*
              * Find Customer / Doctor
              */
-            $doctorData = Customer::where(
+            $customerData = Customer::where(
                 'name',
                 'like',
-                "%{$doctor_name}%"
+                "%{$customer_name}%"
             )
                 ->where(
                     'account_id',
@@ -91,13 +91,13 @@ class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
             /*
              * Customer doesn't exist
              */
-            if (!$doctorData) {
+            if (!$customerData) {
 
                 $this->dontexist_data->add([
                     'row'          => $i + 2,
                     'account_type' => $account_type,
                     'account_name' => $accountData->name,
-                    'doctor_name'  => $doctor_name,
+                    'doctor_name'  => $customer_name,
                 ]);
 
                 continue;
@@ -107,10 +107,10 @@ class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
              * Customer exists
              */
             $this->exist_data->add([
-                'id'           => $doctorData->id,
+                'id'           => $customerData->id,
                 'account_id'   => $accountData->id,
                 'account_name' => $accountData->name,
-                'doctor_name'  => $doctorData->name,
+                'doctor_name'  => $customerData->name,
             ]);
         }
     }
