@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\PositionRequest;
 use App\Repository\Interfaces\AccTypeInterface;
+use App\Models\Position;
+use App\Http\Resources\API\PositionResource;
 
 class PositionController extends Controller
 {
@@ -17,8 +19,11 @@ class PositionController extends Controller
 
 	public function index(Request $request)
 	{
-		$response = $this->accType->getPositionAll($request);
-		return $this->SendResponse($response);
+		$positions = Position::where('id','!=',3)->when($request->search,fn($q, $v) =>$q->where('name', 'like', "%{$v}%"))
+                        ->orderBy('created_at','Asc')->get();
+      $data = PositionResource::collection($positions);
+	   return ["status"=>true, "message"=>trans('messages.success'),'data'=>$data];
+		
 	}
 
 	public function store(PositionRequest $request)

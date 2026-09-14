@@ -33,6 +33,7 @@ class ManagerResource extends JsonResource
             'user_name' => $this->user_name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'whatsapp' => $this->whatsapp,
             'status' => $this->status,
 
             'position' => optional($this->userposition)->only([
