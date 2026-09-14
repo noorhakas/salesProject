@@ -10,54 +10,67 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-   public function rules()
-{
-    $base = [
-        'emp_no'=>'required',
-        'name'=>'required|string|max:100',
-        'user_name'=>'required|string|max:100|unique:users,user_name,NULL,id,deleted_at,NULL',
-        'email'=>'required|email:rfc,dns|unique:users,email,NULL,id,deleted_at,NULL',
-        'status'=>'required|integer|in:0,1',
-        'role_id' => 'sometimes|exists:roles,id',
-        'password' => 'required|min:6',
-        'position'=>'sometimes',
-        'manager_id'=>'sometimes',
-    ];
+    public function rules()
+    {
+        $userId = $this->user?->id;
 
-    return match (request()->method()){
-        "POST" => array_merge($base, [
-            'file' => 'required|file|mimes:xls,xlsx'
-        ]),
+        $rules = [
+            'emp_no'     => 'required',
+            'name'       => 'required|string|max:100',
 
-        "PUT", "PATCH" => array_merge($base, [
-            'email' => 'sometimes|required|email:rfc,dns|max:255|unique:users,email,' . $this->user?->id . ',id,deleted_at,NULL',
-            'user_name' => 'sometimes|required|string|max:255|unique:users,user_name,' . $this->user?->id . ',id,deleted_at,NULL',
-            'password' => 'sometimes|required|min:6',
-            'file' => 'sometimes|file|mimes:xls,xlsx' // اختياري في التعديل
-        ]),
-    };
-}
+            'user_name'  => [
+                'required',
+                'string',
+                'max:100',
+                'unique:users,user_name,' . $userId . ',id,deleted_at,NULL',
+            ],
+
+            'email' => [
+                'required',
+                'email:rfc,dns',
+                'unique:users,email,' . $userId . ',id,deleted_at,NULL',
+            ],
+
+            'status'     => 'required|integer|in:0,1',
+            'role_id'    => 'sometimes|exists:roles,id',
+            'position'   => 'sometimes',
+            'manager_id' => 'sometimes',
+        ];
+
+        if ($this->isMethod('POST')) {
+
+            $rules['password'] = 'required|min:6';
+
+            $rules['file'] = 'required|file|mimes:xls,xlsx';
+        }
+
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+
+            $rules['password'] = 'sometimes|required|min:6';
+
+            $rules['file'] = 'sometimes|file|mimes:xls,xlsx';
+        }
+
+        return $rules;
+    }
 
     protected function failedValidation(Validator $validator)
     {
         $errors = (new ValidationException($validator))->errors();
-        throw new HttpResponseException(response()->json(
-            ['status'=>false ,'errors' => $errors
-            ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY));
+
+        throw new HttpResponseException(
+            response()->json(
+                [
+                    'status' => false,
+                    'errors' => $errors,
+                ],
+                JsonResponse::HTTP_UNPROCESSABLE_ENTITY
+            )
+        );
     }
 }
