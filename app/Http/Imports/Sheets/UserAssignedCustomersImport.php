@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class UserAssignedAccountsImport implements ToCollection, WithHeadingRow
+class UserAssignedCustomersImport implements ToCollection, WithHeadingRow
 {
     public Collection $exist_data;
     public Collection $dontexist_data;
