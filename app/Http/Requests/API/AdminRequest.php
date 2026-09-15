@@ -17,7 +17,11 @@ class AdminRequest extends FormRequest
 
     public function rules()
     {
-        $adminId = $this->admin?->id;
+        $admin = $this->route('admin');
+
+        $adminId = $admin instanceof \App\Models\User
+            ? $admin->id
+            : null;
 
         $rules = [
             'emp_no' => 'required',

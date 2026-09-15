@@ -19,11 +19,11 @@ class AdminController extends Controller
 
     public function index(Request $request)
     {
-        $adminsQuey = User::filter($request)
+        $adminsQuery = User::filter($request)
             ->where('is_admin', 1)
             ->latest();
 
-        $admins = $this->paginateOrAll($adminsQuey, $request);    
+        $admins = $this->paginateOrAll($adminsQuery, $request);
 
         return $this->response_api(
             true,
@@ -32,33 +32,38 @@ class AdminController extends Controller
         );
     }
 
+    /**
+     * Create Admin
+     */
     public function store(AdminRequest $request)
     {
         try {
+
             $admin = DB::transaction(function () use ($request) {
 
                 $data = array_merge(
                     $request->validated(),
                     [
-                        'is_admin' => 1,
-                        'access_all_data' => 1,//$request->customer_select_all,
-                        'position'=> 0,
+                        'is_admin'       => 1,
+                        'access_all_data'=> 1,
+                        'position'       => 0,
                     ]
                 );
 
+               
                 $admin = User::create($data);
 
                 if ($request->filled('role_id')) {
                     $admin->syncRoles($request->role_id);
                 }
 
-                if (!empty($request->department_ids)) {
-                    $admin->departments()->sync($request->department_ids);
-                }
+                // if (!empty($request->department_ids)) {
+                //     $admin->departments()->sync($request->department_ids);
+                // }
 
-                if (!empty($request->branch_ids)) {
-                    $admin->branches()->sync($request->branch_ids);
-                }
+                // if (!empty($request->branch_ids)) {
+                //     $admin->branches()->sync($request->branch_ids);
+                // }
 
                 return $admin;
             });
@@ -72,7 +77,8 @@ class AdminController extends Controller
         } catch (\Exception $e) {
 
             Log::error('Admin Store Error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(
@@ -82,9 +88,9 @@ class AdminController extends Controller
         }
     }
 
-    public function show(User $user)
+    public function show(User $admin)
     {
-        if (!$user->is_admin) {
+        if (!$admin->is_admin) {
             return $this->response_api(
                 false,
                 trans('messages.not_found')
@@ -94,13 +100,14 @@ class AdminController extends Controller
         return $this->response_api(
             true,
             trans('messages.success'),
-            new UserResource($user)
+            new UserResource($admin)
         );
     }
 
-    public function update(AdminRequest $request, User $user)
+    
+    public function update(AdminRequest $request, User $admin)
     {
-        if (!$user->is_admin) {
+        if (!$admin->is_admin) {
             return $this->response_api(
                 false,
                 trans('messages.not_found')
@@ -109,43 +116,47 @@ class AdminController extends Controller
 
         try {
 
-            DB::transaction(function () use ($request, $user) {
+            DB::transaction(function () use ($request, $admin) {
 
                 $data = array_merge(
                     $request->validated(),
                     [
-                        'is_admin' => 1,
-                        'access_all_data' => 1, //$request->customer_select_all,
-                        'position'=> 0,
+                        'is_admin'        => 1,
+                        'access_all_data' => 1,
+                        'position'        => 0,
                     ]
                 );
 
-                $user->update($data);
-
+                $admin->update($data);
                 if ($request->filled('role_id')) {
-                    $user->syncRoles($request->role_id);
+                    $admin->syncRoles($request->role_id);
                 }
 
-                if (!empty($request->department_ids)) {
-                    $user->departments()->sync($request->department_ids);
-                }
+                // if (!empty($request->department_ids)) {
+                //     $admin->departments()->sync($request->department_ids);
+                // } else {
+                //     $admin->departments()->sync([]);
+                // }
 
-                if (!empty($request->branch_ids)) {
-                    $user->branches()->sync($request->branch_ids);
-                }
+                // if (!empty($request->branch_ids)) {
+                //     $admin->branches()->sync($request->branch_ids);
+                // } else {
+                //     $admin->branches()->sync([]);
+                // }
             });
 
             return $this->response_api(
                 true,
                 trans('messages.success'),
-                new AdminResource($user->fresh())
+                new AdminResource($admin->fresh())
             );
 
         } catch (\Exception $e) {
 
             Log::error('Admin Update Error', [
-                'user_id' => $user->id,
-                'message' => $e->getMessage()
+                'user_id' => $admin->id,
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(
@@ -155,21 +166,37 @@ class AdminController extends Controller
         }
     }
 
-    public function destroy(User $user)
+    public function destroy(User $admin)
     {
-        if (!$user->is_admin) {
+        if (!$admin->is_admin) {
             return $this->response_api(
                 false,
                 trans('messages.not_found')
             );
         }
 
-        $user->delete();
+        try {
 
-        return $this->response_api(
-            true,
-            trans('messages.success')
-        );
+            $admin->delete();
+
+            return $this->response_api(
+                true,
+                trans('messages.success')
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error('Admin Delete Error', [
+                'user_id' => $admin->id,
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
     }
 
     public function myProfile(Request $request)
@@ -187,7 +214,9 @@ class AdminController extends Controller
 
             $user = auth()->user();
 
-            $user->update($request->validated());
+            $user->update(
+                $request->validated()
+            );
 
             return $this->response_api(
                 true,
@@ -199,7 +228,8 @@ class AdminController extends Controller
 
             Log::error('Admin Profile Update Error', [
                 'user_id' => auth()->id(),
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
 
             return $this->response_api(
