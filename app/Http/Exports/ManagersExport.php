@@ -24,7 +24,7 @@ class ManagersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 
     public function query()
     {
-        return User::query()
+        return User::query()->where('is_admin',0)
             ->whereHas('userposition', function ($q) {
                 $q->where('ps_key', '!=', PositionKey::SALES_REP->value);
             })
