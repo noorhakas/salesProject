@@ -178,6 +178,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
 		Route::prefix('/import')->group(function () {
 			Route::post('customers','CustomerController@importCustomers');
+			Route::post('accounts','CustomerController@importAccounts');
 			Route::post('products','ProductController@importProducts');
             Route::post('useraccount','AccountController@importUserAccounts');
             

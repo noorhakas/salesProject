@@ -63,10 +63,11 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithCalculatedForm
 
             Customer::updateOrCreate(
                 [
-                    'Uuid' => $row['code'] ?? null,
+                    'name'         => trim($row['customer_name']),
                 ],
                 [
-                    'name'         => trim($row['customer_name']),
+                    'Uuid' => $row['code'] ?? null,
+                    
                     'account_id'   => $account->id,
                     'acc_type_id'  => $accTypeId,
                     'specialty_id' => $specialtyId,

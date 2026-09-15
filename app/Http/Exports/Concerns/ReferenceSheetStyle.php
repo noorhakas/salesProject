@@ -43,8 +43,7 @@ trait ReferenceSheetStyle
 
                     'fill' => [
                         'fillType'   => Fill::FILL_SOLID,
-                        // Dark Blue بدون # في الأول - PhpSpreadsheet بيرفض القيمة لو فيها #
-                        'startColor' => ['rgb' => '00008B'],
+                        'startColor' => ['rgb' => '1F497D'],
                     ],
 
                     'borders' => [
@@ -57,12 +56,6 @@ trait ReferenceSheetStyle
 
                 $sheet->getRowDimension(1)->setRowHeight(22);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Column Widths
-                |--------------------------------------------------------------------------
-                */
-
                 foreach ($columns as $char) {
 
                     $width = $this->columnWidth($char);
@@ -72,11 +65,7 @@ trait ReferenceSheetStyle
                         ->setWidth($width);
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Rows
-                |--------------------------------------------------------------------------
-                */
+               
 
                 for ($row = 2; $row <= $highestRow; $row++) {
 
