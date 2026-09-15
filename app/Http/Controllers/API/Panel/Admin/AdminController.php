@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Traits\PaginatesResults;
+use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
@@ -54,7 +55,9 @@ class AdminController extends Controller
                 $admin = User::create($data);
 
                 if ($request->filled('role_id')) {
-                    $admin->syncRoles($request->role_id);
+                    $role = Role::find($request->role_id);
+
+                    $admin->syncRoles($role);
                 }
 
                 // if (!empty($request->department_ids)) {
@@ -129,7 +132,9 @@ class AdminController extends Controller
 
                 $admin->update($data);
                 if ($request->filled('role_id')) {
-                    $admin->syncRoles($request->role_id);
+                    $role = Role::findOrFail($request->role_id);
+
+                    $admin->syncRoles($role);
                 }
 
                 // if (!empty($request->department_ids)) {
