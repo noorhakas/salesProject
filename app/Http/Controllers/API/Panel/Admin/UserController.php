@@ -457,20 +457,18 @@ class UserController extends Controller
         /*
          * Customers (+ account_id kept on the shared pivot row)
          */
-        $customerPivotData = collect($report['accounts']['matched'])
-                ->filter(fn ($row) =>
-                    !empty($row['customer_id']) &&
-                    !empty($row['account_id'])
-                )
+        if ($report['accounts']['has_data']) {
+
+            $customerPivotData = collect($report['accounts']['matched'])
+                ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
                 ->unique('customer_id')
                 ->mapWithKeys(function ($row) {
                     return [
-                        $row['customer_id'] => [
-                            'account_id' => $row['account_id'],
-                        ],
+                        $row['customer_id'] => ['account_id' => $row['account_id']],
                     ];
                 });
 
             $user->customers()->sync($customerPivotData);
+        }
     }
 }
