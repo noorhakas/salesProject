@@ -318,38 +318,60 @@ class CustomerRepository implements CustomerInterface
      * account_id is handled explicitly because it is an important
      * relation/filter and should not depend on the generic filter scope.
      */
-    protected function applyCustomerFilters($query, $request)
-    {
-        /*
-         * Generic filters.
-         *
-         * Remove account_id from the request before calling filter()
-         * so it does not get handled incorrectly by the generic scope.
-         */
-        $filterRequest = clone $request;
+   /**
+ * Apply customer filters.
+ *
+ * account_id and user_id are handled explicitly because they are
+ * important relations/filters and should not depend on the generic
+ * filter scope.
+ */
+protected function applyCustomerFilters($query, $request)
+{
+    /*
+     * Generic filters.
+     *
+     * Remove account_id and user_id from the request before calling
+     * filter() so they do not get handled incorrectly by the generic scope.
+     */
+    $filterRequest = clone $request;
 
-        $accountId = $request->input('account_id');
+    $accountId = $request->input('account_id');
+    $userId    = $request->input('user_id');
 
-        $filterRequest->request->remove('account_id');
+    $filterRequest->request->remove('account_id');
+    $filterRequest->request->remove('user_id');
 
-        $query->filter($filterRequest);
+    $query->filter($filterRequest);
 
-        /*
-         * Account filter.
-         */
-        if (
-            $accountId !== null &&
-            $accountId !== '' &&
-            is_numeric($accountId)
-        ) {
-            $query->where(
-                'customers.account_id',
-                (int) $accountId
-            );
-        }
-
-        return $query;
+    /*
+     * Account filter.
+     */
+    if (
+        $accountId !== null &&
+        $accountId !== '' &&
+        is_numeric($accountId)
+    ) {
+        $query->where(
+            'customers.account_id',
+            (int) $accountId
+        );
     }
+
+    /*
+     * User filter — العملاء المخصصين ليوزر معين (عبر user_customers).
+     */
+    if (
+        $userId !== null &&
+        $userId !== '' &&
+        is_numeric($userId)
+    ) {
+        $query->whereHas('users', function ($q) use ($userId) {
+            $q->where('users.id', (int) $userId);
+        });
+    }
+
+    return $query;
+}
 
     /**
      * Normalize customer work days.

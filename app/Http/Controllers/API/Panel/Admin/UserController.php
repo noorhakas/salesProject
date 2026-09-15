@@ -158,16 +158,16 @@ class UserController extends Controller
                     /*
                      * Customers
                      */
-                    $customerIds = collect(
-                        $report['accounts']['matched']
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->customers()->sync($customerIds);
+                   $customerPivotData = collect($report['accounts']['matched'])
+                        ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
+                        ->unique('customer_id')
+                        ->mapWithKeys(function ($row) {
+                            return [
+                                $row['customer_id'] => ['account_id' => $row['account_id']],
+                            ];
+                        });
+                    
+                    $user->customers()->sync($customerPivotData);
                 }
 
                 return $user;
@@ -340,19 +340,16 @@ class UserController extends Controller
                  * ==========================================
                  */
 
-                $customerIds = collect(
-                    $report['accounts']['matched'] ?? []
-                )
-                    ->pluck('id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                /*
-                 * Replace old customers with new ones
-                 */
-                $user->customers()->sync($customerIds);
+               $customerPivotData = collect($report['accounts']['matched'])
+                ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
+                ->unique('customer_id')
+                ->mapWithKeys(function ($row) {
+                    return [
+                        $row['customer_id'] => ['account_id' => $row['account_id']],
+                    ];
+                });
+            
+              $user->customers()->sync($customerPivotData);
             }
         });
 

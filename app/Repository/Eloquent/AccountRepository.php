@@ -18,14 +18,17 @@ class AccountRepository implements AccountInterface
     /**
      * Get all accounts.
      */
+   /**
+ * Get all accounts.
+ */
     public function getAll($request)
     {
         $accounts = $this->getAccountQuery();
 
+        $accounts = $this->applyAccountFilters($accounts, $request);
+
         $accounts = $this->paginateOrAll(
-            (clone $accounts)
-                ->filter($request)
-                ->orderByDesc('accounts.created_at'),
+            $accounts->orderByDesc('accounts.created_at'),
             $request
         );
 
@@ -440,6 +443,44 @@ class AccountRepository implements AccountInterface
         'message' => trans('messages.success'),
         'data'    => new AccountResource($account),
     ];
+}
+
+/**
+ * Apply account filters.
+ *
+ * user_id is handled explicitly because it is an important
+ * relation/filter and should not depend on the generic filter scope.
+ */
+protected function applyAccountFilters($query, $request)
+{
+    /*
+     * Generic filters.
+     *
+     * Remove user_id from the request before calling filter() so it
+     * does not get handled incorrectly by the generic scope.
+     */
+    $filterRequest = clone $request;
+
+    $userId = $request->input('user_id');
+
+    $filterRequest->request->remove('user_id');
+
+    $query->filter($filterRequest);
+
+    /*
+     * User filter — الحسابات المخصصة ليوزر معين (عبر user_customers).
+     */
+    if (
+        $userId !== null &&
+        $userId !== '' &&
+        is_numeric($userId)
+    ) {
+        $query->whereHas('users', function ($q) use ($userId) {
+            $q->where('users.id', (int) $userId);
+        });
+    }
+
+    return $query;
 }
 
 
