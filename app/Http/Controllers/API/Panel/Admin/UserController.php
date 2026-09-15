@@ -416,7 +416,64 @@ class UserController extends Controller
      * - Keeps account_id on the user_customers pivot in sync with
      *   the matched customer.
      */
+    /**
+     * Shared logic: import the Products / Areas / Accounts Excel
+     * for a given user and apply the sync — used by store(),
+     * update() and importUserList() so all three behave identically.
+     *
+     * NOTE: this always replaces Products / Areas / Customers with
+     * whatever is in the uploaded file. If a sheet has no matching
+     * rows (or the sheet is missing/empty), that relation is cleared
+     * for the user. Make sure every upload includes all three sheets
+     * with the full intended data.
+     */
     protected function importUserAssignments(User $user, $uploadedFile): void
+    {
+        $accountImport = new UserAssignedImport();
+
+        Excel::import($accountImport, $uploadedFile);
+
+        $report = $accountImport->report();
+
+        /*
+         * Products
+         */
+        $productIds = collect($report['products']['matched'])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $user->products()->sync($productIds);
+
+        /*
+         * Areas / Bricks
+         */
+        $brickIds = collect($report['areas']['matched'])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $user->bricks()->sync($brickIds);
+
+        /*
+         * Customers (+ account_id kept on the shared pivot row)
+         */
+        $customerPivotData = collect($report['accounts']['matched'])
+            ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
+            ->unique('customer_id')
+            ->mapWithKeys(function ($row) {
+                return [
+                    $row['customer_id'] => ['account_id' => $row['account_id']],
+                ];
+            });
+
+        $user->customers()->sync($customerPivotData);
+    }
+    protected function importUserAssignmentsOld(User $user, $uploadedFile): void
     {
         $accountImport = new UserAssignedImport();
 
