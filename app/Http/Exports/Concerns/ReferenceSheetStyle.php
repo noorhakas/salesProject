@@ -43,7 +43,8 @@ trait ReferenceSheetStyle
 
                     'fill' => [
                         'fillType'   => Fill::FILL_SOLID,
-                        'startColor' => ['rgb' => '#053562'],
+                        // Dark Blue بدون # في الأول - PhpSpreadsheet بيرفض القيمة لو فيها #
+                        'startColor' => ['rgb' => '00008B'],
                     ],
 
                     'borders' => [
