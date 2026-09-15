@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API\Panel\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\ProfileRequest;
-use App\Http\Requests\API\UserRequest;
+use App\Http\Requests\API\AdminRequest;
 use App\Http\Resources\API\UserResource;
 use App\Http\Resources\API\AdminResource;
 use App\Models\User;
@@ -32,7 +32,7 @@ class AdminController extends Controller
         );
     }
 
-    public function store(UserRequest $request)
+    public function store(AdminRequest $request)
     {
         try {
             $admin = DB::transaction(function () use ($request) {
@@ -41,7 +41,8 @@ class AdminController extends Controller
                     $request->validated(),
                     [
                         'is_admin' => 1,
-                        'access_all_data' => $request->customer_select_all,
+                        'access_all_data' => 1,//$request->customer_select_all,
+                        'position'=> 0,
                     ]
                 );
 
@@ -97,7 +98,7 @@ class AdminController extends Controller
         );
     }
 
-    public function update(UserRequest $request, User $user)
+    public function update(AdminRequest $request, User $user)
     {
         if (!$user->is_admin) {
             return $this->response_api(
@@ -114,7 +115,8 @@ class AdminController extends Controller
                     $request->validated(),
                     [
                         'is_admin' => 1,
-                        'access_all_data' => $request->customer_select_all,
+                        'access_all_data' => 1, //$request->customer_select_all,
+                        'position'=> 0,
                     ]
                 );
 
