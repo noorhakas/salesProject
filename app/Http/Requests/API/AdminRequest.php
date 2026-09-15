@@ -17,7 +17,7 @@ class AdminRequest extends FormRequest
 
     public function rules()
     {
-        $userId = $this->user?->id;
+        $adminId = $this->admin?->id;
 
         $rules = [
             'emp_no' => 'required',
@@ -28,13 +28,13 @@ class AdminRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                'unique:users,user_name,' . $userId . ',id,deleted_at,NULL',
+                'unique:users,user_name,' . $adminId . ',id,deleted_at,NULL',
             ],
 
             'email' => [
                 'required',
                 'email:rfc,dns',
-                'unique:users,email,' . $userId . ',id,deleted_at,NULL',
+                'unique:users,email,' . $adminId . ',id,deleted_at,NULL',
             ],
 
             'phone' => [
