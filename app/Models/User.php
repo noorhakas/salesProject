@@ -129,10 +129,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Product::class, 'user_products','user_id','product_id');
     }
 	public function customers()
-    {
-        return $this->belongsToMany(Customer::class, 'user_customers','user_id','customer_id');
-    }
-
+{
+    return $this->belongsToMany(
+        Customer::class,
+        'user_customers',
+        'user_id',
+        'customer_id'
+    )->withPivot('account_id');
+}
 	public function accounts()
     {
         return $this->belongsToMany(Account::class, 'user_customers','user_id','account_id');
