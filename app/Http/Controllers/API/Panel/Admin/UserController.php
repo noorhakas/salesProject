@@ -61,9 +61,9 @@ class UserController extends Controller
                 $data = array_merge(
                     $request->validated(),
                     [
-                        'access_all_data' => 0, //$request->customer_select_all,
-                        'is_admin'=> 0,
-                        'position' => 3
+                        'access_all_data' => 0,
+                        'is_admin'        => 0,
+                        'position'        => 3,
                     ]
                 );
 
@@ -77,16 +77,16 @@ class UserController extends Controller
                  * 2. Branches
                  */
                 $branchIds = collect($request->branch_ids ?? [])
-                ->merge(
-                    collect($request->branch_departments ?? [])
-                        ->pluck('branch_id')
-                )
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+                    ->merge(
+                        collect($request->branch_departments ?? [])
+                            ->pluck('branch_id')
+                    )
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
 
-                 $user->branches()->sync($branchIds);
+                $user->branches()->sync($branchIds);
 
 
                 /*
@@ -107,7 +107,7 @@ class UserController extends Controller
 
 
                 /*
-                 * 4. Import User Assignments Excel
+                 * 4. Import User Assignments Excel (Products / Areas / Accounts)
                  */
                 if ($request->hasFile('file')) {
 
@@ -115,59 +115,7 @@ class UserController extends Controller
                         'file' => 'file|mimes:xls,xlsx',
                     ]);
 
-                    $accountImport = new UserAssignedImport();
-
-                    Excel::import(
-                        $accountImport,
-                        $request->file('file')
-                    );
-
-                    $report = $accountImport->report();
-
-
-                    /*
-                     * Products
-                     */
-                    $productIds = collect(
-                        $report['products']['matched']
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->products()->sync($productIds);
-
-
-                    /*
-                     * Areas / Bricks
-                     */
-                    $brickIds = collect(
-                        $report['areas']['matched']
-                    )
-                        ->pluck('id')
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->all();
-
-                    $user->bricks()->sync($brickIds);
-
-
-                    /*
-                     * Customers
-                     */
-                   $customerPivotData = collect($report['accounts']['matched'])
-                        ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
-                        ->unique('customer_id')
-                        ->mapWithKeys(function ($row) {
-                            return [
-                                $row['customer_id'] => ['account_id' => $row['account_id']],
-                            ];
-                        });
-                    
-                    $user->customers()->sync($customerPivotData);
+                    $this->importUserAssignments($user, $request->file('file'));
                 }
 
                 return $user;
@@ -205,7 +153,7 @@ class UserController extends Controller
             'branches:id,name',
             'branchDepartments.branch:id,name',
             'branchDepartments.department:id,name',
-            'manager:id,name'
+            'manager:id,name',
         ]);
 
         return $this->response_api(
@@ -219,169 +167,86 @@ class UserController extends Controller
     /**
      * Update User
      */
-   public function update(UserRequest $request, User $user)
-{
-    try {
+    public function update(UserRequest $request, User $user)
+    {
+        try {
 
-        DB::transaction(function () use ($request, $user) {
-
-            /*
-             * 1. Update basic user data
-             */
-            $data = array_merge(
-                $request->validated(),
-                [
-                    'access_all_data' => 0,
-                    'is_admin'        => 0,
-                    'position'        => 3,
-                ]
-            );
-
-            $user->update($data);
-
-
-            $branchIds = collect($request->branch_ids ?? [])
-                ->merge(
-                    collect($request->branch_departments ?? [])
-                        ->pluck('branch_id')
-                )
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-
-            $user->branches()->sync($branchIds);
-
-            $user->branchDepartments()->delete();
-
-            if (!empty($request->branch_departments)) {
-
-                foreach ($request->branch_departments as $item) {
-
-                    $user->branchDepartments()->create([
-                        'branch_id'     => $item['branch_id'],
-                        'department_id' => $item['department_id'],
-                    ]);
-                }
-            }
-
-            if ($request->hasFile('file')) {
+            DB::transaction(function () use ($request, $user) {
 
                 /*
-                 * Validate Excel
+                 * 1. Update basic user data
                  */
-                $request->validate([
-                    'file' => 'required|file|mimes:xls,xlsx',
-                ]);
-
-
-                /*
-                 * Read Excel
-                 */
-                $accountImport = new UserAssignedImport();
-
-                Excel::import(
-                    $accountImport,
-                    $request->file('file')
+                $data = array_merge(
+                    $request->validated(),
+                    [
+                        'access_all_data' => 0,
+                        'is_admin'        => 0,
+                        'position'        => 3,
+                    ]
                 );
 
-
-                /*
-                 * Get matched data
-                 */
-                $report = $accountImport->report();
+                $user->update($data);
 
 
-                /*
-                 * ==========================================
-                 * Products
-                 * ==========================================
-                 */
-
-                $productIds = collect(
-                    $report['products']['matched'] ?? []
-                )
-                    ->pluck('id')
+                $branchIds = collect($request->branch_ids ?? [])
+                    ->merge(
+                        collect($request->branch_departments ?? [])
+                            ->pluck('branch_id')
+                    )
                     ->filter()
                     ->unique()
                     ->values()
                     ->all();
 
-                /*
-                 * Replace old products with new ones
-                 */
-                $user->products()->sync($productIds);
+                $user->branches()->sync($branchIds);
+
+                $user->branchDepartments()->delete();
+
+                if (!empty($request->branch_departments)) {
+
+                    foreach ($request->branch_departments as $item) {
+
+                        $user->branchDepartments()->create([
+                            'branch_id'     => $item['branch_id'],
+                            'department_id' => $item['department_id'],
+                        ]);
+                    }
+                }
+
+                if ($request->hasFile('file')) {
+
+                    $request->validate([
+                        'file' => 'required|file|mimes:xls,xlsx',
+                    ]);
+
+                    $this->importUserAssignments($user, $request->file('file'));
+                }
+            });
 
 
-                /*
-                 * ==========================================
-                 * Areas / Bricks
-                 * ==========================================
-                 */
-
-                $brickIds = collect(
-                    $report['areas']['matched'] ?? []
-                )
-                    ->pluck('id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                /*
-                 * Replace old areas with new ones
-                 */
-                $user->bricks()->sync($brickIds);
+            $user = $user->fresh();
 
 
-                /*
-                 * ==========================================
-                 * Customers
-                 * ==========================================
-                 */
+            return $this->response_api(
+                true,
+                trans('messages.success'),
+                new UserResource($user)
+            );
 
-               $customerPivotData = collect($report['accounts']['matched'])
-                ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
-                ->unique('customer_id')
-                ->mapWithKeys(function ($row) {
-                    return [
-                        $row['customer_id'] => ['account_id' => $row['account_id']],
-                    ];
-                });
-            
-              $user->customers()->sync($customerPivotData);
-            }
-        });
+        } catch (\Exception $e) {
 
+            Log::error('User Update Error', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
 
-        /*
-         * Reload updated user
-         */
-        $user = $user->fresh();
-
-
-        return $this->response_api(
-            true,
-            trans('messages.success'),
-            new UserResource($user)
-        );
-
-
-    } catch (\Exception $e) {
-
-        Log::error('User Update Error', [
-            'user_id' => $user->id,
-            'message' => $e->getMessage(),
-            'trace'   => $e->getTraceAsString(),
-        ]);
-
-
-        return $this->response_api(
-            false,
-            trans('messages.server_error')
-        );
+            return $this->response_api(
+                false,
+                trans('messages.server_error')
+            );
+        }
     }
-}
 
 
     /**
@@ -434,7 +299,7 @@ class UserController extends Controller
 
             Log::error('Profile Update Error', [
                 'user_id' => auth()->id(),
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return $this->response_api(
@@ -485,7 +350,7 @@ class UserController extends Controller
             Log::error(
                 'Manager Import Error',
                 [
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ]
             );
 
@@ -514,73 +379,10 @@ class UserController extends Controller
 
             DB::transaction(function () use ($request) {
 
-                $user = User::findOrFail(
-                    $request->user_id
-                );
+                $user = User::findOrFail($request->user_id);
 
-
-                /*
-                 * Read Excel
-                 */
-                $accountImport = new UserAssignedImport();
-
-                Excel::import(
-                    $accountImport,
-                    $request->file('file')
-                );
-
-
-                /*
-                 * Get matched IDs
-                 */
-                $report = $accountImport->report();
-
-
-                /*
-                 * Products
-                 */
-                $productIds = collect(
-                    $report['products']['matched'] ?? []
-                )
-                    ->pluck('id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                $user->products()->sync($productIds);
-
-
-                /*
-                 * Areas / Bricks
-                 */
-                $brickIds = collect(
-                    $report['areas']['matched'] ?? []
-                )
-                    ->pluck('id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                $user->bricks()->sync($brickIds);
-
-
-                /*
-                 * Customers
-                 */
-                $customerIds = collect(
-                    $report['accounts']['matched'] ?? []
-                )
-                    ->pluck('id')
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                $user->customers()->sync($customerIds);
+                $this->importUserAssignments($user, $request->file('file'));
             });
-
 
             return $this->response_api(
                 true,
@@ -599,6 +401,74 @@ class UserController extends Controller
                 false,
                 trans('messages.server_error')
             );
+        }
+    }
+
+
+    /**
+     * Shared logic: import the Products / Areas / Accounts Excel
+     * for a given user and apply the sync — used by store(),
+     * update() and importUserList() so all three behave identically.
+     *
+     * - Only syncs a relation if its sheet actually had data rows,
+     *   so a partial upload (e.g. only the Accounts sheet) never
+     *   wipes existing Products/Areas assignments.
+     * - Keeps account_id on the user_customers pivot in sync with
+     *   the matched customer.
+     */
+    protected function importUserAssignments(User $user, $uploadedFile): void
+    {
+        $accountImport = new UserAssignedImport();
+
+        Excel::import($accountImport, $uploadedFile);
+
+        $report = $accountImport->report();
+
+        /*
+         * Products
+         */
+        if ($report['products']['has_data']) {
+
+            $productIds = collect($report['products']['matched'])
+                ->pluck('id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $user->products()->sync($productIds);
+        }
+
+        /*
+         * Areas / Bricks
+         */
+        if ($report['areas']['has_data']) {
+
+            $brickIds = collect($report['areas']['matched'])
+                ->pluck('id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $user->bricks()->sync($brickIds);
+        }
+
+        /*
+         * Customers (+ account_id kept on the shared pivot row)
+         */
+        if ($report['accounts']['has_data']) {
+
+            $customerPivotData = collect($report['accounts']['matched'])
+                ->filter(fn ($row) => !empty($row['customer_id']) && !empty($row['account_id']))
+                ->unique('customer_id')
+                ->mapWithKeys(function ($row) {
+                    return [
+                        $row['customer_id'] => ['account_id' => $row['account_id']],
+                    ];
+                });
+
+            $user->customers()->sync($customerPivotData);
         }
     }
 }
