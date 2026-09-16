@@ -31,11 +31,11 @@ class ProductResource extends JsonResource
          
       $base =  [
             'id' => $this->id,
-             'Uuid' => $this->Uuid,
+            'Uuid' => $this->Uuid,
             'name' => $this->name,
 			'image'=>$this->image,
-             'category' => $this->idName($this->category),
-             'company' => $this->idName($this->company),
+            'category' => $this->idName($this->category),
+            'company' => $this->idName($this->company),
             'price'=>(float)$this->price,
 			'description'=>$this->description,
              'status'=>$this->status,

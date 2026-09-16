@@ -23,4 +23,11 @@ class NotificationController extends Controller
         return $this->SendResponse($response);
     }
 
+    public function unreadCount()
+    {
+        $model = new Notification();
+        $response = $model->unreadCount();
+        return $this->SendResponse($response);
+    }
+
 }

@@ -139,6 +139,24 @@ class Notification extends Model
         }
     }
 
+    public function unreadCount()
+    {
+        $authUser = auth()->user();
+
+        $count = Notification::leftJoin('users as creators', 'creators.id', '=', 'notifications.created_by')
+            ->where('notifications.tiIsRead', 0)
+            ->where(function ($q) use ($authUser) {
+                $q->where('notifications.user_id', $authUser->id)
+                    ->orWhere(function ($q2) use ($authUser) {
+                        $q2->where('notifications.user_id', 0)
+                            ->where('creators.manager_id', $authUser->id);
+                    });
+            })
+            ->count();
+
+        return ['status' => true, 'message' => trans('messages.success'), 'data' => ['countOfUnRead' => $count]];
+    }
+
     public function sendNotification(array $data)
     {
         self::CreateNotify([
