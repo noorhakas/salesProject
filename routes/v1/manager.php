@@ -61,6 +61,8 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::prefix('/notifications')->group(function () {
 		Route::get('/','NotificationController@notificationListing');
 		Route::get('badge-reset','NotificationController@notificationBadgeReset');
+    Route::get('unread-count', 'NotificationController@unreadCount');
+
 	});
 
 
