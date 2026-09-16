@@ -36,8 +36,8 @@ class VisitsController extends Controller
 	 }
 
 	
-    public function currentVisits(){
-        $response = $this->IVisit->getCurrentVisits();
+    public function currentVisits(Request $request){
+        $response = $this->IVisit->getCurrentVisits($request);
 		   return $this->SendResponse($response);
     }
 
