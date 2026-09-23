@@ -31,7 +31,7 @@ class PlanRepository implements PlanInterface
         $this->notifications = $notifications;
     }
 
-   public function getMyPlans($request)
+    public function getMyPlans($request)
     {
        // $this->applyDefaultDateRange($request);
 
@@ -68,7 +68,7 @@ class PlanRepository implements PlanInterface
         return $this->success(PlansResource::collection($plans));
     }
 
-     public function createNewPlan($request)
+    public function createNewPlan($request)
     {
         $user = auth()->user();
         $userId = auth()->user()->id ?? 0;
@@ -113,7 +113,8 @@ class PlanRepository implements PlanInterface
          return $this->success(new PlansResource($plan));
     }
 
-   private function hasOverlappingPlan($user, $startDate, $endDate): bool
+   
+    private function hasOverlappingPlan($user, $startDate, $endDate): bool
     {
         return $user->plans()
             ->where('status', '!=', PlanStatusEnum::Rejected)
@@ -154,135 +155,25 @@ class PlanRepository implements PlanInterface
         }
     }
 
-   
     public function deletePlan($plan)
     {
         try {
-
             if (!$plan) {
                 return $this->failure('data_not_found');
             }
 
-            if ((int) $plan->user_id !== (int) auth()->id()) {
-                return $this->failure('unauthorized');
-            }
-
-            /*
-             * Only pending plans can be deleted.
-             */
-            if ((int) $plan->status !==(int) PlanStatusEnum::Pending) {
-                return $this->failure('plan_not_pending');
-            }
-
-            DB::beginTransaction();
-
-            /*
-             * Delete all visits belonging to the plan.
-             */
-            Visit::where('plan_id',$plan->id)->delete();
-
             $plan->delete();
 
-            DB::commit();
-
-            return [
-                'status'  => true,
-                'message' => trans('messages.success'),
-            ];
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            Log::error(
-                'Plan deletion failed',
-                [
-                    'plan_id'  => $plan->id ?? null,
-                    'user_id'  => auth()->id(),
-                    'exception' => $e,
-                ]
-            );
-
-            return $this->failure('server_error');
-        }
-    }
-
-  
-    public function updatePlan($request,$plan_id) {
-        $plan = Plan::find($plan_id);
-
-        if (!$plan) {
-            return $this->failure('data_not_found');
-        }
-
-        /*
-         * Authorization
-         */
-        if ((int) $plan->user_id !== (int) auth()->id()) {
-            return $this->failure('unauthorized');
-        }
-
-        /*
-         * Only pending plans can be edited.
-         */
-        if ((int) $plan->status !==(int) PlanStatusEnum::Pending) {
-            return $this->failure('plan_not_pending');
-        }
-
-        try {
-
-            DB::beginTransaction();
-
-            $visitList = collect($request->input('visit_list', []));
-
-            /*
-             * Prevent empty plans.
-             */
-            if ($visitList->isEmpty()) {
-                DB::rollBack();
-                return $this->failure('visit_list_required');
-            }
-
-        
-            $startDate = Carbon::parse($visitList->min('visit_date'))->toDateString();
-            $endDate = Carbon::parse( $visitList->max('visit_date'))->toDateString();
-
-            $plan->update([ 'start_date' => $startDate,'end_date'   => $endDate]);
-
-            $visitIds = [];
-
-            foreach ($visitList as $visit) {
-                $updatedVisit = $this->upsertVisit($plan,$visit,auth()->id());
-                $visitIds[] = $updatedVisit->id;
-            }
-
-            Visit::where('plan_id',$plan->id)->whereNotIn('id',$visitIds)->delete();
-
-            DB::commit();
-
-            $plan->refresh();
-
-            return $this->success(new PlansResource($plan));
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            Log::error(
-                'Pending plan update failed',
-                [
-                    'plan_id'  => $plan_id,
-                    'user_id'  => auth()->id(),
-                    'exception' => $e,
-                ]
-            );
+            return ['status' => true, 'message' => trans('messages.success')];
+        } catch (\Exception $e) {
+            Log::error('Plan deletion failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return $this->failure('server_error');
         }
     }
 
     /**
-     * Accept a plan.
+     * Accept a plan. 
      */
     public function acceptPlan($request)
     {
@@ -297,7 +188,8 @@ class PlanRepository implements PlanInterface
         return $this->reviewPlan($request, PlanStatusEnum::Rejected);
     }
 
-    protected function reviewPlan($request, int $status): array
+
+   protected function reviewPlan($request, int $status): array
     {
         $planId = $request->plan_id;
         $reviewer = auth()->user();
@@ -499,4 +391,5 @@ class PlanRepository implements PlanInterface
         }
     }
 
+   
 }

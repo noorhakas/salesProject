@@ -45,6 +45,13 @@ class PlansController extends Controller
 		 return $this->SendResponse($response);
 	 }
 
+	 public function updatePendingPlan(Request $request, $plan_id)
+	{
+		$response = $this->IPlan->updatePlan($request,$plan_id);
+		return $this->SendResponse($response);
+
+	}
+
 
       public function destroy(Plan $plan)
     {

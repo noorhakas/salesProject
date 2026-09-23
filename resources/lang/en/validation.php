@@ -160,4 +160,12 @@ return [
 
     'attributes' => [],
 
+    'data_not_found' => 'Visit not found.',
+    'unauthorized' => 'You are not authorized to update this visit.',
+    'visit_not_visited' => 'Only visited visits can be updated.',
+    'server_error' => 'Something went wrong. Please try again later.',
+    'plan_not_pending' => 'Only pending plans can be modified or deleted.',
+    'visit_list_required' => 'The visit list is required.',
+    'plan_date_overlap' => 'You already have a plan in this date range.',
+
 ];

@@ -8,6 +8,7 @@ interface VisitInterface
      public function getvisitsByPlan($request);
 	 
 	 public function submitVisit($request);
+	 public function updateVisitedVisit($request);
 	 public function getvisitDtail($id);
 	  public function getVisitCharts($request);
 	  public function getAllVisits();

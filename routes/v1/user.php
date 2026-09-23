@@ -39,6 +39,9 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::post('/','PlansController@store');
          Route::delete('/{plan}','PlansController@destroy');
          Route::get('detail', 'PlansController@planDetail');
+         Route::put('/{plan_id}','PlansController@updatePendingPlan');
+
+       
       });
 
       Route::prefix('/visits')->group(function () {
@@ -48,6 +51,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
          Route::post('create_unplanned_visit','VisitsController@createUnplannedVisit');
          Route::post('savevisit','VisitsController@store');
          Route::post('offline_visits', 'VisitsController@submitOfflineVisits');
+         Route::put('/update-visited', 'VisitsController@updateVisitedVisit');
       });
 
 

@@ -35,6 +35,13 @@ class VisitsController extends Controller
 		 return $this->SendResponse($response);
 	 }
 
+
+	 public function updateVisitedVisit(Request $request)
+	{
+		$response = $this->IVisit->updateVisitedVisit($request);
+		 return $this->SendResponse($response);
+	}
+
 	
     public function currentVisits(Request $request){
         $response = $this->IVisit->getCurrentVisits($request);

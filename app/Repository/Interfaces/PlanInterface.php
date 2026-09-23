@@ -6,6 +6,7 @@ interface PlanInterface
 {
       public function show($id);
       public function createNewPlan($request);
+      public function updatePlan($request, $plan_id);
       public function getMyPlans($request);
 	public function getALL($request);
 	public function deletePlan($id);
