@@ -54,10 +54,13 @@ class VisitRepository implements VisitInterface
             ->whereHas('user')
             ->join('accounts', 'accounts.id', '=', 'visits.account_id')
             ->leftJoin('customers', 'customers.id', '=', 'visits.customer_id')
-            ->with([
-                'user:id,name',
-                'account:id,name',
-                'customer:id,name,image',
+            ->with(['user:id,name','account:id,name',
+                 'customer' => function ($q) {
+                    $q->select('id','name','image','account_id','class_id')->with([
+                        'account:id,name,lat,lng',
+                        'class:id,name',
+                    ]);
+                },
             ]);
     }
 
