@@ -46,5 +46,6 @@ return [
     'visit_notification_body' => 'يرغب :userName في مرافقتك لزيارة :doctorName في :dateTime.',
     'visit_request' => 'طلب زيارة',
     'visit_request_msg' => 'يرغب :userName في مرافقتك لزيارة :doctorName في :dateTime.',
+    'plan_not_pending' => 'يمكن حذف الخطط المعلقة فقط.',
 
 ];
