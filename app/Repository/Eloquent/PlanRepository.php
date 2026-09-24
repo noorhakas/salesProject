@@ -155,58 +155,53 @@ class PlanRepository implements PlanInterface
     }
 
    
-    public function deletePlan($plan)
-    {
-        try {
+    public function deletePlan($plan, bool $isAdmin = false, array $allowedUserIds = []) {
+    try {
 
-            if (!$plan) {
-                return $this->failure('data_not_found');
-            }
+        if (!$plan) {
+            return $this->failure('data_not_found');
+        }
 
-            if ((int) $plan->user_id !== (int) auth()->id()) {
+        if (!$isAdmin) {
+
+            if (!empty($allowedUserIds) && !in_array($plan->user_id, $allowedUserIds) ) {
                 return $this->failure('unauthorized');
             }
 
-            /*
-             * Only pending plans can be deleted.
-             */
-            if ((int) $plan->status !==(int) PlanStatusEnum::Pending) {
-                return $this->failure('plan_not_pending');
+            if (empty($allowedUserIds) && (int) $plan->user_id !== (int) auth()->id()) {
+                return $this->failure('unauthorized');
             }
-
-            DB::beginTransaction();
-
-            /*
-             * Delete all visits belonging to the plan.
-             */
-            Visit::where('plan_id',$plan->id)->delete();
-
-            $plan->delete();
-
-            DB::commit();
-
-            return [
-                'status'  => true,
-                'message' => trans('messages.success'),
-            ];
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            Log::error(
-                'Plan deletion failed',
-                [
-                    'plan_id'  => $plan->id ?? null,
-                    'user_id'  => auth()->id(),
-                    'exception' => $e,
-                ]
-            );
-
-            return $this->failure('server_error');
         }
-    }
+        if ((int) $plan->status !== (int) PlanStatusEnum::Pending) {
+            return $this->failure('plan_not_pending');
+        }
 
+        DB::beginTransaction();
+
+        Visit::where('plan_id', $plan->id)->delete();
+
+        $plan->delete();
+
+        DB::commit();
+
+        return [
+            'status'  => true,
+            'message' => trans('messages.success'),
+        ];
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        Log::error('Plan deletion failed', [
+            'plan_id'   => $plan->id ?? null,
+            'user_id'   => auth()->id(),
+            'exception' => $e,
+        ]);
+
+        return $this->failure('server_error');
+    }
+}
   
    public function updatePlan($request, $plan_id)
 {

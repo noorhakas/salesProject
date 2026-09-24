@@ -69,6 +69,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::prefix('/plans')->group(function () {
             Route::get('/', 'PlansController@index');
             Route::get('/{plan_id}', 'PlansController@show');
+            Route::delete('/{plan}','PlansController@destroy');
             Route::post('/accept', 'PlansController@accept');
             Route::post('/reject', 'PlansController@reject');
     });

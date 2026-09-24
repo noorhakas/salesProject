@@ -81,7 +81,8 @@ class VisitRepository implements VisitInterface
             $request
         )
         ->filter($request)
-        ->orderByDesc('visits.created_at');
+        ->orderBy('visits.visit_date')
+        ->orderBy('visits.start_time');
     }
 
     /**

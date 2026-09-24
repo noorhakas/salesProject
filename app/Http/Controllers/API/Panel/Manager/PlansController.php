@@ -88,4 +88,12 @@ class PlansController extends Controller
 
         return $plan;
     }
+
+    public function destroy(Plan $plan)
+    {
+        $manager = auth()->user();
+        $subordinateIds = $manager->getAllSubordinateIds();
+		$response = $this->IPlan->deletePlan($plan,false,$subordinateIds);
+		return $this->SendResponse($response);
+    }
 }

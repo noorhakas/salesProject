@@ -9,7 +9,7 @@ interface PlanInterface
       public function updatePlan($request, $plan_id);
       public function getMyPlans($request);
 	public function getALL($request);
-	public function deletePlan($id);
+	public function deletePlan($plan, bool $isAdmin = false, array $allowedUserIds = []);
 	public function acceptPlan($request);
       public function rejectPlan($request);
       public function statistics($request, array $subordinateIds);
