@@ -172,9 +172,9 @@ class PlanRepository implements PlanInterface
                 return $this->failure('unauthorized');
             }
         }
-        if ((int) $plan->status !== (int) PlanStatusEnum::Pending) {
-            return $this->failure('plan_not_pending');
-        }
+        // if ((int) $plan->status !== (int) PlanStatusEnum::Pending) {
+        //     return $this->failure('plan_not_pending');
+        // }
 
         DB::beginTransaction();
 
