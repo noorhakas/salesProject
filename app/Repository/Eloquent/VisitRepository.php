@@ -51,6 +51,7 @@ class VisitRepository implements VisitInterface
     {
         return Visit::query()
             ->select('visits.*')
+            ->whereHas('user')
             ->join('accounts', 'accounts.id', '=', 'visits.account_id')
             ->leftJoin('customers', 'customers.id', '=', 'visits.customer_id')
             ->with([
