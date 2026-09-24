@@ -253,7 +253,7 @@ class PlanRepository implements PlanInterface
 
             foreach ($visitList as $visit) {
                 $updatedVisit = $this->upsertVisit($plan,$visit,auth()->id());
-                $visitIds[] = $updatedVisit->id;
+                $visitIds[] = $updatedVisit?->id;
             }
 
             Visit::where('plan_id',$plan->id)->whereNotIn('id',$visitIds)->delete();

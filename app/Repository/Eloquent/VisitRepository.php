@@ -460,6 +460,8 @@ class VisitRepository implements VisitInterface
         }
 
         $visitDate = now()->toDateString();
+        $startTime = now();
+        $endTime = $startTime->copy()->addMinutes(15);
 
         $combineWith = $this->resolveCombineWith(
             $request->combine_with ?? null
@@ -478,6 +480,8 @@ class VisitRepository implements VisitInterface
             array_merge($attributes, [
                 'type' => 1,
                 'combine_with' => $combineWith,
+                'start_time' => $startTime->format('H:i:s'),
+                 'end_time' => $endTime->format('H:i:s'),
             ])
         );
 
