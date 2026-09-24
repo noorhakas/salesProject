@@ -33,7 +33,9 @@ class PlanChangeStatusRequest extends FormRequest
 		 return [
             'plan_id' => 'required|exists:plans,id,deleted_at,NULL',
             'status' => ['required', Rule::in([PlanStatusEnum::Accepted, PlanStatusEnum::Rejected])],
-			'note'=> 'min:10',
+			'note' => ['nullable','min:10',
+                Rule::requiredIf(fn () => (int) $this->status === (int) PlanStatusEnum::Rejected),
+            ],
         ];
 
     }
