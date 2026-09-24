@@ -208,78 +208,93 @@ class PlanRepository implements PlanInterface
     }
 
   
-    public function updatePlan($request,$plan_id) {
-        $plan = Plan::find($plan_id);
+   public function updatePlan($request, $plan_id)
+{
+    $plan = Plan::find($plan_id);
 
-        if (!$plan) {
-            return $this->failure('data_not_found');
-        }
-
-        /*
-         * Authorization
-         */
-        if ((int) $plan->user_id !== (int) auth()->id()) {
-            return $this->failure('unauthorized');
-        }
-
-        /*
-         * Only pending plans can be edited.
-         */
-        if ((int) $plan->status !==(int) PlanStatusEnum::Pending) {
-            return $this->failure('plan_not_pending');
-        }
-
-        try {
-
-            DB::beginTransaction();
-
-            $visitList = collect($request->input('visit_list', []));
-
-            /*
-             * Prevent empty plans.
-             */
-            if ($visitList->isEmpty()) {
-                DB::rollBack();
-                return $this->failure('visit_list_required');
-            }
-
-        
-            $startDate = Carbon::parse($visitList->min('visit_date'))->toDateString();
-            $endDate = Carbon::parse( $visitList->max('visit_date'))->toDateString();
-
-            $plan->update([ 'start_date' => $startDate,'end_date'   => $endDate]);
-
-            $visitIds = [];
-
-            foreach ($visitList as $visit) {
-                $updatedVisit = $this->upsertVisit($plan,$visit,auth()->id());
-                $visitIds[] = $updatedVisit?->id;
-            }
-
-            Visit::where('plan_id',$plan->id)->whereNotIn('id',$visitIds)->delete();
-
-            DB::commit();
-
-            $plan->refresh();
-
-            return $this->success(new PlansResource($plan));
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            Log::error(
-                'Pending plan update failed',
-                [
-                    'plan_id'  => $plan_id,
-                    'user_id'  => auth()->id(),
-                    'exception' => $e,
-                ]
-            );
-
-            return $this->failure('server_error');
-        }
+    if (!$plan) {
+        return $this->failure('data_not_found');
     }
+
+    /*
+     * Authorization
+     */
+    if ((int) $plan->user_id !== (int) auth()->id()) {
+        return $this->failure('unauthorized');
+    }
+
+    /*
+     * Only pending plans can be edited.
+     */
+    if ((int) $plan->status !== (int) PlanStatusEnum::Pending) {
+        return $this->failure('plan_not_pending');
+    }
+
+    $visitList = collect($request->input('visit_list', []));
+
+    /*
+     * Prevent empty plans.
+     */
+    if ($visitList->isEmpty()) {
+        return $this->failure('visit_list_required');
+    }
+
+    try {
+
+        DB::beginTransaction();
+
+        $startDate = Carbon::parse(
+            $visitList->min('visit_date')
+        )->toDateString();
+
+        $endDate = Carbon::parse(
+            $visitList->max('visit_date')
+        )->toDateString();
+
+        $plan->update([
+            'start_date' => $startDate,
+            'end_date'   => $endDate,
+        ]);
+
+        $visitIds = [];
+
+        foreach ($visitList as $visit) {
+
+            $updatedVisit = $this->upsertVisit($plan,$visit,auth()->id());
+
+            if ($updatedVisit) {
+                $visitIds[] = $updatedVisit->id;
+            }
+        }
+
+        Visit::where('plan_id', $plan->id)
+            ->whereNotIn('id', $visitIds)
+            ->delete();
+
+        DB::commit();
+
+        $plan->refresh();
+
+        return $this->success(
+            new PlansResource($plan)
+        );
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        Log::error(
+            'Pending plan update failed',
+            [
+                'plan_id'  => $plan_id,
+                'user_id'  => auth()->id(),
+                'exception' => $e,
+            ]
+        );
+
+        return $this->failure('server_error');
+    }
+}
 
     /**
      * Accept a plan.

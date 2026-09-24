@@ -21,6 +21,8 @@ class CustomerSimpleResource extends JsonResource
             'lat'         => $this->account?->lat !== null ? (float) $this->account?->lat : '',
             'lng'         => $this->account?->lng !== null ? (float) $this->account?->lng : '',
             'specialty'          => $this->idName($this->specialty),
+             'class'              => $this->idName($this->class),
+
 
         ];
     }

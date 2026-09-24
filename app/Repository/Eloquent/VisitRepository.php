@@ -119,32 +119,35 @@ class VisitRepository implements VisitInterface
                 return $this->success([]);
             }
 
-            $query = $this->joinAccountsAndCustomers(
-                $plan->visits()
-            )
-            ->select('visits.*')
-            ->with([
-                'user:id,name',
-                'account:id,name',
-                'customer:id,name,image',
-            ])
-            ->filter($request)
-            ->orderByDesc('visits.created_at');
+            $visits = $plan->visits();
 
         } else {
 
-            $query = $this->joinAccountsAndCustomers(
-                auth()->user()->visits()
-            )
+            $visits = auth()->user()->visits();
+        }
+
+        $query = $this->joinAccountsAndCustomers($visits)
             ->select('visits.*')
             ->with([
                 'user:id,name',
                 'account:id,name',
-                'customer:id,name,image',
+                'customer' => function ($q) {
+                    $q->select(
+                        'id',
+                        'name',
+                        'image',
+                        'specialty_id',
+                        'account_id',
+                        'class_id'
+                    )->with([
+                        'account:id,name,address,lat,lng',
+                        'specialty:id,name',
+                        'class:id,name',
+                    ]);
+                },
             ])
             ->filter($request)
             ->orderByDesc('visits.created_at');
-        }
 
         $visits = $this->paginateOrAll(
             $query,
@@ -382,10 +385,12 @@ class VisitRepository implements VisitInterface
                     'name',
                     'image',
                     'specialty_id',
-                    'account_id'
+                    'account_id',
+                    'class_id'
                 )->with([
                     'account:id,address,lat,lng',
                     'specialty:id,name',
+                    'class:id,name'
                 ]);
             },
         ]);
@@ -580,65 +585,61 @@ class VisitRepository implements VisitInterface
  * - items
  */
     public function updateVisitedVisit($request)
-    {
-        try {
-            DB::beginTransaction();
+{
+    $visit = Visit::find($request->visit_id);
 
-            $visit = Visit::find($request->visit_id);
-
-            if (!$visit) {
-                return $this->failure('data_not_found');
-            }
-
-            /*Authorization*/
-            if ((int) $visit->user_id !== (int) auth()->id()) {
-                return $this->failure('unauthorized');
-            }
-
-            /* Only Visited Visits Can Be Edited*/
-
-            if ((int) $visit->status !== (int) VisitStatusEnum::Visited['id']) {
-                return $this->failure('visit_not_visited');
-            }
-
-            /* Update Visit Information*/
-
-            $visit->update([
-                'notes' => $request->input('notes'),
-
-                'combine_with' => $this->resolveCombineWith(
-                    $request->input('combine_with')
-                ),
-            ]);
-
-            $this->replaceVisitDetails(
-                $visit,
-                $request->items ?? []
-            );
-
-            DB::commit();
-
-            $visit->refresh();
-
-            return $this->success(
-                $this->buildVisitDetailData($visit)
-            );
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-            Log::error(
-                'Visited visit update failed',
-                [
-                    'visit_id' => $request->input('visit_id'),
-                    'user_id' => auth()->id(),
-                    'exception' => $e->getMessage(),
-                ]
-            );
-
-            return $this->failure('server_error');
-        }
+    if (!$visit) {
+        return $this->failure('data_not_found');
     }
+
+    if ((int) $visit->user_id !== (int) auth()->id()) {
+        return $this->failure('unauthorized');
+    }
+
+    if ((int) $visit->status !== (int) VisitStatusEnum::Visited['id']) {
+        return $this->failure('visit_not_visited');
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $visit->update([
+            'notes' => $request->input('notes'),
+
+            'combine_with' => $this->resolveCombineWith(
+                $request->input('combine_with')
+            ),
+        ]);
+
+        $this->replaceVisitDetails(
+            $visit,
+            $request->items ?? []
+        );
+
+        DB::commit();
+
+        $visit->refresh();
+
+        return $this->success(
+            $this->buildVisitDetailData($visit)
+        );
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        Log::error(
+            'Visited visit update failed',
+            [
+                'visit_id' => $request->input('visit_id'),
+                'user_id' => auth()->id(),
+                'exception' => $e->getMessage(),
+            ]
+        );
+
+        return $this->failure('server_error');
+    }
+}
 
     /*
     |--------------------------------------------------------------------------
