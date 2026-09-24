@@ -25,7 +25,7 @@ class VisitsResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'customer' => new CustomerSimpleResource($this->whenLoaded('customer')),
+            'customer' => new CustomerShortResource($this->whenLoaded('customer')),
             'account_id' => $this->account ? $this->account->id : 0,
             'account' => $this->account ? $this->account->name : '',
             'user' => new UserShortDetailResource($this->whenLoaded('user')),

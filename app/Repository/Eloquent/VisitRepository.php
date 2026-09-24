@@ -136,12 +136,10 @@ class VisitRepository implements VisitInterface
                         'id',
                         'name',
                         'image',
-                        'specialty_id',
                         'account_id',
                         'class_id'
                     )->with([
-                        'account:id,name,address,lat,lng',
-                        'specialty:id,name',
+                        'account:id,name,lat,lng',
                         'class:id,name',
                     ]);
                 },

@@ -17,6 +17,9 @@ class CustomerShortResource extends JsonResource
             'id'                 => $this->id,
             'name'               => $this->name,
             'image'              => $this->image,
+             'lat'         => $this->account?->lat !== null ? (float) $this->account?->lat : '',
+            'lng'         => $this->account?->lng !== null ? (float) $this->account?->lng : '',
+             'class'              => $this->idName($this->class),
 
         ];
     }
