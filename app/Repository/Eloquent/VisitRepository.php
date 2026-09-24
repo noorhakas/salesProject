@@ -145,7 +145,8 @@ class VisitRepository implements VisitInterface
                 },
             ])
             ->filter($request)
-            ->orderByDesc('visits.created_at');
+            ->orderBy('visits.visit_date')
+            ->orderBy('visits.start_time');
 
         $visits = $this->paginateOrAll(
             $query,
@@ -180,7 +181,8 @@ class VisitRepository implements VisitInterface
             'customer:id,name,image',
         ])
         ->filter($request)
-        ->orderByDesc('visits.created_at');
+        ->orderBy('visits.visit_date')
+        ->orderBy('visits.start_time');
 
         $visits = $this->paginateOrAll(
             $query,
